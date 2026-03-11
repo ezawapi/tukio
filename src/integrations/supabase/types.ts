@@ -14,7 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          attendees_count: number | null
+          capacity: number | null
+          category_id: string | null
+          city: string
+          created_at: string
+          date: string
+          description: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_live: boolean | null
+          is_published: boolean | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          organizer_id: string | null
+          organizer_name: string | null
+          price: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees_count?: number | null
+          capacity?: number | null
+          category_id?: string | null
+          city?: string
+          created_at?: string
+          date: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_live?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          organizer_id?: string | null
+          organizer_name?: string | null
+          price?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees_count?: number | null
+          capacity?: number | null
+          category_id?: string | null
+          city?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_live?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          organizer_id?: string | null
+          organizer_name?: string | null
+          price?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
