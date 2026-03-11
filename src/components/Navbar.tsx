@@ -1,18 +1,25 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, Search, Bell } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Search, Bell, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const navLinks = [
     { label: "Accueil", href: "/" },
     { label: "Événements", href: "/events" },
     { label: "Catégories", href: "/categories" },
-    { label: "Carte", href: "/map" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -37,14 +44,32 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Search className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Bell className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm">Connexion</Button>
-          <Button size="sm" className="gradient-hero text-primary-foreground border-0">Publier</Button>
+          {user && (
+            <Link to="/favorites">
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Heart className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+          {user ? (
+            <>
+              <Link to="/create">
+                <Button size="sm" className="gradient-hero text-primary-foreground border-0">Publier</Button>
+              </Link>
+              <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth">
+                <Button variant="outline" size="sm">Connexion</Button>
+              </Link>
+              <Link to="/auth">
+                <Button size="sm" className="gradient-hero text-primary-foreground border-0">Publier</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button className="md:hidden text-foreground" onClick={() => setIsOpen(!isOpen)}>
@@ -71,9 +96,29 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              {user && (
+                <Link to="/favorites" className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2" onClick={() => setIsOpen(false)}>
+                  Mes Favoris
+                </Link>
+              )}
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">Connexion</Button>
-                <Button size="sm" className="flex-1 gradient-hero text-primary-foreground border-0">Publier</Button>
+                {user ? (
+                  <>
+                    <Link to="/create" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full gradient-hero text-primary-foreground border-0">Publier</Button>
+                    </Link>
+                    <Button variant="outline" size="sm" onClick={handleSignOut}>Déconnexion</Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Connexion</Button>
+                    </Link>
+                    <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full gradient-hero text-primary-foreground border-0">Publier</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
