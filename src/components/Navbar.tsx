@@ -14,6 +14,7 @@ const Navbar = () => {
   const navLinks = [
     { label: "Accueil", href: "/" },
     { label: "Événements", href: "/events" },
+    { label: "Carte", href: "/map" },
     { label: "Catégories", href: "/categories" },
   ];
 

@@ -11,6 +11,7 @@ import CreateEvent from "./pages/CreateEvent.tsx";
 import Categories from "./pages/Categories.tsx";
 import Favorites from "./pages/Favorites.tsx";
 import Auth from "./pages/Auth.tsx";
+import MapExplore from "./pages/MapExplore.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
