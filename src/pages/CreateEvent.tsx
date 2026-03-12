@@ -66,6 +66,8 @@ const CreateEvent = () => {
       image_url: form.image_url || null,
       organizer_name: form.organizer_name,
       organizer_id: user.id,
+      latitude: form.latitude ? parseFloat(form.latitude) : null,
+      longitude: form.longitude ? parseFloat(form.longitude) : null,
     });
 
     setLoading(false);
