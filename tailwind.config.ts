@@ -52,7 +52,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         "warm-gold": "hsl(var(--warm-gold))",
-        "deep-green": "hsl(var(--deep-green))",
+        "deep-blue": "hsl(var(--deep-blue))",
         terracotta: "hsl(var(--terracotta))",
         "earth-brown": "hsl(var(--earth-brown))",
         sand: "hsl(var(--sand))",
