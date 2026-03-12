@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Search, Bell, Heart, LogOut } from "lucide-react";
+import { Menu, X, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import tukioLogo from "@/assets/tukio-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,10 +26,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
-            <span className="font-display font-bold text-primary-foreground text-sm">T</span>
-          </div>
-          <span className="font-display font-bold text-xl text-foreground">Tukio</span>
+          <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import tukioLogo from "@/assets/tukio-logo.png";
 
 const Footer = () => {
   return (
@@ -7,13 +8,10 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-sm">T</span>
-              </div>
-              <span className="font-display font-bold text-xl text-foreground">Tukio</span>
+              <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
             </div>
             <p className="font-body text-sm text-muted-foreground">
-              La plateforme centrale d'information événementielle.
+              Événements & Activités en ligne.
             </p>
           </div>
           {[
