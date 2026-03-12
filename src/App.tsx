@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

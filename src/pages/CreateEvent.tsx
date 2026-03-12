@@ -157,6 +157,17 @@ const CreateEvent = () => {
                   <Input value={form.image_url} onChange={(e) => handleChange("image_url", e.target.value)} placeholder="https://..." />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-body">Latitude</Label>
+                    <Input type="number" step="any" value={form.latitude} onChange={(e) => handleChange("latitude", e.target.value)} placeholder="-4.3250" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-body">Longitude</Label>
+                    <Input type="number" step="any" value={form.longitude} onChange={(e) => handleChange("longitude", e.target.value)} placeholder="15.3222" />
+                  </div>
+                </div>
+
                 <Button type="submit" className="w-full gradient-hero text-primary-foreground border-0" size="lg" disabled={loading}>
                   {loading ? "Publication..." : "Publier l'événement"}
                 </Button>
