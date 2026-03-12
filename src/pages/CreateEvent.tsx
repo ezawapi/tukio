@@ -30,6 +30,8 @@ const CreateEvent = () => {
     capacity: "",
     image_url: "",
     organizer_name: "",
+    latitude: "",
+    longitude: "",
   });
 
   useEffect(() => {
