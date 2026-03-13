@@ -174,24 +174,19 @@ const EventDetail = () => {
                     <MapPin className="h-5 w-5 text-primary" /> Localisation
                   </h2>
                   <div className="rounded-lg overflow-hidden h-64">
-                    <MapContainer
+                    <LeafletMap
                       center={[event.latitude, event.longitude]}
                       zoom={14}
-                      className="h-full w-full z-0"
+                      markers={[{
+                        id: event.id,
+                        lat: event.latitude,
+                        lng: event.longitude,
+                        popupHtml: `<strong>${event.title}</strong><br />${event.location}, ${event.city}`,
+                      }]}
+                      className="z-0"
                       style={{ height: "100%", width: "100%" }}
                       scrollWheelZoom={false}
-                    >
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      <Marker position={[event.latitude, event.longitude]}>
-                        <Popup>
-                          <strong>{event.title}</strong><br />
-                          {event.location}, {event.city}
-                        </Popup>
-                      </Marker>
-                    </MapContainer>
+                    />
                   </div>
                 </div>
               )}
