@@ -12,6 +12,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -166,7 +176,36 @@ const EventDetail = () => {
                 </p>
               </div>
 
-              {/* Comments */}
+              {/* Mini Map */}
+              {event.latitude && event.longitude && (
+                <div className="bg-card rounded-xl p-6">
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" /> Localisation
+                  </h2>
+                  <div className="rounded-lg overflow-hidden h-64">
+                    <MapContainer
+                      center={[event.latitude, event.longitude]}
+                      zoom={14}
+                      className="h-full w-full z-0"
+                      style={{ height: "100%", width: "100%" }}
+                      scrollWheelZoom={false}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <Marker position={[event.latitude, event.longitude]}>
+                        <Popup>
+                          <strong>{event.title}</strong><br />
+                          {event.location}, {event.city}
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
+                  </div>
+                </div>
+              )}
+
+
               <div className="bg-card rounded-xl p-6">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">
                   Commentaires ({comments.length})
