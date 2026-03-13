@@ -33,6 +33,7 @@ const App = () => (
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
