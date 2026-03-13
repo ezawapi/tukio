@@ -12,6 +12,7 @@ import Categories from "./pages/Categories.tsx";
 import Favorites from "./pages/Favorites.tsx";
 import Auth from "./pages/Auth.tsx";
 import MapExplore from "./pages/MapExplore.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Phone, Mail, Globe, Facebook, Instagram, Twitter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,14 @@ const CreateEvent = () => {
     organizer_name: "",
     latitude: "",
     longitude: "",
+    phone1: "",
+    phone2: "",
+    contact_email: "",
+    website_url: "",
+    facebook_url: "",
+    instagram_url: "",
+    twitter_url: "",
+    tiktok_url: "",
   });
 
   useEffect(() => {
@@ -68,6 +77,14 @@ const CreateEvent = () => {
       organizer_id: user.id,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
       longitude: form.longitude ? parseFloat(form.longitude) : null,
+      phone1: form.phone1 || null,
+      phone2: form.phone2 || null,
+      contact_email: form.contact_email || null,
+      website_url: form.website_url || null,
+      facebook_url: form.facebook_url || null,
+      instagram_url: form.instagram_url || null,
+      twitter_url: form.twitter_url || null,
+      tiktok_url: form.tiktok_url || null,
     });
 
     setLoading(false);
@@ -155,6 +172,62 @@ const CreateEvent = () => {
                 <div className="space-y-2">
                   <Label className="font-body">URL de l'image</Label>
                   <Input value={form.image_url} onChange={(e) => handleChange("image_url", e.target.value)} placeholder="https://..." />
+                </div>
+
+                {/* Contact Section */}
+                <div className="border-t border-border pt-5">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" /> Informations de contact
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-body">Téléphone 1</Label>
+                        <Input value={form.phone1} onChange={(e) => handleChange("phone1", e.target.value)} placeholder="+243 XXX XXX XXX" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-body">Téléphone 2</Label>
+                        <Input value={form.phone2} onChange={(e) => handleChange("phone2", e.target.value)} placeholder="+243 XXX XXX XXX" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-body">Email de contact</Label>
+                      <Input type="email" value={form.contact_email} onChange={(e) => handleChange("contact_email", e.target.value)} placeholder="contact@exemple.com" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-body">Site web</Label>
+                      <Input value={form.website_url} onChange={(e) => handleChange("website_url", e.target.value)} placeholder="https://www.exemple.com" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Media Section */}
+                <div className="border-t border-border pt-5">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" /> Réseaux sociaux
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-body flex items-center gap-1"><Facebook className="h-3 w-3" /> Facebook</Label>
+                        <Input value={form.facebook_url} onChange={(e) => handleChange("facebook_url", e.target.value)} placeholder="https://facebook.com/..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-body flex items-center gap-1"><Instagram className="h-3 w-3" /> Instagram</Label>
+                        <Input value={form.instagram_url} onChange={(e) => handleChange("instagram_url", e.target.value)} placeholder="https://instagram.com/..." />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-body flex items-center gap-1"><Twitter className="h-3 w-3" /> Twitter / X</Label>
+                        <Input value={form.twitter_url} onChange={(e) => handleChange("twitter_url", e.target.value)} placeholder="https://x.com/..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-body">TikTok</Label>
+                        <Input value={form.tiktok_url} onChange={(e) => handleChange("tiktok_url", e.target.value)} placeholder="https://tiktok.com/@..." />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          is_read: boolean
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          is_read?: boolean
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_read?: boolean
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -76,12 +108,15 @@ export type Database = {
           capacity: number | null
           category_id: string | null
           city: string
+          contact_email: string | null
           created_at: string
           date: string
           description: string | null
           end_date: string | null
+          facebook_url: string | null
           id: string
           image_url: string | null
+          instagram_url: string | null
           is_live: boolean | null
           is_published: boolean | null
           latitude: number | null
@@ -89,21 +124,29 @@ export type Database = {
           longitude: number | null
           organizer_id: string | null
           organizer_name: string | null
+          phone1: string | null
+          phone2: string | null
           price: string | null
+          tiktok_url: string | null
           title: string
+          twitter_url: string | null
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           attendees_count?: number | null
           capacity?: number | null
           category_id?: string | null
           city?: string
+          contact_email?: string | null
           created_at?: string
           date: string
           description?: string | null
           end_date?: string | null
+          facebook_url?: string | null
           id?: string
           image_url?: string | null
+          instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
           latitude?: number | null
@@ -111,21 +154,29 @@ export type Database = {
           longitude?: number | null
           organizer_id?: string | null
           organizer_name?: string | null
+          phone1?: string | null
+          phone2?: string | null
           price?: string | null
+          tiktok_url?: string | null
           title: string
+          twitter_url?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           attendees_count?: number | null
           capacity?: number | null
           category_id?: string | null
           city?: string
+          contact_email?: string | null
           created_at?: string
           date?: string
           description?: string | null
           end_date?: string | null
+          facebook_url?: string | null
           id?: string
           image_url?: string | null
+          instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
           latitude?: number | null
@@ -133,9 +184,14 @@ export type Database = {
           longitude?: number | null
           organizer_id?: string | null
           organizer_name?: string | null
+          phone1?: string | null
+          phone2?: string | null
           price?: string | null
+          tiktok_url?: string | null
           title?: string
+          twitter_url?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: [
           {
@@ -176,15 +232,39 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -311,6 +391,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
