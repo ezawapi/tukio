@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Clock, Tag, User } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,6 +101,8 @@ const EventDetail = () => {
     toast({ title: "Lien copié !" });
   };
 
+  const hasContactInfo = event && (event.phone1 || event.phone2 || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -136,7 +137,6 @@ const EventDetail = () => {
       <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          {/* Back */}
           <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 font-body text-sm">
             <ArrowLeft className="h-4 w-4" /> Retour aux événements
           </Link>
@@ -167,6 +167,57 @@ const EventDetail = () => {
                 </p>
               </div>
 
+              {/* Contact Info */}
+              {hasContactInfo && (
+                <div className="bg-card rounded-xl p-6">
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-primary" /> Contact & Réseaux
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {event.phone1 && (
+                      <a href={`tel:${event.phone1}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Phone className="h-4 w-4 text-primary" /> {event.phone1}
+                      </a>
+                    )}
+                    {event.phone2 && (
+                      <a href={`tel:${event.phone2}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Phone className="h-4 w-4 text-primary" /> {event.phone2}
+                      </a>
+                    )}
+                    {event.contact_email && (
+                      <a href={`mailto:${event.contact_email}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Mail className="h-4 w-4 text-primary" /> {event.contact_email}
+                      </a>
+                    )}
+                    {event.website_url && (
+                      <a href={event.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Globe className="h-4 w-4 text-primary" /> Site web
+                      </a>
+                    )}
+                    {event.facebook_url && (
+                      <a href={event.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Facebook className="h-4 w-4 text-blue-600" /> Facebook
+                      </a>
+                    )}
+                    {event.instagram_url && (
+                      <a href={event.instagram_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Instagram className="h-4 w-4 text-pink-500" /> Instagram
+                      </a>
+                    )}
+                    {event.twitter_url && (
+                      <a href={event.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Twitter className="h-4 w-4 text-sky-500" /> Twitter / X
+                      </a>
+                    )}
+                    {event.tiktok_url && (
+                      <a href={event.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                        <Globe className="h-4 w-4 text-foreground" /> TikTok
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Mini Map */}
               {event.latitude && event.longitude && (
                 <div className="bg-card rounded-xl p-6">
@@ -191,7 +242,7 @@ const EventDetail = () => {
                 </div>
               )}
 
-
+              {/* Comments */}
               <div className="bg-card rounded-xl p-6">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">
                   Commentaires ({comments.length})
