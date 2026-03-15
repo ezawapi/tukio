@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareDialog from "@/components/ShareDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -96,12 +97,7 @@ const EventDetail = () => {
     }
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({ title: "Lien copié !" });
-  };
-
-  const hasContactInfo = event && (event.phone1 || event.phone2 || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
+  const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
   if (loading) {
     return (
@@ -132,6 +128,10 @@ const EventDetail = () => {
     );
   }
 
+  const priceDisplay = event.price === "Gratuit" || !event.price
+    ? "Gratuit"
+    : `${event.price} ${event.currency || "FCFA"}`;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -144,13 +144,20 @@ const EventDetail = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Image */}
-              <div className="relative rounded-xl overflow-hidden h-64 md:h-96">
-                <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
-                {event.is_live && (
-                  <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground border-0 animate-pulse-live text-sm px-4 py-1">
-                    🔴 EN DIRECT
-                  </Badge>
+              {/* Images */}
+              <div className="space-y-3">
+                <div className="relative rounded-xl overflow-hidden h-64 md:h-96">
+                  <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
+                  {event.is_live && (
+                    <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground border-0 animate-pulse-live text-sm px-4 py-1">
+                      🔴 EN DIRECT
+                    </Badge>
+                  )}
+                </div>
+                {event.image_url2 && (
+                  <div className="rounded-xl overflow-hidden h-48 md:h-64">
+                    <img src={event.image_url2} alt={`${event.title} - photo 2`} className="w-full h-full object-cover" />
+                  </div>
                 )}
               </div>
 
@@ -161,7 +168,7 @@ const EventDetail = () => {
                     {event.categories?.name || "Événement"}
                   </Badge>
                 </div>
-                <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{event.title}</h1>
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">{event.title}</h1>
                 <p className="font-body text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {event.description || "Aucune description disponible."}
                 </p>
@@ -169,11 +176,16 @@ const EventDetail = () => {
 
               {/* Contact Info */}
               {hasContactInfo && (
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-xl p-4 sm:p-6">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <Phone className="h-5 w-5 text-primary" /> Contact & Réseaux
                   </h2>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {event.whatsapp && (
+                      <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-muted">
+                        <MessageCircle className="h-4 w-4 text-green-600" /> WhatsApp
+                      </a>
+                    )}
                     {event.phone1 && (
                       <a href={`tel:${event.phone1}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
                         <Phone className="h-4 w-4 text-primary" /> {event.phone1}
@@ -220,7 +232,7 @@ const EventDetail = () => {
 
               {/* Mini Map */}
               {event.latitude && event.longitude && (
-                <div className="bg-card rounded-xl p-6">
+                <div className="bg-card rounded-xl p-4 sm:p-6">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-primary" /> Localisation
                   </h2>
@@ -243,12 +255,12 @@ const EventDetail = () => {
               )}
 
               {/* Comments */}
-              <div className="bg-card rounded-xl p-6">
+              <div className="bg-card rounded-xl p-4 sm:p-6">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">
                   Commentaires ({comments.length})
                 </h2>
                 {user && (
-                  <div className="flex gap-3 mb-6">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
                     <Textarea
                       placeholder="Ajouter un commentaire..."
                       value={newComment}
@@ -282,14 +294,14 @@ const EventDetail = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <div className="bg-card rounded-xl p-6 space-y-4 sticky top-24">
+              <div className="bg-card rounded-xl p-4 sm:p-6 space-y-4 lg:sticky top-24">
                 <div className="text-center">
-                  <p className="font-display text-2xl font-bold text-foreground">{event.price || "Gratuit"}</p>
+                  <p className="font-display text-2xl font-bold text-foreground">{priceDisplay}</p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-5 w-5 text-primary" />
+                    <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
                     <div>
                       <p className="font-body font-medium text-foreground">
                         {format(new Date(event.date), "EEEE d MMMM yyyy", { locale: fr })}
@@ -300,19 +312,19 @@ const EventDetail = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <MapPin className="h-5 w-5 text-primary" />
+                    <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
                     <div>
                       <p className="font-body font-medium text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <Users className="h-5 w-5 text-primary" />
+                    <Users className="h-5 w-5 text-primary flex-shrink-0" />
                     <p className="font-body text-foreground">{event.attendees_count || 0} participants</p>
                   </div>
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
-                      <User className="h-5 w-5 text-primary" />
+                      <User className="h-5 w-5 text-primary flex-shrink-0" />
                       <p className="font-body text-foreground">{event.organizer_name}</p>
                     </div>
                   )}
@@ -323,10 +335,20 @@ const EventDetail = () => {
                     <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
-                  <Button onClick={handleShare} variant="outline" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
+                  <ShareDialog title={event.title}>
+                    <Button variant="outline" size="icon">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </ShareDialog>
                 </div>
+
+                {event.whatsapp && (
+                  <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button variant="outline" className="w-full text-green-600 border-green-600/30 hover:bg-green-50">
+                      <MessageCircle className="h-4 w-4 mr-2" /> Contacter via WhatsApp
+                    </Button>
+                  </a>
+                )}
 
                 <Button className="w-full gradient-hero text-primary-foreground border-0" size="lg">
                   Participer
