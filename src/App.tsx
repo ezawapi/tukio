@@ -12,6 +12,7 @@ import Categories from "./pages/Categories.tsx";
 import Favorites from "./pages/Favorites.tsx";
 import Auth from "./pages/Auth.tsx";
 import MapExplore from "./pages/MapExplore.tsx";
+import Agenda from "./pages/Agenda.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/create" element={<CreateEvent />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/agenda" element={<Agenda />} />
             <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />

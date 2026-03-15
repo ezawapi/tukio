@@ -1,19 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Heart, LogOut } from "lucide-react";
+import { Menu, X, Heart, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import tukioLogo from "@/assets/tukio-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) checkAdmin();
+    else setIsAdmin(false);
+  }, [user]);
+
+  const checkAdmin = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("user_roles").select("role")
+      .eq("user_id", user.id).eq("role", "admin").maybeSingle();
+    setIsAdmin(!!data);
+  };
 
   const navLinks = [
     { label: "Accueil", href: "/" },
     { label: "Événements", href: "/events" },
+    { label: "Agenda", href: "/agenda" },
     { label: "Carte", href: "/map" },
     { label: "Catégories", href: "/categories" },
   ];
@@ -30,19 +46,22 @@ const Navbar = () => {
           <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6 lg:gap-8">
           {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className="font-body text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link key={link.href} to={link.href} className="font-body text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2 lg:gap-3">
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost" size="icon" className="text-primary">
+                <Shield className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           {user && (
             <Link to="/favorites">
               <Button variant="ghost" size="icon" className="text-muted-foreground">
@@ -86,15 +105,15 @@ const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2"
-                  onClick={() => setIsOpen(false)}
-                >
+                <Link key={link.href} to={link.href} className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2" onClick={() => setIsOpen(false)}>
                   {link.label}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link to="/admin" className="font-body text-sm font-medium text-primary hover:text-primary/80 py-2 flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Shield className="h-4 w-4" /> Admin
+                </Link>
+              )}
               {user && (
                 <Link to="/favorites" className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2" onClick={() => setIsOpen(false)}>
                   Mes Favoris
