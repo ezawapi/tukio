@@ -110,12 +110,14 @@ export type Database = {
           city: string
           contact_email: string | null
           created_at: string
+          currency: string
           date: string
           description: string | null
           end_date: string | null
           facebook_url: string | null
           id: string
           image_url: string | null
+          image_url2: string | null
           instagram_url: string | null
           is_live: boolean | null
           is_published: boolean | null
@@ -127,11 +129,13 @@ export type Database = {
           phone1: string | null
           phone2: string | null
           price: string | null
+          status: string
           tiktok_url: string | null
           title: string
           twitter_url: string | null
           updated_at: string
           website_url: string | null
+          whatsapp: string | null
         }
         Insert: {
           attendees_count?: number | null
@@ -140,12 +144,14 @@ export type Database = {
           city?: string
           contact_email?: string | null
           created_at?: string
+          currency?: string
           date: string
           description?: string | null
           end_date?: string | null
           facebook_url?: string | null
           id?: string
           image_url?: string | null
+          image_url2?: string | null
           instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
@@ -157,11 +163,13 @@ export type Database = {
           phone1?: string | null
           phone2?: string | null
           price?: string | null
+          status?: string
           tiktok_url?: string | null
           title: string
           twitter_url?: string | null
           updated_at?: string
           website_url?: string | null
+          whatsapp?: string | null
         }
         Update: {
           attendees_count?: number | null
@@ -170,12 +178,14 @@ export type Database = {
           city?: string
           contact_email?: string | null
           created_at?: string
+          currency?: string
           date?: string
           description?: string | null
           end_date?: string | null
           facebook_url?: string | null
           id?: string
           image_url?: string | null
+          image_url2?: string | null
           instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
@@ -187,11 +197,13 @@ export type Database = {
           phone1?: string | null
           phone2?: string | null
           price?: string | null
+          status?: string
           tiktok_url?: string | null
           title?: string
           twitter_url?: string | null
           updated_at?: string
           website_url?: string | null
+          whatsapp?: string | null
         }
         Relationships: [
           {
