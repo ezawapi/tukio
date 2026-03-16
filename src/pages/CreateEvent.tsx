@@ -250,7 +250,7 @@ const CreateEvent = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="font-body flex items-center gap-1">
-                          <MessageCircle className="h-3 w-3 text-green-600" /> WhatsApp
+                          <MessageCircle className="h-3 w-3 text-primary" /> WhatsApp
                         </Label>
                         <Input value={form.whatsapp} onChange={(e) => handleChange("whatsapp", e.target.value)} placeholder="+243 XXX XXX XXX" />
                       </div>

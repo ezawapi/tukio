@@ -35,6 +35,7 @@ const App = () => (
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/explorer" element={<MapExplore />} />
+            <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />

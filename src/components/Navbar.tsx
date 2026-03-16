@@ -1,147 +1,175 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, Heart, LogOut, Shield } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Compass, Heart, LogOut, Menu, Plus, Shield, UserCircle2, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useUserRole } from "@/hooks/use-user-role";
 import tukioLogo from "@/assets/tukio-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin, role } = useUserRole(user?.id);
+  const isOnline = useOnlineStatus();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (user) checkAdmin();
-    else setIsAdmin(false);
-  }, [user]);
+    setIsOpen(false);
+  }, [location.pathname]);
 
-  const checkAdmin = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("user_roles").select("role")
-      .eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    setIsAdmin(!!data);
-  };
-
-  const navLinks = [
-    { label: "Accueil", href: "/" },
-    { label: "Événements", href: "/events" },
-    { label: "Agenda", href: "/agenda" },
-    { label: "Carte", href: "/map" },
-    { label: "Catégories", href: "/categories" },
-  ];
+  const navLinks = useMemo(
+    () => [
+      { label: "Accueil", href: "/" },
+      { label: "Événements", href: "/events" },
+      { label: "Agenda", href: "/agenda" },
+      { label: "Explorer", href: "/explorer", icon: Compass },
+      { label: "Catégories", href: "/categories" },
+    ],
+    [],
+  );
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
+  const roleLabel = isAdmin ? "Admin" : role === "moderator" ? "Modérateur" : "Connecté";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/90 backdrop-blur-lg">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-3 px-4">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
           <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-6 lg:gap-8">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-2 lg:flex xl:gap-3">
           {navLinks.map((link) => (
-            <Link key={link.href} to={link.href} className="font-body text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <NavLink
+              key={link.href}
+              to={link.href}
+              className="rounded-full px-4 py-2 font-body text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              activeClassName="bg-muted text-foreground"
+            >
               {link.label}
-            </Link>
+            </NavLink>
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-2 lg:gap-3">
+        <div className="hidden items-center gap-2 lg:flex">
+          {user && (
+            <Badge variant="outline" className="gap-2 rounded-full px-3 py-1">
+              {isOnline ? <Wifi className="h-3.5 w-3.5 text-primary" /> : <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />}
+              {roleLabel}
+            </Badge>
+          )}
           {isAdmin && (
-            <Link to="/admin">
-              <Button variant="ghost" size="icon" className="text-primary">
-                <Shield className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button asChild variant="ghost" size="icon">
+              <Link to="/admin" aria-label="Administration">
+                <Shield className="h-4 w-4 text-primary" />
+              </Link>
+            </Button>
           )}
           {user && (
-            <Link to="/favorites">
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <Heart className="h-4 w-4" />
+            <>
+              <Button asChild variant="ghost" size="icon">
+                <Link to="/favorites" aria-label="Favoris">
+                  <Heart className="h-4 w-4" />
+                </Link>
               </Button>
-            </Link>
+              <Button asChild variant="ghost" size="icon">
+                <Link to="/profile" aria-label="Profil">
+                  <UserCircle2 className="h-4 w-4" />
+                </Link>
+              </Button>
+            </>
           )}
+          <Button asChild size="sm" className="gradient-hero border-0 text-primary-foreground">
+            <Link to={user ? "/create" : "/auth"}>
+              <Plus className="h-4 w-4" /> Publier
+            </Link>
+          </Button>
           {user ? (
-            <>
-              <Link to="/create">
-                <Button size="sm" className="gradient-hero text-primary-foreground border-0">Publier</Button>
-              </Link>
-              <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </>
+            <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Déconnexion">
+              <LogOut className="h-4 w-4" />
+            </Button>
           ) : (
-            <>
-              <Link to="/auth">
-                <Button variant="outline" size="sm">Connexion</Button>
-              </Link>
-              <Link to="/auth">
-                <Button size="sm" className="gradient-hero text-primary-foreground border-0">Publier</Button>
-              </Link>
-            </>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/auth">Connexion</Link>
+            </Button>
           )}
         </div>
 
-        <button className="md:hidden text-foreground" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[88vw] max-w-sm overflow-y-auto px-5">
+            <SheetHeader className="text-left">
+              <SheetTitle>Tukio</SheetTitle>
+              <SheetDescription>Naviguez dans l'application sans débordement sur mobile.</SheetDescription>
+            </SheetHeader>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background border-b border-border"
-          >
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link key={link.href} to={link.href} className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2" onClick={() => setIsOpen(false)}>
-                  {link.label}
-                </Link>
-              ))}
-              {isAdmin && (
-                <Link to="/admin" className="font-body text-sm font-medium text-primary hover:text-primary/80 py-2 flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                  <Shield className="h-4 w-4" /> Admin
-                </Link>
-              )}
+            <div className="mt-6 flex flex-col gap-2">
               {user && (
-                <Link to="/favorites" className="font-body text-sm font-medium text-muted-foreground hover:text-foreground py-2" onClick={() => setIsOpen(false)}>
-                  Mes Favoris
-                </Link>
+                <Badge variant="outline" className="mb-2 w-fit gap-2 rounded-full px-3 py-1">
+                  {isOnline ? <Wifi className="h-3.5 w-3.5 text-primary" /> : <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                  {roleLabel}
+                </Badge>
               )}
-              <div className="flex gap-2 pt-2">
-                {user ? (
-                  <>
-                    <Link to="/create" className="flex-1" onClick={() => setIsOpen(false)}>
-                      <Button size="sm" className="w-full gradient-hero text-primary-foreground border-0">Publier</Button>
-                    </Link>
-                    <Button variant="outline" size="sm" onClick={handleSignOut}>Déconnexion</Button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full">Connexion</Button>
-                    </Link>
-                    <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
-                      <Button size="sm" className="w-full gradient-hero text-primary-foreground border-0">Publier</Button>
-                    </Link>
-                  </>
-                )}
-              </div>
+
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.href}
+                  to={link.href}
+                  className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  activeClassName="bg-muted text-foreground"
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+
+              {user && (
+                <>
+                  <NavLink to="/profile" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" activeClassName="bg-muted text-foreground">
+                    Mon profil
+                  </NavLink>
+                  <NavLink to="/favorites" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" activeClassName="bg-muted text-foreground">
+                    Mes favoris
+                  </NavLink>
+                </>
+              )}
+
+              {isAdmin && (
+                <NavLink to="/admin" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-primary transition-colors hover:bg-muted" activeClassName="bg-muted text-primary">
+                  Administration
+                </NavLink>
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Button asChild className="gradient-hero w-full border-0 text-primary-foreground">
+                <Link to={user ? "/create" : "/auth"}>Publier</Link>
+              </Button>
+              {user ? (
+                <Button variant="outline" className="w-full" onClick={handleSignOut}>
+                  Déconnexion
+                </Button>
+              ) : (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/auth">Connexion</Link>
+                </Button>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </nav>
   );
 };
