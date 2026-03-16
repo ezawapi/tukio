@@ -33,12 +33,23 @@ const Events = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
+  const [selectedDate, setSelectedDate] = useState(searchParams.get("date") || "");
 
   useEffect(() => {
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") || "");
+    setSelectedCategory(searchParams.get("category") || "all");
+    setSelectedCity(searchParams.get("city") || "");
+    setSelectedDate(searchParams.get("date") || "");
+  }, [searchParams]);
+
+  useEffect(() => {
     fetchEvents();
-  }, [selectedCategory, selectedCity]);
+  }, [searchParams]);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("id, name").order("name");
@@ -53,14 +64,24 @@ const Events = () => {
       .eq("is_published", true)
       .order("date", { ascending: true });
 
-    if (selectedCategory && selectedCategory !== "all") {
-      query = query.eq("category_id", selectedCategory);
+    const q = searchParams.get("q");
+    const category = searchParams.get("category");
+    const city = searchParams.get("city");
+    const date = searchParams.get("date");
+
+    if (category && category !== "all") {
+      query = query.eq("category_id", category);
     }
-    if (selectedCity) {
-      query = query.ilike("city", `%${selectedCity}%`);
+    if (city) {
+      query = query.ilike("city", `%${city}%`);
     }
-    if (search) {
-      query = query.ilike("title", `%${search}%`);
+    if (q) {
+      query = query.or(`title.ilike.%${q}%,location.ilike.%${q}%,city.ilike.%${q}%`);
+    }
+    if (date) {
+      const start = new Date(`${date}T00:00:00`);
+      const end = new Date(`${date}T23:59:59`);
+      query = query.gte("date", start.toISOString()).lte("date", end.toISOString());
     }
 
     const { data } = await query;
@@ -69,7 +90,12 @@ const Events = () => {
   };
 
   const handleSearch = () => {
-    fetchEvents();
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("q", search.trim());
+    if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (selectedCity.trim()) params.set("city", selectedCity.trim());
+    if (selectedDate) params.set("date", selectedDate);
+    setSearchParams(params);
   };
 
   return (
@@ -77,16 +103,14 @@ const Events = () => {
       <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold text-foreground">Événements</h1>
             <p className="font-body text-muted-foreground mt-1">Découvrez tous les événements</p>
           </div>
 
-          {/* Filters */}
-          <div className="bg-card rounded-xl p-4 mb-8 flex flex-col md:flex-row gap-3">
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted">
-              <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="bg-card rounded-xl p-4 mb-8 flex flex-col xl:flex-row gap-3">
+            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted min-w-0">
+              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
               <Input
                 placeholder="Rechercher..."
                 value={search}
@@ -96,7 +120,7 @@ const Events = () => {
               />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full xl:w-48">
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
@@ -106,8 +130,8 @@ const Events = () => {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted md:w-40">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted xl:w-40">
+              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
               <Input
                 placeholder="Ville"
                 value={selectedCity}
@@ -115,11 +139,20 @@ const Events = () => {
                 className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto p-0"
               />
             </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted xl:w-44">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto p-0"
+              />
+            </div>
             <Button onClick={handleSearch} className="gradient-hero text-primary-foreground border-0">
               <Filter className="h-4 w-4 mr-2" />
               Filtrer
             </Button>
-            <div className="flex gap-1">
+            <div className="flex gap-1 self-end xl:self-auto">
               <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" onClick={() => setViewMode("grid")}>
                 <Grid3X3 className="h-4 w-4" />
               </Button>
@@ -129,7 +162,6 @@ const Events = () => {
             </div>
           </div>
 
-          {/* Results */}
           {loading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -148,10 +180,10 @@ const Events = () => {
                   <motion.div
                     whileHover={{ y: -4 }}
                     className={`group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-warm transition-all cursor-pointer ${
-                      viewMode === "list" ? "flex" : ""
+                      viewMode === "list" ? "flex flex-col sm:flex-row" : ""
                     }`}
                   >
-                    <div className={`relative overflow-hidden ${viewMode === "list" ? "w-48 h-32" : "h-48"}`}>
+                    <div className={`relative overflow-hidden ${viewMode === "list" ? "w-full sm:w-48 h-48 sm:h-32" : "h-48"}`}>
                       <img
                         src={event.image_url || "/placeholder.svg"}
                         alt={event.title}
@@ -163,7 +195,7 @@ const Events = () => {
                         </Badge>
                       )}
                     </div>
-                    <div className="p-4 flex-1">
+                    <div className="p-4 flex-1 min-w-0">
                       <Badge variant="secondary" className="mb-2 text-xs">
                         {event.categories?.name || "Événement"}
                       </Badge>
@@ -173,14 +205,14 @@ const Events = () => {
                           <Calendar className="h-3.5 w-3.5 text-primary" />
                           <span>{format(new Date(event.date), "d MMMM yyyy", { locale: fr })}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-3.5 w-3.5 text-primary" />
+                        <div className="flex items-center gap-2 min-w-0">
+                          <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
                           <span className="truncate">{event.location}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="font-body font-semibold text-sm text-foreground">{event.price || "Gratuit"}</span>
-                        <span className="text-xs text-muted-foreground">{event.attendees_count || 0} participants</span>
+                      <div className="flex items-center justify-between gap-3 mt-3">
+                        <span className="font-body font-semibold text-sm text-foreground truncate">{event.price || "Gratuit"}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{event.attendees_count || 0} participants</span>
                       </div>
                     </div>
                   </motion.div>

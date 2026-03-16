@@ -114,9 +114,15 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid md:grid-cols-2 gap-6">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:px-0 md:pb-0"
+            >
               {liveEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants}>
+                <motion.div key={event.id} variants={itemVariants} className="min-w-[280px] snap-start md:min-w-0">
                   <Link to={`/events/${event.id}`}>
                     <EventCard
                       title={event.title}
@@ -155,9 +161,9 @@ const Index = () => {
               </Link>
             </div>
           ) : (
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-0 sm:px-0 lg:grid lg:grid-cols-4 lg:pb-0">
               {upcomingEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants}>
+                <motion.div key={event.id} variants={itemVariants} className="min-w-[280px] snap-start lg:min-w-0">
                   <Link to={`/events/${event.id}`}>
                     <EventCard
                       title={event.title}

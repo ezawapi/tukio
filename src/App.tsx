@@ -14,6 +14,7 @@ import Auth from "./pages/Auth.tsx";
 import MapExplore from "./pages/MapExplore.tsx";
 import Agenda from "./pages/Agenda.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import Profile from "./pages/Profile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -33,8 +34,10 @@ const App = () => (
             <Route path="/categories" element={<Categories />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/explorer" element={<MapExplore />} />
             <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

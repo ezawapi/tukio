@@ -30,9 +30,9 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
             </Badge>
           )}
         </div>
-        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground" aria-hidden="true">
           <Heart className="h-4 w-4" />
-        </button>
+        </div>
         {price && (
           <div className="absolute bottom-3 right-3">
             <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-foreground font-semibold">
