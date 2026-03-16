@@ -14,6 +14,7 @@ import Auth from "./pages/Auth.tsx";
 import MapExplore from "./pages/MapExplore.tsx";
 import Agenda from "./pages/Agenda.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import Profile from "./pages/Profile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
