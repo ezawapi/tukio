@@ -68,9 +68,9 @@ const MapExplore = () => {
       <Navbar />
       <div className="pt-16 flex-1 flex flex-col">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="font-display text-2xl font-bold text-foreground">Explorer la carte</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2"><Compass className="h-6 w-6 text-primary" /> Explorer</h1>
           <p className="font-body text-sm text-muted-foreground">
-            {events.length} événement{events.length !== 1 ? "s" : ""} géolocalisé{events.length !== 1 ? "s" : ""}
+            {events.length} activité{events.length !== 1 ? "s" : ""} affichée{events.length !== 1 ? "s" : ""} sur la carte interactive selon leur lieu
           </p>
         </div>
 

@@ -219,13 +219,13 @@ const CreateEvent = () => {
                         value={form.image_url}
                         onChange={(url) => handleChange("image_url", url)}
                         userId={user.id}
-                        label="Photo principale *"
+                        label="Photo principale * (fichier ou URL)"
                       />
                       <ImageUpload
                         value={form.image_url2}
                         onChange={(url) => handleChange("image_url2", url)}
                         userId={user.id}
-                        label="Photo secondaire (optionnel)"
+                        label="Photo secondaire (optionnel, fichier ou URL)"
                       />
                     </div>
                   )}
