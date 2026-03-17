@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_slots: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          format: string
+          id: string
+          is_active: boolean
+          name: string
+          placement: string
+          recommended_height: number | null
+          recommended_width: number | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          format?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          placement: string
+          recommended_height?: number | null
+          recommended_width?: number | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          format?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          placement?: string
+          recommended_height?: number | null
+          recommended_width?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           created_at: string
@@ -42,6 +84,65 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ads: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          display_order: number
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          slot_id: string
+          starts_at: string | null
+          target_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          display_order?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          slot_id: string
+          starts_at?: string | null
+          target_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          display_order?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          slot_id?: string
+          starts_at?: string | null
+          target_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_slots"
             referencedColumns: ["id"]
           },
         ]
@@ -102,8 +203,66 @@ export type Database = {
           },
         ]
       }
+      event_invitations: {
+        Row: {
+          attendance_status: string
+          created_at: string
+          event_id: string
+          id: string
+          invited_by: string
+          invited_email: string | null
+          invited_name: string | null
+          invited_user_id: string | null
+          qr_code_token: string
+          scanned_at: string | null
+          scanned_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_status?: string
+          created_at?: string
+          event_id: string
+          id?: string
+          invited_by: string
+          invited_email?: string | null
+          invited_name?: string | null
+          invited_user_id?: string | null
+          qr_code_token: string
+          scanned_at?: string | null
+          scanned_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_status?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          invited_by?: string
+          invited_email?: string | null
+          invited_name?: string | null
+          invited_user_id?: string | null
+          qr_code_token?: string
+          scanned_at?: string | null
+          scanned_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
+          ad_slot_hint: string | null
+          admin_notes: string | null
           attendees_count: number | null
           capacity: number | null
           category_id: string | null
@@ -121,6 +280,8 @@ export type Database = {
           instagram_url: string | null
           is_live: boolean | null
           is_published: boolean | null
+          last_reviewed_at: string | null
+          last_submitted_at: string
           latitude: number | null
           location: string
           longitude: number | null
@@ -134,10 +295,14 @@ export type Database = {
           title: string
           twitter_url: string | null
           updated_at: string
+          updated_by_admin: boolean
+          visibility: string
           website_url: string | null
           whatsapp: string | null
         }
         Insert: {
+          ad_slot_hint?: string | null
+          admin_notes?: string | null
           attendees_count?: number | null
           capacity?: number | null
           category_id?: string | null
@@ -155,6 +320,8 @@ export type Database = {
           instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
+          last_reviewed_at?: string | null
+          last_submitted_at?: string
           latitude?: number | null
           location: string
           longitude?: number | null
@@ -168,10 +335,14 @@ export type Database = {
           title: string
           twitter_url?: string | null
           updated_at?: string
+          updated_by_admin?: boolean
+          visibility?: string
           website_url?: string | null
           whatsapp?: string | null
         }
         Update: {
+          ad_slot_hint?: string | null
+          admin_notes?: string | null
           attendees_count?: number | null
           capacity?: number | null
           category_id?: string | null
@@ -189,6 +360,8 @@ export type Database = {
           instagram_url?: string | null
           is_live?: boolean | null
           is_published?: boolean | null
+          last_reviewed_at?: string | null
+          last_submitted_at?: string
           latitude?: number | null
           location?: string
           longitude?: number | null
@@ -202,6 +375,8 @@ export type Database = {
           title?: string
           twitter_url?: string | null
           updated_at?: string
+          updated_by_admin?: boolean
+          visibility?: string
           website_url?: string | null
           whatsapp?: string | null
         }
@@ -244,6 +419,143 @@ export type Database = {
           },
         ]
       }
+      ticket_orders: {
+        Row: {
+          attendance_status: string
+          buyer_email: string
+          buyer_name: string | null
+          buyer_user_id: string | null
+          created_at: string
+          currency: string
+          event_id: string
+          id: string
+          payment_provider: string
+          payment_status: string
+          qr_code_token: string
+          quantity: number
+          scanned_at: string | null
+          scanned_by: string | null
+          stripe_checkout_session_id: string | null
+          ticket_type_id: string | null
+          total_amount: number
+          unit_price_amount: number
+          updated_at: string
+        }
+        Insert: {
+          attendance_status?: string
+          buyer_email: string
+          buyer_name?: string | null
+          buyer_user_id?: string | null
+          created_at?: string
+          currency?: string
+          event_id: string
+          id?: string
+          payment_provider?: string
+          payment_status?: string
+          qr_code_token: string
+          quantity?: number
+          scanned_at?: string | null
+          scanned_by?: string | null
+          stripe_checkout_session_id?: string | null
+          ticket_type_id?: string | null
+          total_amount?: number
+          unit_price_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          attendance_status?: string
+          buyer_email?: string
+          buyer_name?: string | null
+          buyer_user_id?: string | null
+          created_at?: string
+          currency?: string
+          event_id?: string
+          id?: string
+          payment_provider?: string
+          payment_status?: string
+          qr_code_token?: string
+          quantity?: number
+          scanned_at?: string | null
+          scanned_by?: string | null
+          stripe_checkout_session_id?: string | null
+          ticket_type_id?: string | null
+          total_amount?: number
+          unit_price_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_orders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_orders_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_types: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          event_id: string
+          id: string
+          is_active: boolean
+          name: string
+          price_amount: number
+          quantity_available: number | null
+          quantity_sold: number
+          sales_end_at: string | null
+          sales_start_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price_amount?: number
+          quantity_available?: number | null
+          quantity_sold?: number
+          sales_end_at?: string | null
+          sales_start_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_amount?: number
+          quantity_available?: number | null
+          quantity_sold?: number
+          sales_end_at?: string | null
+          sales_start_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_types_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -267,6 +579,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_event: { Args: { _event_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
