@@ -13,13 +13,13 @@ const CategoryCard = ({ name, icon: Icon, count, color }: CategoryCardProps) => 
     <motion.div
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
-      className="flex flex-col items-center gap-3 p-5 rounded-xl bg-card shadow-card hover:shadow-warm transition-all cursor-pointer group"
+      className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card px-3 py-4 text-center shadow-card transition-all hover:shadow-warm sm:gap-3 sm:px-4 sm:py-5"
     >
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} transition-transform group-hover:scale-110`}>
-        <Icon className="h-6 w-6 text-primary-foreground" />
+      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-background/30 shadow-sm transition-transform group-hover:scale-110 sm:h-14 sm:w-14 ${color}`}>
+        <Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
       </div>
-      <div className="text-center">
-        <p className="font-body font-semibold text-sm text-card-foreground">{name}</p>
+      <div className="space-y-0.5">
+        <p className="font-body text-sm font-semibold leading-tight text-card-foreground">{name}</p>
         <p className="font-body text-xs text-muted-foreground">{count} événements</p>
       </div>
     </motion.div>

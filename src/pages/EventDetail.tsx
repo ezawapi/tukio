@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareDialog from "@/components/ShareDialog";
+import ImageLightbox from "@/components/ImageLightbox";
+import AdSlotBanner from "@/components/AdSlotBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +25,8 @@ const EventDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -99,11 +103,19 @@ const EventDetail = () => {
 
   const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
+  const galleryImages = useMemo(() => {
+    if (!event) return [];
+    return [
+      event.image_url ? { src: event.image_url, alt: event.title } : null,
+      event.image_url2 ? { src: event.image_url2, alt: `${event.title} - photo 2` } : null,
+    ].filter(Boolean) as { src: string; alt: string }[];
+  }, [event]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-20 container mx-auto px-4">
+        <div className="container mx-auto px-4 pt-20">
           <div className="animate-pulse space-y-4">
             <div className="h-80 rounded-xl bg-card" />
             <div className="h-8 w-1/2 rounded bg-card" />
@@ -118,7 +130,7 @@ const EventDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-20 container mx-auto px-4 text-center py-20">
+        <div className="container mx-auto px-4 py-20 pt-20 text-center">
           <h1 className="font-display text-3xl text-foreground">Événement non trouvé</h1>
           <Link to="/events">
             <Button className="mt-4">Retour aux événements</Button>
@@ -132,111 +144,122 @@ const EventDetail = () => {
     ? "Gratuit"
     : `${event.price} ${event.currency || "FCFA"}`;
 
+  const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-20 pb-16">
+      <div className="pb-16 pt-20">
         <div className="container mx-auto px-4">
-          <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 font-body text-sm">
+          <Link to="/events" className="mb-6 inline-flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Retour aux événements
           </Link>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Images */}
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
               <div className="space-y-3">
-                <div className="relative rounded-xl overflow-hidden h-64 md:h-96">
-                  <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
-                  {event.is_live && (
-                    <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground border-0 animate-pulse-live text-sm px-4 py-1">
-                      🔴 EN DIRECT
+                {galleryImages.map((image, index) => (
+                  <button
+                    key={`${image.src}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      setLightboxIndex(index);
+                      setLightboxOpen(true);
+                    }}
+                    className={`group relative block overflow-hidden rounded-xl ${index === 0 ? "h-64 md:h-96" : "h-48 md:h-64"}`}
+                  >
+                    <img src={image.src} alt={image.alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
+                    <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                      <Expand className="h-3.5 w-3.5" /> Voir l'image
+                    </div>
+                    {index === 0 && event.is_live && (
+                      <Badge className="absolute left-4 top-4 border-0 bg-destructive px-4 py-1 text-sm text-destructive-foreground animate-pulse-live">
+                        🔴 EN DIRECT
+                      </Badge>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <Badge className="border-0 bg-primary text-primary-foreground">
+                    {event.categories?.name || "Événement"}
+                  </Badge>
+                  {event.visibility === "private" && (
+                    <Badge variant="outline" className="gap-1">
+                      <Lock className="h-3.5 w-3.5 text-primary" /> Privé
                     </Badge>
                   )}
                 </div>
-                {event.image_url2 && (
-                  <div className="rounded-xl overflow-hidden h-48 md:h-64">
-                    <img src={event.image_url2} alt={`${event.title} - photo 2`} className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Badge className="bg-primary text-primary-foreground border-0">
-                    {event.categories?.name || "Événement"}
-                  </Badge>
-                </div>
-                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">{event.title}</h1>
-                <p className="font-body text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                <h1 className="mb-4 font-display text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">{event.title}</h1>
+                <p className="whitespace-pre-wrap font-body leading-relaxed text-muted-foreground">
                   {event.description || "Aucune description disponible."}
                 </p>
               </div>
 
-              {/* Contact Info */}
               {hasContactInfo && (
-                <div className="bg-card rounded-xl p-4 sm:p-6">
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="rounded-xl bg-card p-4 sm:p-6">
+                  <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-foreground">
                     <Phone className="h-5 w-5 text-primary" /> Contact & Réseaux
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {event.whatsapp && (
-                      <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-muted">
-                        <MessageCircle className="h-4 w-4 text-green-600" /> WhatsApp
+                      <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
+                        <MessageCircle className="h-4 w-4 text-primary" /> WhatsApp
                       </a>
                     )}
                     {event.phone1 && (
-                      <a href={`tel:${event.phone1}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                      <a href={`tel:${event.phone1}`} className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
                         <Phone className="h-4 w-4 text-primary" /> {event.phone1}
                       </a>
                     )}
                     {event.phone2 && (
-                      <a href={`tel:${event.phone2}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                      <a href={`tel:${event.phone2}`} className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
                         <Phone className="h-4 w-4 text-primary" /> {event.phone2}
                       </a>
                     )}
                     {event.contact_email && (
-                      <a href={`mailto:${event.contact_email}`} className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                      <a href={`mailto:${event.contact_email}`} className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
                         <Mail className="h-4 w-4 text-primary" /> {event.contact_email}
                       </a>
                     )}
                     {event.website_url && (
-                      <a href={event.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
+                      <a href={event.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
                         <Globe className="h-4 w-4 text-primary" /> Site web
                       </a>
                     )}
                     {event.facebook_url && (
-                      <a href={event.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
-                        <Facebook className="h-4 w-4 text-blue-600" /> Facebook
+                      <a href={event.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
+                        <Facebook className="h-4 w-4 text-primary" /> Facebook
                       </a>
                     )}
                     {event.instagram_url && (
-                      <a href={event.instagram_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
-                        <Instagram className="h-4 w-4 text-pink-500" /> Instagram
+                      <a href={event.instagram_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
+                        <Instagram className="h-4 w-4 text-primary" /> Instagram
                       </a>
                     )}
                     {event.twitter_url && (
-                      <a href={event.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
-                        <Twitter className="h-4 w-4 text-sky-500" /> Twitter / X
+                      <a href={event.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
+                        <Twitter className="h-4 w-4 text-primary" /> Twitter / X
                       </a>
                     )}
                     {event.tiktok_url && (
-                      <a href={event.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-body text-foreground hover:text-primary transition-colors p-2 rounded-lg hover:bg-muted">
-                        <Globe className="h-4 w-4 text-foreground" /> TikTok
+                      <a href={event.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
+                        <Globe className="h-4 w-4 text-primary" /> TikTok
                       </a>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Mini Map */}
               {event.latitude && event.longitude && (
-                <div className="bg-card rounded-xl p-4 sm:p-6">
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="rounded-xl bg-card p-4 sm:p-6">
+                  <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-foreground">
                     <MapPin className="h-5 w-5 text-primary" /> Localisation
                   </h2>
-                  <div className="rounded-lg overflow-hidden h-64">
+                  <div className="h-64 overflow-hidden rounded-lg">
                     <LeafletMap
                       center={[event.latitude, event.longitude]}
                       zoom={14}
@@ -254,31 +277,30 @@ const EventDetail = () => {
                 </div>
               )}
 
-              {/* Comments */}
-              <div className="bg-card rounded-xl p-4 sm:p-6">
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">
+              <div className="rounded-xl bg-card p-4 sm:p-6">
+                <h2 className="mb-4 font-display text-xl font-bold text-foreground">
                   Commentaires ({comments.length})
                 </h2>
                 {user && (
-                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                  <div className="mb-6 flex flex-col gap-3 sm:flex-row">
                     <Textarea
                       placeholder="Ajouter un commentaire..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       className="flex-1"
                     />
-                    <Button onClick={addComment} className="gradient-hero text-primary-foreground border-0 self-end">
+                    <Button onClick={addComment} className="self-end border-0 gradient-hero text-primary-foreground">
                       Envoyer
                     </Button>
                   </div>
                 )}
                 <div className="space-y-4">
                   {comments.length === 0 ? (
-                    <p className="text-muted-foreground font-body text-sm">Aucun commentaire pour le moment.</p>
+                    <p className="font-body text-sm text-muted-foreground">Aucun commentaire pour le moment.</p>
                   ) : (
                     comments.map((comment) => (
                       <div key={comment.id} className="border-b border-border pb-3 last:border-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="mb-1 flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <span className="font-body text-xs text-muted-foreground">
                             {format(new Date(comment.created_at), "d MMM yyyy à HH:mm", { locale: fr })}
@@ -292,16 +314,15 @@ const EventDetail = () => {
               </div>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
-              <div className="bg-card rounded-xl p-4 sm:p-6 space-y-4 lg:sticky top-24">
+              <div className="space-y-4 rounded-xl bg-card p-4 sm:p-6 lg:sticky lg:top-24">
                 <div className="text-center">
                   <p className="font-display text-2xl font-bold text-foreground">{priceDisplay}</p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+                    <Calendar className="h-5 w-5 flex-shrink-0 text-primary" />
                     <div>
                       <p className="font-body font-medium text-foreground">
                         {format(new Date(event.date), "EEEE d MMMM yyyy", { locale: fr })}
@@ -312,19 +333,19 @@ const EventDetail = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                    <MapPin className="h-5 w-5 flex-shrink-0 text-primary" />
                     <div>
                       <p className="font-body font-medium text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <Users className="h-5 w-5 text-primary flex-shrink-0" />
+                    <Users className="h-5 w-5 flex-shrink-0 text-primary" />
                     <p className="font-body text-foreground">{event.attendees_count || 0} participants</p>
                   </div>
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
-                      <User className="h-5 w-5 text-primary flex-shrink-0" />
+                      <User className="h-5 w-5 flex-shrink-0 text-primary" />
                       <p className="font-body text-foreground">{event.organizer_name}</p>
                     </div>
                   )}
@@ -332,7 +353,7 @@ const EventDetail = () => {
 
                 <div className="flex gap-2">
                   <Button onClick={toggleFavorite} variant={isFavorite ? "default" : "outline"} className="flex-1">
-                    <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+                    <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
                   <ShareDialog title={event.title}>
@@ -344,20 +365,32 @@ const EventDetail = () => {
 
                 {event.whatsapp && (
                   <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="block">
-                    <Button variant="outline" className="w-full text-green-600 border-green-600/30 hover:bg-green-50">
-                      <MessageCircle className="h-4 w-4 mr-2" /> Contacter via WhatsApp
+                    <Button variant="outline" className="w-full">
+                      <MessageCircle className="mr-2 h-4 w-4" /> Contacter via WhatsApp
                     </Button>
                   </a>
                 )}
 
-                <Button className="w-full gradient-hero text-primary-foreground border-0" size="lg">
-                  Participer
-                </Button>
+                {bookingEnabled ? (
+                  <a href={event.external_ticket_url} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
+                      <Ticket className="mr-2 h-4 w-4" /> {event.reservation_cta_label || "Réserver"}
+                    </Button>
+                  </a>
+                ) : (
+                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
+                    Participer
+                  </Button>
+                )}
               </div>
+
+              <AdSlotBanner slotCode="event-sidebar" compact />
             </div>
           </div>
         </div>
       </div>
+
+      <ImageLightbox images={galleryImages} open={lightboxOpen} onOpenChange={setLightboxOpen} initialIndex={lightboxIndex} />
       <Footer />
     </div>
   );

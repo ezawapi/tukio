@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image } from "lucide-react";
+import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image, Ticket, Lock, Link2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ImageUpload from "@/components/ImageUpload";
@@ -24,6 +24,16 @@ const CURRENCIES = [
   { value: "NGN", label: "₦ NGN" },
   { value: "KES", label: "KES" },
   { value: "ZAR", label: "ZAR" },
+];
+
+const VISIBILITY_OPTIONS = [
+  { value: "public", label: "Public" },
+  { value: "private", label: "Privé" },
+];
+
+const TICKETING_OPTIONS = [
+  { value: "none", label: "Pas de réservation externe" },
+  { value: "external", label: "Réservation externe (Eventbrite, etc.)" },
 ];
 
 const CreateEvent = () => {
@@ -57,12 +67,16 @@ const CreateEvent = () => {
     instagram_url: "",
     twitter_url: "",
     tiktok_url: "",
+    visibility: "public",
+    ticketing_mode: "none",
+    external_ticket_url: "",
+    reservation_cta_label: "Réserver",
   });
 
   useEffect(() => {
     if (!user) navigate("/auth");
     fetchCategories();
-  }, [user]);
+  }, [user, navigate]);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("id, name").order("name");
@@ -76,6 +90,12 @@ const CreateEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (form.ticketing_mode === "external" && !form.external_ticket_url.trim()) {
+      toast({ title: "Lien requis", description: "Ajoutez un lien vers votre plateforme de réservation.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.from("events").insert({
@@ -88,7 +108,7 @@ const CreateEvent = () => {
       city: form.city,
       price: form.price,
       currency: form.currency,
-      capacity: form.capacity ? parseInt(form.capacity) : null,
+      capacity: form.capacity ? parseInt(form.capacity, 10) : null,
       image_url: form.image_url || null,
       image_url2: form.image_url2 || null,
       organizer_name: form.organizer_name,
@@ -104,6 +124,10 @@ const CreateEvent = () => {
       instagram_url: form.instagram_url || null,
       twitter_url: form.twitter_url || null,
       tiktok_url: form.tiktok_url || null,
+      visibility: form.visibility,
+      ticketing_mode: form.ticketing_mode,
+      external_ticket_url: form.ticketing_mode === "external" ? form.external_ticket_url.trim() : null,
+      reservation_cta_label: form.ticketing_mode === "external" ? (form.reservation_cta_label.trim() || "Réserver") : "Réserver",
     });
 
     setLoading(false);
@@ -119,8 +143,8 @@ const CreateEvent = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-20 pb-16">
-        <div className="container mx-auto px-4 max-w-2xl">
+      <div className="pb-16 pt-20">
+        <div className="container mx-auto max-w-2xl px-4">
           <Card>
             <CardHeader>
               <CardTitle className="font-display text-2xl">Publier un événement</CardTitle>
@@ -140,7 +164,7 @@ const CreateEvent = () => {
                   <Textarea value={form.description} onChange={(e) => handleChange("description", e.target.value)} placeholder="Décrivez votre événement..." rows={4} />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Catégorie</Label>
                     <Select value={form.category_id} onValueChange={(v) => handleChange("category_id", v)}>
@@ -158,7 +182,37 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label className="font-body">Visibilité</Label>
+                    <Select value={form.visibility} onValueChange={(value) => handleChange("visibility", value)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {VISIBILITY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.visibility === "private" && (
+                      <p className="font-body text-xs text-muted-foreground">
+                        Les invitations QR seront gérées après publication depuis le profil organisateur/admin.
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-body">Réservation</Label>
+                    <Select value={form.ticketing_mode} onValueChange={(value) => handleChange("ticketing_mode", value)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TICKETING_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Date de début *</Label>
                     <Input type="datetime-local" value={form.date} onChange={(e) => handleChange("date", e.target.value)} required />
@@ -169,7 +223,7 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Lieu *</Label>
                     <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} required placeholder="Adresse ou nom du lieu" />
@@ -180,12 +234,11 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                {/* Prix avec devise */}
                 <div className="border-t border-border pt-5">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
                     <DollarSign className="h-4 w-4 text-primary" /> Tarification
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div className="space-y-2 sm:col-span-1">
                       <Label className="font-body">Prix</Label>
                       <Input value={form.price} onChange={(e) => handleChange("price", e.target.value)} placeholder="Gratuit, 5000..." />
@@ -208,13 +261,49 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                {/* Photos */}
+                {form.ticketing_mode === "external" && (
+                  <div className="border-t border-border pt-5">
+                    <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
+                      <Ticket className="h-4 w-4 text-primary" /> Réservation externe
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="rounded-xl border border-border bg-muted/40 p-4">
+                        <p className="font-body text-sm text-muted-foreground">
+                          Crée d'abord ta billetterie sur Eventbrite, Shotgun, Bizouk ou une autre plateforme, puis colle ici le lien public de réservation.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label className="font-body flex items-center gap-1">
+                            <Link2 className="h-3.5 w-3.5 text-primary" /> Lien de réservation
+                          </Label>
+                          <Input
+                            type="url"
+                            value={form.external_ticket_url}
+                            onChange={(e) => handleChange("external_ticket_url", e.target.value)}
+                            placeholder="https://www.eventbrite.com/e/..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-body">Texte du bouton</Label>
+                          <Input value={form.reservation_cta_label} onChange={(e) => handleChange("reservation_cta_label", e.target.value)} placeholder="Réserver" />
+                        </div>
+                        <div className="flex items-end rounded-xl border border-border bg-muted/30 p-4">
+                          <p className="font-body text-xs text-muted-foreground">
+                            Les visiteurs cliqueront sur ce bouton puis seront redirigés vers ta plateforme externe.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="border-t border-border pt-5">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
                     <Image className="h-4 w-4 text-primary" /> Photos de l'événement
                   </h3>
                   {user && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <ImageUpload
                         value={form.image_url}
                         onChange={(url) => handleChange("image_url", url)}
@@ -231,13 +320,12 @@ const CreateEvent = () => {
                   )}
                 </div>
 
-                {/* Contact Section */}
                 <div className="border-t border-border pt-5">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
                     <Phone className="h-4 w-4 text-primary" /> Informations de contact
                   </h3>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body">Téléphone 1</Label>
                         <Input value={form.phone1} onChange={(e) => handleChange("phone1", e.target.value)} placeholder="+243 XXX XXX XXX" />
@@ -247,7 +335,7 @@ const CreateEvent = () => {
                         <Input value={form.phone2} onChange={(e) => handleChange("phone2", e.target.value)} placeholder="+243 XXX XXX XXX" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body flex items-center gap-1">
                           <MessageCircle className="h-3 w-3 text-primary" /> WhatsApp
@@ -266,13 +354,12 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                {/* Social Media Section */}
                 <div className="border-t border-border pt-5">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
                     <Globe className="h-4 w-4 text-primary" /> Réseaux sociaux
                   </h3>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body flex items-center gap-1"><Facebook className="h-3 w-3" /> Facebook</Label>
                         <Input value={form.facebook_url} onChange={(e) => handleChange("facebook_url", e.target.value)} placeholder="https://facebook.com/..." />
@@ -282,7 +369,7 @@ const CreateEvent = () => {
                         <Input value={form.instagram_url} onChange={(e) => handleChange("instagram_url", e.target.value)} placeholder="https://instagram.com/..." />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body flex items-center gap-1"><Twitter className="h-3 w-3" /> Twitter / X</Label>
                         <Input value={form.twitter_url} onChange={(e) => handleChange("twitter_url", e.target.value)} placeholder="https://x.com/..." />
@@ -295,7 +382,7 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Latitude</Label>
                     <Input type="number" step="any" value={form.latitude} onChange={(e) => handleChange("latitude", e.target.value)} placeholder="-4.3250" />
@@ -306,7 +393,14 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full gradient-hero text-primary-foreground border-0" size="lg" disabled={loading}>
+                <div className="rounded-xl border border-border bg-muted/30 p-4">
+                  <p className="flex items-start gap-2 font-body text-xs text-muted-foreground">
+                    <Lock className="mt-0.5 h-3.5 w-3.5 text-primary" />
+                    Pour un événement privé, la meilleure méthode est de créer l'événement, le faire valider, puis gérer les invitations QR invité par invité depuis l'espace organisateur/admin. C'est plus fiable pour ajouter/supprimer des invités même après publication.
+                  </p>
+                </div>
+
+                <Button type="submit" className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={loading}>
                   {loading ? "Soumission..." : "Soumettre l'événement"}
                 </Button>
               </form>

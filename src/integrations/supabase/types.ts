@@ -273,6 +273,7 @@ export type Database = {
           date: string
           description: string | null
           end_date: string | null
+          external_ticket_url: string | null
           facebook_url: string | null
           id: string
           image_url: string | null
@@ -290,7 +291,9 @@ export type Database = {
           phone1: string | null
           phone2: string | null
           price: string | null
+          reservation_cta_label: string
           status: string
+          ticketing_mode: string
           tiktok_url: string | null
           title: string
           twitter_url: string | null
@@ -313,6 +316,7 @@ export type Database = {
           date: string
           description?: string | null
           end_date?: string | null
+          external_ticket_url?: string | null
           facebook_url?: string | null
           id?: string
           image_url?: string | null
@@ -330,7 +334,9 @@ export type Database = {
           phone1?: string | null
           phone2?: string | null
           price?: string | null
+          reservation_cta_label?: string
           status?: string
+          ticketing_mode?: string
           tiktok_url?: string | null
           title: string
           twitter_url?: string | null
@@ -353,6 +359,7 @@ export type Database = {
           date?: string
           description?: string | null
           end_date?: string | null
+          external_ticket_url?: string | null
           facebook_url?: string | null
           id?: string
           image_url?: string | null
@@ -370,7 +377,9 @@ export type Database = {
           phone1?: string | null
           phone2?: string | null
           price?: string | null
+          reservation_cta_label?: string
           status?: string
+          ticketing_mode?: string
           tiktok_url?: string | null
           title?: string
           twitter_url?: string | null
