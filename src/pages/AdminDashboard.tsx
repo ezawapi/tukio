@@ -193,11 +193,12 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 md:w-auto md:grid-cols-4">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 md:w-auto md:grid-cols-5">
               <TabsTrigger value="pending" className="text-xs sm:text-sm">En attente</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">Tous</TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notifs</TabsTrigger>
               <TabsTrigger value="ads" className="text-xs sm:text-sm">Publicités</TabsTrigger>
+              <TabsTrigger value="partners" className="text-xs sm:text-sm">Partenaires</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending">

@@ -39,6 +39,7 @@ const App = () => (
             <Route path="/map" element={<MapExplore />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
