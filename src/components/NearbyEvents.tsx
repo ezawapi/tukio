@@ -47,7 +47,7 @@ const NearbyEvents = () => {
           .not("longitude", "is", null);
 
         if (data) {
-          const withDist = (data as NearbyEvent[])
+          const withDist = (data as unknown as NearbyEvent[])
             .map((e) => ({ ...e, distance: getDistance(latitude, longitude, e.latitude, e.longitude) }))
             .sort((a, b) => a.distance! - b.distance!)
             .slice(0, 6);
