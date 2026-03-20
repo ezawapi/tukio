@@ -111,6 +111,7 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
     await markAsPresent(inv.id);
   };
 
+  const getQrUrl = (token: string) => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/events/${eventId}?qr=${token}`;
   };
