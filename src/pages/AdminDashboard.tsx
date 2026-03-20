@@ -320,6 +320,10 @@ const AdminDashboard = () => {
             <TabsContent value="ads">
               <AdminAdsManager userId={user?.id} />
             </TabsContent>
+
+            <TabsContent value="partners">
+              <AdminPartnersManager />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
