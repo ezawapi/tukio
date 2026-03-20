@@ -90,7 +90,7 @@ const NearbyEvents = () => {
                     compact
                     title={event.title}
                     date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                    location={event.venue_name ? `${event.venue_name} · ${event.location}` : event.location}
+                    location={event.location}
                     category={event.categories?.name || "Événement"}
                     image={event.image_url || "/placeholder.svg"}
                     attendees={event.attendees_count || 0}
