@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image, Ticket, Lock, Link2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image, Ticket, Lock, Link2, Video, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ImageUpload from "@/components/ImageUpload";
@@ -28,7 +29,7 @@ const CURRENCIES = [
 
 const VISIBILITY_OPTIONS = [
   { value: "public", label: "Public" },
-  { value: "private", label: "Privé" },
+  { value: "private", label: "Privé & Exclusif" },
 ];
 
 const TICKETING_OPTIONS = [
@@ -48,6 +49,7 @@ const CreateEvent = () => {
     category_id: "",
     date: "",
     end_date: "",
+    venue_name: "",
     location: "",
     city: "",
     price: "Gratuit",
@@ -71,6 +73,8 @@ const CreateEvent = () => {
     ticketing_mode: "none",
     external_ticket_url: "",
     reservation_cta_label: "Réserver",
+    is_live: false,
+    live_url: "",
   });
 
   useEffect(() => {
@@ -83,7 +87,7 @@ const CreateEvent = () => {
     if (data) setCategories(data);
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -104,6 +108,7 @@ const CreateEvent = () => {
       category_id: form.category_id || null,
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
+      venue_name: form.venue_name.trim() || null,
       location: form.location,
       city: form.city,
       price: form.price,
@@ -128,6 +133,8 @@ const CreateEvent = () => {
       ticketing_mode: form.ticketing_mode,
       external_ticket_url: form.ticketing_mode === "external" ? form.external_ticket_url.trim() : null,
       reservation_cta_label: form.ticketing_mode === "external" ? (form.reservation_cta_label.trim() || "Réserver") : "Réserver",
+      is_live: form.is_live,
+      live_url: form.live_url.trim() || null,
     });
 
     setLoading(false);
@@ -147,7 +154,7 @@ const CreateEvent = () => {
         <div className="container mx-auto max-w-2xl px-4">
           <Card>
             <CardHeader>
-              <CardTitle className="font-display text-2xl">Publier un événement</CardTitle>
+              <CardTitle className="font-display text-xl sm:text-2xl">Publier un événement</CardTitle>
               <p className="font-body text-sm text-muted-foreground">
                 Votre événement sera soumis à validation avant publication.
               </p>
@@ -195,7 +202,7 @@ const CreateEvent = () => {
                     </Select>
                     {form.visibility === "private" && (
                       <p className="font-body text-xs text-muted-foreground">
-                        Les invitations QR seront gérées après publication depuis le profil organisateur/admin.
+                        Après validation, gérez les invitations QR depuis la page de l'événement.
                       </p>
                     )}
                   </div>
@@ -212,6 +219,23 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
+                {/* Live option */}
+                <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4 text-destructive" />
+                      <Label className="font-body font-semibold">Diffusion en direct (Live)</Label>
+                    </div>
+                    <Switch checked={form.is_live} onCheckedChange={(checked) => handleChange("is_live", checked)} />
+                  </div>
+                  {form.is_live && (
+                    <div className="space-y-2">
+                      <Label className="font-body text-xs">Lien du Live (YouTube, Zoom, etc.)</Label>
+                      <Input value={form.live_url} onChange={(e) => handleChange("live_url", e.target.value)} placeholder="https://youtube.com/live/..." />
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Date de début *</Label>
@@ -223,14 +247,37 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="font-body">Lieu *</Label>
-                    <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} required placeholder="Adresse ou nom du lieu" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-body">Ville *</Label>
-                    <Input value={form.city} onChange={(e) => handleChange("city", e.target.value)} required placeholder="Kinshasa, Abidjan..." />
+                {/* Venue and Address */}
+                <div className="border-t border-border pt-5">
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-foreground">
+                    <MapPin className="h-4 w-4 text-primary" /> Lieu
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="font-body">Nom du lieu</Label>
+                      <Input value={form.venue_name} onChange={(e) => handleChange("venue_name", e.target.value)} placeholder="Ex: Stade des Martyrs, Hôtel Memling..." />
+                      <p className="text-xs text-muted-foreground">S'affichera en gras au-dessus de l'adresse</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="font-body">Adresse *</Label>
+                        <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} required placeholder="Avenue de la Libération, n°12" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-body">Ville *</Label>
+                        <Input value={form.city} onChange={(e) => handleChange("city", e.target.value)} required placeholder="Kinshasa, Abidjan..." />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="font-body">Latitude</Label>
+                        <Input type="number" step="any" value={form.latitude} onChange={(e) => handleChange("latitude", e.target.value)} placeholder="-4.3250" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-body">Longitude</Label>
+                        <Input type="number" step="any" value={form.longitude} onChange={(e) => handleChange("longitude", e.target.value)} placeholder="15.3222" />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -288,11 +335,6 @@ const CreateEvent = () => {
                           <Label className="font-body">Texte du bouton</Label>
                           <Input value={form.reservation_cta_label} onChange={(e) => handleChange("reservation_cta_label", e.target.value)} placeholder="Réserver" />
                         </div>
-                        <div className="flex items-end rounded-xl border border-border bg-muted/30 p-4">
-                          <p className="font-body text-xs text-muted-foreground">
-                            Les visiteurs cliqueront sur ce bouton puis seront redirigés vers ta plateforme externe.
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -314,7 +356,7 @@ const CreateEvent = () => {
                         value={form.image_url2}
                         onChange={(url) => handleChange("image_url2", url)}
                         userId={user.id}
-                        label="Photo secondaire (optionnel, fichier ou URL)"
+                        label="Photo secondaire (optionnel)"
                       />
                     </div>
                   )}
@@ -382,21 +424,10 @@ const CreateEvent = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="font-body">Latitude</Label>
-                    <Input type="number" step="any" value={form.latitude} onChange={(e) => handleChange("latitude", e.target.value)} placeholder="-4.3250" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-body">Longitude</Label>
-                    <Input type="number" step="any" value={form.longitude} onChange={(e) => handleChange("longitude", e.target.value)} placeholder="15.3222" />
-                  </div>
-                </div>
-
                 <div className="rounded-xl border border-border bg-muted/30 p-4">
                   <p className="flex items-start gap-2 font-body text-xs text-muted-foreground">
                     <Lock className="mt-0.5 h-3.5 w-3.5 text-primary" />
-                    Pour un événement privé, la meilleure méthode est de créer l'événement, le faire valider, puis gérer les invitations QR invité par invité depuis l'espace organisateur/admin. C'est plus fiable pour ajouter/supprimer des invités même après publication.
+                    Pour un événement privé, créez l'événement puis gérez les invitations QR depuis la page de l'événement après validation. L'admin peut aussi modifier toute publication.
                   </p>
                 </div>
 
