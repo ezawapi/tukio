@@ -15,7 +15,7 @@ const Footer = () => {
         { label: "Événements", href: "/events" },
         { label: "Agenda", href: "/agenda" },
         { label: "Carte", href: "/explorer" },
-        { label: "Catégories", href: "/categories" },
+        { label: "À propos", href: "/about" },
       ],
     },
     {

@@ -92,7 +92,7 @@ const Index = () => {
 
       {/* Categories — compact inline */}
       <section className="bg-background py-8 sm:py-12">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">Catégories</h2>
@@ -128,11 +128,11 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-2"><div className="container mx-auto px-4"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
+      <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
 
-      {/* Recent — ABOVE live */}
+      {/* Recent — overlay card style (image 2) */}
       <section className="bg-background py-10 sm:py-14">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-primary/10 p-2 text-primary"><Clock3 className="h-5 w-5" /></div>
@@ -144,15 +144,39 @@ const Index = () => {
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
           <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:gap-4 md:mx-0 md:grid md:grid-cols-2 md:px-0 md:pb-0 xl:grid-cols-3"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
           >
             {recentEvents.map((event) => (
-              <motion.div key={event.id} variants={itemVariants} className="min-w-[200px] snap-start sm:min-w-[240px] md:min-w-0">
+              <motion.div key={event.id} variants={itemVariants}>
                 <Link to={`/events/${event.id}`}>
-                  <EventCard compact title={event.title}
-                    date={new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                    location={event.location} category={event.categories?.name || "Événement"}
-                    image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0} price={event.price} />
+                  <div className="group relative overflow-hidden rounded-xl shadow-card transition-shadow hover:shadow-warm">
+                    {/* Full image background */}
+                    <div className="relative h-48 sm:h-56">
+                      <img
+                        src={event.image_url || "/placeholder.svg"}
+                        alt={event.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      {/* Category badge top-left */}
+                      <div className="absolute left-3 top-3">
+                        <Badge className="border-0 bg-primary/90 text-[10px] text-primary-foreground backdrop-blur-sm">{event.categories?.name || "Événement"}</Badge>
+                      </div>
+                      {/* Text overlay bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="font-display text-base font-bold leading-tight text-white line-clamp-2 sm:text-lg">{event.title}</h3>
+                        <p className="mt-1 font-body text-xs text-white/70">
+                          {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                          {" • "}{event.location}
+                        </p>
+                        {event.price && (
+                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">{event.price}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               </motion.div>
             ))}
@@ -163,7 +187,7 @@ const Index = () => {
       {/* Live Events */}
       {liveEvents.length > 0 && (
         <section className="bg-card py-10 sm:py-14">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto max-w-6xl px-4">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-destructive animate-pulse-live" />
@@ -174,10 +198,10 @@ const Index = () => {
               </div>
             </div>
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:gap-4 md:mx-0 md:grid md:grid-cols-2 md:px-0 md:pb-0 xl:grid-cols-4"
+              className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
             >
               {liveEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants} className="min-w-[180px] snap-start sm:min-w-[220px] md:min-w-0">
+                <motion.div key={event.id} variants={itemVariants}>
                   <Link to={`/events/${event.id}`}>
                     <EventCard compact title={event.title} date="En direct maintenant" location={event.location}
                       category={event.categories?.name || "Événement"} image={event.image_url || "/placeholder.svg"}
@@ -195,7 +219,7 @@ const Index = () => {
 
       {/* Upcoming */}
       <section className="bg-background py-10 sm:py-14">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">À venir</h2>
@@ -210,10 +234,10 @@ const Index = () => {
             </div>
           ) : (
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:gap-4 md:mx-0 md:grid md:grid-cols-2 md:px-0 md:pb-0 xl:grid-cols-4"
+              className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
             >
               {upcomingEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants} className="min-w-[200px] snap-start sm:min-w-[240px] md:min-w-0">
+                <motion.div key={event.id} variants={itemVariants}>
                   <Link to={`/events/${event.id}`}>
                     <EventCard compact title={event.title}
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
@@ -227,11 +251,11 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-2"><div className="container mx-auto px-4"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+      <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
 
       {/* CTA */}
       <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto max-w-6xl px-4">
           <div className="relative overflow-hidden rounded-3xl p-8 text-center gradient-hero sm:p-12">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
             <div className="relative z-10">

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Fix default icon URLs
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
@@ -29,8 +30,15 @@ const LeafletMap = ({ center, zoom, markers, className, style, scrollWheelZoom =
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
 
+  // Initialize map
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current) return;
+
+    // Clean up any existing map
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
 
     const map = L.map(containerRef.current, {
       center,
@@ -44,17 +52,20 @@ const LeafletMap = ({ center, zoom, markers, className, style, scrollWheelZoom =
 
     mapRef.current = map;
 
+    // Force a resize after mount to fix tiles not loading
+    setTimeout(() => map.invalidateSize(), 100);
+
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [center[0], center[1], zoom, scrollWheelZoom]);
 
+  // Update markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Clear existing markers
     map.eachLayer((layer) => {
       if (layer instanceof L.Marker) map.removeLayer(layer);
     });

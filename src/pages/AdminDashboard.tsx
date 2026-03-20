@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video } from "lucide-react";
+import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,7 @@ const AdminDashboard = () => {
   const [pendingEvents, setPendingEvents] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [adStats, setAdStats] = useState({ total: 0, active: 0 });
+  const [adAnalytics, setAdAnalytics] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -59,6 +60,7 @@ const AdminDashboard = () => {
     fetchPendingEvents();
     fetchNotifications();
     fetchAdStats();
+    fetchAdAnalytics();
   };
 
   const fetchEvents = async () => {
@@ -87,6 +89,26 @@ const AdminDashboard = () => {
     const { count: total } = await supabase.from("ads").select("*", { count: "exact", head: true });
     const { count: active } = await supabase.from("ads").select("*", { count: "exact", head: true }).eq("is_active", true);
     setAdStats({ total: total || 0, active: active || 0 });
+  };
+
+  const fetchAdAnalytics = async () => {
+    const { data } = await supabase
+      .from("ad_analytics")
+      .select("ad_id, event_type, created_at, ads(title)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (data) {
+      // Aggregate by ad
+      const map = new Map<string, { title: string; impressions: number; clicks: number }>();
+      data.forEach((row: any) => {
+        const key = row.ad_id;
+        if (!map.has(key)) map.set(key, { title: row.ads?.title || "Pub supprimée", impressions: 0, clicks: 0 });
+        const entry = map.get(key)!;
+        if (row.event_type === "impression") entry.impressions++;
+        else if (row.event_type === "click") entry.clicks++;
+      });
+      setAdAnalytics(Array.from(map.entries()).map(([id, stats]) => ({ id, ...stats })));
+    }
   };
 
   const markAsRead = async (notifId: string) => {
@@ -193,11 +215,12 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 md:w-auto md:grid-cols-5">
+            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-6">
               <TabsTrigger value="pending" className="text-xs sm:text-sm">En attente</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">Tous</TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notifs</TabsTrigger>
               <TabsTrigger value="ads" className="text-xs sm:text-sm">Publicités</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
               <TabsTrigger value="partners" className="text-xs sm:text-sm">Partenaires</TabsTrigger>
             </TabsList>
 
@@ -319,6 +342,37 @@ const AdminDashboard = () => {
 
             <TabsContent value="ads">
               <AdminAdsManager userId={user?.id} />
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg">
+                    <MousePointerClick className="h-5 w-5 text-primary" /> Performance publicitaire
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {adAnalytics.length === 0 ? (
+                    <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucune donnée analytique pour le moment.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-4 gap-2 border-b border-border pb-2 font-body text-xs font-semibold text-muted-foreground">
+                        <span>Publicité</span><span className="text-center">Impressions</span><span className="text-center">Clics</span><span className="text-center">CTR</span>
+                      </div>
+                      {adAnalytics.map((row) => (
+                        <div key={row.id} className="grid grid-cols-4 gap-2 rounded-lg bg-muted/30 p-3 font-body text-sm">
+                          <span className="truncate text-foreground">{row.title}</span>
+                          <span className="text-center text-muted-foreground">{row.impressions}</span>
+                          <span className="text-center text-muted-foreground">{row.clicks}</span>
+                          <span className="text-center font-semibold text-primary">
+                            {row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(1) : "0.0"}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="partners">
