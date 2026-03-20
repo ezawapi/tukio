@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Trash2, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import AdMedia from "@/components/AdMedia";
 
 interface AdminAdsManagerProps {
   userId?: string;
 }
 
 const defaultForm = {
-  slot_id: "",
   title: "",
   image_url: "",
   target_url: "",
@@ -30,6 +31,7 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
   const [ads, setAds] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(defaultForm);
+  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
 
   const fetchData = async () => {
     const [{ data: slotData }, { data: adData }] = await Promise.all([
@@ -53,11 +55,21 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const selectedSlot = slots.find((s) => s.id === form.slot_id);
+  const selectedSlots = useMemo(
+    () => slots.filter((slot) => selectedSlotIds.includes(slot.id)),
+    [slots, selectedSlotIds],
+  );
+
+  const handleSlotCheckedChange = (slotId: string, checked: boolean) => {
+    setSelectedSlotIds((prev) => {
+      if (checked) return [...new Set([...prev, slotId])];
+      return prev.filter((id) => id !== slotId);
+    });
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.slot_id) {
+    if (selectedSlotIds.length === 0) {
       toast({ title: "Emplacement requis", description: "Choisissez un espace publicitaire.", variant: "destructive" });
       return;
     }
@@ -67,8 +79,8 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     }
 
     setSaving(true);
-    const { error } = await supabase.from("ads").insert({
-      slot_id: form.slot_id,
+    const payload = selectedSlotIds.map((slotId) => ({
+      slot_id: slotId,
       title: form.title || "Publicité",
       body: null,
       image_url: form.image_url.trim(),
@@ -79,7 +91,9 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
       ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
       is_active: form.is_active === "true",
       created_by: userId || null,
-    });
+    }));
+
+    const { error } = await supabase.from("ads").insert(payload);
     setSaving(false);
 
     if (error) {
@@ -89,6 +103,7 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
 
     toast({ title: "Publicité ajoutée" });
     setForm(defaultForm);
+    setSelectedSlotIds([]);
     fetchData();
   };
 
@@ -121,23 +136,38 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Emplacement</Label>
-              <Select value={form.slot_id} onValueChange={(value) => handleChange("slot_id", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir un emplacement" />
-                </SelectTrigger>
-                <SelectContent>
-                  {slots.map((slot) => (
-                    <SelectItem key={slot.id} value={slot.id}>
-                      {slot.name} · {slot.recommended_width || "?"}×{slot.recommended_height || "?"}px
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedSlot && (
+              <Label>Emplacements (multi-choix)</Label>
+              <div className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
+                {slots.map((slot) => {
+                  const checked = selectedSlotIds.includes(slot.id);
+
+                  return (
+                    <label
+                      key={slot.id}
+                      htmlFor={`slot-${slot.id}`}
+                      className="flex cursor-pointer items-start gap-3 rounded-md border border-transparent p-2 transition-colors hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        id={`slot-${slot.id}`}
+                        checked={checked}
+                        onCheckedChange={(value) => handleSlotCheckedChange(slot.id, value === true)}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{slot.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {slot.recommended_width || "?"}×{slot.recommended_height || "?"} px · {slot.placement}
+                        </p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedSlots.length > 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  Format recommandé : {selectedSlot.recommended_width || "?"}×{selectedSlot.recommended_height || "?"}px · {selectedSlot.placement}
+                  Sélection : {selectedSlots.map((slot) => slot.code).join(", ")}
                 </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Cochez un ou plusieurs emplacements selon leurs tailles recommandées.</p>
               )}
             </div>
 
@@ -209,7 +239,7 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
                       <Badge variant="outline" className="text-[10px]">{ad.ad_slots?.name || "Emplacement"}</Badge>
                     </div>
                     {ad.image_url && (
-                      <img src={ad.image_url} alt={ad.title} className="h-16 w-auto rounded-lg object-cover" />
+                      <AdMedia src={ad.image_url} title={ad.title} className="max-w-sm" />
                     )}
                     <p className="font-body text-xs text-muted-foreground">
                       Format : {ad.ad_slots?.recommended_width || "?"}×{ad.ad_slots?.recommended_height || "?"}px
