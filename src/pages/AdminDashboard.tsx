@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video } from "lucide-react";
+import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,7 @@ const AdminDashboard = () => {
   const [pendingEvents, setPendingEvents] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [adStats, setAdStats] = useState({ total: 0, active: 0 });
+  const [adAnalytics, setAdAnalytics] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
