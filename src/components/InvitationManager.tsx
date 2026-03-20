@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { QrCode, Trash2, Send, UserPlus, Copy, Check, MessageCircle, Mail } from "lucide-react";
+import QrScanner from "@/components/QrScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
