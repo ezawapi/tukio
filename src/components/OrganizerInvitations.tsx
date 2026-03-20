@@ -29,8 +29,8 @@ const OrganizerInvitations = ({ userId }: OrganizerInvitationsProps) => {
       .eq("visibility", "private")
       .order("date", { ascending: false });
 
+    setEvents(data || []);
     if (data && data.length > 0) {
-      setEvents(data);
       const invMap: Record<string, any[]> = {};
       await Promise.all(
         data.map(async (ev) => {
@@ -86,64 +86,66 @@ const OrganizerInvitations = ({ userId }: OrganizerInvitationsProps) => {
     window.open(`mailto:${inv.invited_email || ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
-  if (events.length === 0) return null;
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-display text-xl flex items-center gap-2">
-          <QrCode className="h-5 w-5 text-primary" /> Mes événements privés
+    <Card className="border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="font-display text-lg flex items-center gap-2">
+          <QrCode className="h-5 w-5 text-primary" /> Mes événements privés & invitations
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {events.map((ev) => {
-          const evInvs = invitations[ev.id] || [];
-          const scanned = evInvs.filter((i) => i.attendance_status === "scanned").length;
-          return (
-            <div key={ev.id} className="space-y-3 rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="font-body font-semibold text-foreground truncate">{ev.title}</h4>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="gap-1 text-[10px]"><Users className="h-3 w-3" />{evInvs.length}</Badge>
-                  <Badge variant="secondary" className="gap-1 text-[10px]"><CheckCircle className="h-3 w-3" />{scanned} présents</Badge>
+        {events.length === 0 ? (
+          <p className="text-sm text-muted-foreground font-body">
+            Vous n'avez aucun événement privé. Créez un événement avec la visibilité « Privé & Exclusif » pour gérer les invitations ici.
+          </p>
+        ) : (
+          events.map((ev) => {
+            const evInvs = invitations[ev.id] || [];
+            const scanned = evInvs.filter((i) => i.attendance_status === "scanned").length;
+            return (
+              <div key={ev.id} className="space-y-3 rounded-xl border border-border p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="font-body font-semibold text-foreground truncate">{ev.title}</h4>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="gap-1 text-[10px]"><Users className="h-3 w-3" />{evInvs.length}</Badge>
+                    <Badge variant="secondary" className="gap-1 text-[10px]"><CheckCircle className="h-3 w-3" />{scanned} présents</Badge>
+                  </div>
                 </div>
-              </div>
 
-              {/* Add invitation */}
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input placeholder="Nom" value={newName[ev.id] || ""} onChange={(e) => setNewName((p) => ({ ...p, [ev.id]: e.target.value }))} className="text-sm" />
-                <Input placeholder="Email" value={newEmail[ev.id] || ""} onChange={(e) => setNewEmail((p) => ({ ...p, [ev.id]: e.target.value }))} className="text-sm" />
-                <Button size="sm" onClick={() => addInvitation(ev.id)} className="gradient-hero border-0 text-primary-foreground whitespace-nowrap">
-                  Inviter
-                </Button>
-              </div>
-
-              {/* List */}
-              {evInvs.length > 0 && (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {evInvs.map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
-                      <div className="min-w-0 flex-1">
-                        <span className="font-body font-medium text-foreground">{inv.invited_name || inv.invited_email || "Invité"}</span>
-                        {inv.invited_email && <span className="ml-2 text-xs text-muted-foreground">{inv.invited_email}</span>}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {inv.attendance_status === "scanned" ? (
-                          <Badge className="text-[10px] bg-[hsl(142,55%,38%)] text-primary-foreground">Présent</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] gap-1"><Clock3 className="h-3 w-3" />En attente</Badge>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shareViaWhatsApp(inv, ev.title)}><Send className="h-3 w-3" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shareViaEmail(inv, ev.title)}><Send className="h-3 w-3 rotate-45" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteInvitation(inv.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input placeholder="Nom" value={newName[ev.id] || ""} onChange={(e) => setNewName((p) => ({ ...p, [ev.id]: e.target.value }))} className="text-sm" />
+                  <Input placeholder="Email" value={newEmail[ev.id] || ""} onChange={(e) => setNewEmail((p) => ({ ...p, [ev.id]: e.target.value }))} className="text-sm" />
+                  <Button size="sm" onClick={() => addInvitation(ev.id)} className="gradient-hero border-0 text-primary-foreground whitespace-nowrap">
+                    Inviter
+                  </Button>
                 </div>
-              )}
-            </div>
-          );
-        })}
+
+                {evInvs.length > 0 && (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {evInvs.map((inv) => (
+                      <div key={inv.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                        <div className="min-w-0 flex-1">
+                          <span className="font-body font-medium text-foreground">{inv.invited_name || inv.invited_email || "Invité"}</span>
+                          {inv.invited_email && <span className="ml-2 text-xs text-muted-foreground">{inv.invited_email}</span>}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {inv.attendance_status === "scanned" ? (
+                            <Badge className="text-[10px] bg-[hsl(142,55%,38%)] text-primary-foreground">Présent</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] gap-1"><Clock3 className="h-3 w-3" />En attente</Badge>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shareViaWhatsApp(inv, ev.title)}><Send className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shareViaEmail(inv, ev.title)}><Send className="h-3 w-3 rotate-45" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteInvitation(inv.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </CardContent>
     </Card>
   );
