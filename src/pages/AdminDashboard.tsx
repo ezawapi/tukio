@@ -60,6 +60,7 @@ const AdminDashboard = () => {
     fetchPendingEvents();
     fetchNotifications();
     fetchAdStats();
+    fetchAdAnalytics();
   };
 
   const fetchEvents = async () => {
