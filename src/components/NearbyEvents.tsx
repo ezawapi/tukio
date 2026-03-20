@@ -41,7 +41,7 @@ const NearbyEvents = () => {
         const { latitude, longitude } = pos.coords;
         const { data } = await supabase
           .from("events")
-          .select("id, title, date, location, venue_name, city, image_url, price, attendees_count, latitude, longitude, categories(name)")
+          .select("id, title, date, location, city, image_url, price, attendees_count, latitude, longitude, categories(name)")
           .eq("is_published", true)
           .not("latitude", "is", null)
           .not("longitude", "is", null);
