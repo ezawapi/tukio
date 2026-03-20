@@ -91,6 +91,26 @@ const AdminDashboard = () => {
     setAdStats({ total: total || 0, active: active || 0 });
   };
 
+  const fetchAdAnalytics = async () => {
+    const { data } = await supabase
+      .from("ad_analytics")
+      .select("ad_id, event_type, created_at, ads(title)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (data) {
+      // Aggregate by ad
+      const map = new Map<string, { title: string; impressions: number; clicks: number }>();
+      data.forEach((row: any) => {
+        const key = row.ad_id;
+        if (!map.has(key)) map.set(key, { title: row.ads?.title || "Pub supprimée", impressions: 0, clicks: 0 });
+        const entry = map.get(key)!;
+        if (row.event_type === "impression") entry.impressions++;
+        else if (row.event_type === "click") entry.clicks++;
+      });
+      setAdAnalytics(Array.from(map.entries()).map(([id, stats]) => ({ id, ...stats })));
+    }
+  };
+
   const markAsRead = async (notifId: string) => {
     await supabase.from("admin_notifications").update({ is_read: true }).eq("id", notifId);
     fetchNotifications();
