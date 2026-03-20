@@ -11,7 +11,6 @@ interface NearbyEvent {
   title: string;
   date: string;
   location: string;
-  venue_name: string | null;
   city: string;
   image_url: string | null;
   price: string | null;
