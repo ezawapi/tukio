@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Compass, Heart, LogOut, Menu, Plus, Shield, UserCircle2, Wifi, WifiOff } from "lucide-react";
+import { Compass, Heart, LogOut, Menu, Plus, Shield, UserCircle2, Wifi, WifiOff, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -28,7 +28,7 @@ const Navbar = () => {
       { label: "Événements", href: "/events" },
       { label: "Agenda", href: "/agenda" },
       { label: "Carte", href: "/explorer", icon: Compass },
-      { label: "Catégories", href: "/categories" },
+      { label: "À propos", href: "/about", icon: Info },
     ],
     [],
   );
@@ -113,7 +113,7 @@ const Navbar = () => {
           <SheetContent side="right" className="w-[88vw] max-w-sm overflow-y-auto px-5">
             <SheetHeader className="text-left">
               <SheetTitle>Tukio</SheetTitle>
-              <SheetDescription>Naviguez dans l'application sans débordement sur mobile.</SheetDescription>
+              <SheetDescription>Navigation</SheetDescription>
             </SheetHeader>
 
             <div className="mt-6 flex flex-col gap-2">

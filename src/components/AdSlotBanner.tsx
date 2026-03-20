@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdMedia from "@/components/AdMedia";
 import { cn } from "@/lib/utils";
@@ -9,8 +9,20 @@ interface AdSlotBannerProps {
   compact?: boolean;
 }
 
+const trackEvent = async (adId: string, eventType: "impression" | "click") => {
+  try {
+    await supabase.from("ad_analytics").insert({
+      ad_id: adId,
+      event_type: eventType,
+      user_agent: navigator.userAgent,
+      referrer: document.referrer || null,
+    });
+  } catch {}
+};
+
 const AdSlotBanner = ({ slotCode, className, compact = false }: AdSlotBannerProps) => {
   const [ad, setAd] = useState<any | null>(null);
+  const tracked = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -23,10 +35,7 @@ const AdSlotBanner = ({ slotCode, className, compact = false }: AdSlotBannerProp
         .eq("is_active", true)
         .maybeSingle();
 
-      if (!mounted || !slot) {
-        setAd(null);
-        return;
-      }
+      if (!mounted || !slot) { setAd(null); return; }
 
       const { data: ads } = await supabase
         .from("ads")
@@ -41,33 +50,33 @@ const AdSlotBanner = ({ slotCode, className, compact = false }: AdSlotBannerProp
     };
 
     fetchAd();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [slotCode]);
+
+  // Track impression once
+  useEffect(() => {
+    if (ad?.id && !tracked.current) {
+      tracked.current = true;
+      trackEvent(ad.id, "impression");
+    }
+  }, [ad?.id]);
 
   if (!ad?.image_url) return null;
 
+  const handleClick = () => {
+    trackEvent(ad.id, "click");
+  };
+
   const mediaOnly = (
-    <div
-      className={cn(
-        "overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow hover:shadow-warm",
-        className,
-      )}
-    >
-      <AdMedia
-        src={ad.image_url}
-        title={ad.title || "Publicité"}
-        className={cn(compact ? "h-36 sm:h-44" : "h-44 sm:h-56 md:h-64")}
-      />
+    <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow hover:shadow-warm", className)}>
+      <AdMedia src={ad.image_url} title={ad.title || "Publicité"} className={cn(compact ? "h-36 sm:h-44" : "h-44 sm:h-56 md:h-64")} />
     </div>
   );
 
   if (!ad.target_url) return mediaOnly;
 
   return (
-    <a href={ad.target_url} target="_blank" rel="noopener noreferrer" className="block">
+    <a href={ad.target_url} target="_blank" rel="noopener noreferrer" className="block" onClick={handleClick}>
       {mediaOnly}
     </a>
   );
