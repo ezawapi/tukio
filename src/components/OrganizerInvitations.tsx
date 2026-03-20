@@ -29,8 +29,8 @@ const OrganizerInvitations = ({ userId }: OrganizerInvitationsProps) => {
       .eq("visibility", "private")
       .order("date", { ascending: false });
 
+    setEvents(data || []);
     if (data && data.length > 0) {
-      setEvents(data);
       const invMap: Record<string, any[]> = {};
       await Promise.all(
         data.map(async (ev) => {
@@ -144,6 +144,7 @@ const OrganizerInvitations = ({ userId }: OrganizerInvitationsProps) => {
             </div>
           );
         })}
+        )}
       </CardContent>
     </Card>
   );
