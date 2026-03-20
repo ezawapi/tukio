@@ -12,6 +12,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdminAdsManager from "@/components/admin/AdminAdsManager";
+import AdminPartnersManager from "@/components/admin/AdminPartnersManager";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
