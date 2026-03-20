@@ -250,6 +250,9 @@ const Profile = () => {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* Organizer QR Dashboard */}
+          <OrganizerInvitations userId={user.id} />
         </div>
       </div>
       <Footer />
