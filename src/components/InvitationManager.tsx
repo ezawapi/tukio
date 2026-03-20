@@ -98,7 +98,19 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
     fetchInvitations();
   };
 
-  const getQrUrl = (token: string) => {
+  const handleQrScan = async (token: string) => {
+    const inv = invitations.find((i) => i.qr_code_token === token);
+    if (!inv) {
+      toast({ title: "QR non reconnu", description: "Ce code ne correspond à aucun invité.", variant: "destructive" });
+      return;
+    }
+    if (inv.attendance_status === "present") {
+      toast({ title: "Déjà scanné", description: `${inv.invited_name} est déjà marqué(e) comme présent(e).` });
+      return;
+    }
+    await markAsPresent(inv.id);
+  };
+
     const baseUrl = window.location.origin;
     return `${baseUrl}/events/${eventId}?qr=${token}`;
   };
