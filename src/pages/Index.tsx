@@ -118,7 +118,7 @@ const Index = () => {
                         <Icon className="h-3 w-3 text-primary-foreground sm:h-3.5 sm:w-3.5" />
                       </span>
                       <span className="font-body text-foreground">{cat.name}</span>
-                      <span className="font-body text-muted-foreground">({categoryCounts[cat.id] || 0})</span>
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 font-body text-[10px] font-medium text-muted-foreground sm:text-xs">{categoryCounts[cat.id] || 0}</span>
                     </div>
                   </Link>
                 </motion.div>
@@ -144,14 +144,14 @@ const Index = () => {
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
           <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 max-w-4xl"
           >
             {recentEvents.map((event) => (
               <motion.div key={event.id} variants={itemVariants}>
                 <Link to={`/events/${event.id}`}>
                   <div className="group relative overflow-hidden rounded-xl shadow-card transition-shadow hover:shadow-warm">
                     {/* Full image background */}
-                    <div className="relative h-48 sm:h-56">
+                    <div className="relative h-40 sm:h-48">
                       <img
                         src={event.image_url || "/placeholder.svg"}
                         alt={event.title}
@@ -172,7 +172,7 @@ const Index = () => {
                           {" • "}{event.location}
                         </p>
                         {event.price && (
-                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">{event.price}</span>
+                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">{event.price} {event.currency || "CDF"}</span>
                         )}
                       </div>
                     </div>
