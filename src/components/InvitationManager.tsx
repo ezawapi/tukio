@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { QrCode, Trash2, Send, UserPlus, Copy, Check, MessageCircle, Mail } from "lucide-react";
+import QrScanner from "@/components/QrScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +98,19 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
     fetchInvitations();
   };
 
+  const handleQrScan = async (token: string) => {
+    const inv = invitations.find((i) => i.qr_code_token === token);
+    if (!inv) {
+      toast({ title: "QR non reconnu", description: "Ce code ne correspond à aucun invité.", variant: "destructive" });
+      return;
+    }
+    if (inv.attendance_status === "present") {
+      toast({ title: "Déjà scanné", description: `${inv.invited_name} est déjà marqué(e) comme présent(e).` });
+      return;
+    }
+    await markAsPresent(inv.id);
+  };
+
   const getQrUrl = (token: string) => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/events/${eventId}?qr=${token}`;
@@ -132,12 +146,15 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-display text-lg">
+        <CardTitle className="flex flex-wrap items-center gap-2 font-display text-lg">
           <QrCode className="h-5 w-5 text-primary" />
           Invitations privées ({invitations.length})
           {presentCount > 0 && (
-            <Badge variant="secondary" className="ml-auto">{presentCount} présent(s)</Badge>
+            <Badge variant="secondary">{presentCount} présent(s)</Badge>
           )}
+          <div className="ml-auto">
+            <QrScanner onScan={handleQrScan} />
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
