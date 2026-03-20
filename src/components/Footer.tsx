@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import tukioLogo from "@/assets/tukio-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
+import PartnersBlock from "@/components/PartnersBlock";
 
 const Footer = () => {
   const { user } = useAuth();
@@ -26,10 +27,11 @@ const Footer = () => {
       ],
     },
     {
-      title: "Navigation",
+      title: "Tukio",
       links: [
         { label: "Accueil", href: "/" },
         { label: "Créer un événement", href: user ? "/create" : "/auth" },
+        { label: "Règlement", href: "/terms" },
         { label: "Connexion", href: "/auth" },
       ],
     },
@@ -62,6 +64,7 @@ const Footer = () => {
             </div>
           ))}
         </div>
+        <PartnersBlock />
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="font-body text-xs text-muted-foreground">© 2026 Tukio. Tous droits réservés.</p>
         </div>
