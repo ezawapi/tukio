@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket } from "lucide-react";
+import { useParams, Link, useSearchParams } from "react-router-dom";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +9,10 @@ import Footer from "@/components/Footer";
 import ShareDialog from "@/components/ShareDialog";
 import ImageLightbox from "@/components/ImageLightbox";
 import AdSlotBanner from "@/components/AdSlotBanner";
+import InvitationManager from "@/components/InvitationManager";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/use-user-role";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -18,7 +20,9 @@ import LeafletMap from "@/components/LeafletMap";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { isAdmin } = useUserRole(user?.id);
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -28,6 +32,9 @@ const EventDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // Handle QR code scan
+  const qrToken = searchParams.get("qr");
+
   useEffect(() => {
     if (id) {
       fetchEvent();
@@ -36,12 +43,19 @@ const EventDetail = () => {
     }
   }, [id, user]);
 
+  // Log QR scan
+  useEffect(() => {
+    if (qrToken && id) {
+      toast({ title: "🎫 Invitation QR détectée", description: "Présentez ce code à l'organisateur pour validation." });
+    }
+  }, [qrToken]);
+
   const fetchEvent = async () => {
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
       .eq("id", id!)
-      .single();
+      .maybeSingle();
     setEvent(data);
     setLoading(false);
   };
@@ -101,6 +115,9 @@ const EventDetail = () => {
     }
   };
 
+  const isOrganizer = user && event?.organizer_id === user.id;
+  const canManageInvitations = isOrganizer || isAdmin;
+
   const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
   const galleryImages = useMemo(() => {
@@ -117,7 +134,7 @@ const EventDetail = () => {
         <Navbar />
         <div className="container mx-auto px-4 pt-20">
           <div className="animate-pulse space-y-4">
-            <div className="h-80 rounded-xl bg-card" />
+            <div className="h-64 rounded-xl bg-card sm:h-80" />
             <div className="h-8 w-1/2 rounded bg-card" />
             <div className="h-4 w-3/4 rounded bg-card" />
           </div>
@@ -131,7 +148,7 @@ const EventDetail = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-20 pt-20 text-center">
-          <h1 className="font-display text-3xl text-foreground">Événement non trouvé</h1>
+          <h1 className="font-display text-2xl text-foreground sm:text-3xl">Événement non trouvé</h1>
           <Link to="/events">
             <Button className="mt-4">Retour aux événements</Button>
           </Link>
@@ -146,35 +163,37 @@ const EventDetail = () => {
 
   const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
 
+  const itineraryUrl = event.latitude && event.longitude
+    ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
+    : null;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pb-16 pt-20">
         <div className="container mx-auto px-4">
-          <Link to="/events" className="mb-6 inline-flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/events" className="mb-4 inline-flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground sm:mb-6">
             <ArrowLeft className="h-4 w-4" /> Retour aux événements
           </Link>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
-              <div className="space-y-3">
+          <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="space-y-5 lg:col-span-2 lg:space-y-6">
+              {/* Gallery */}
+              <div className="space-y-2 sm:space-y-3">
                 {galleryImages.map((image, index) => (
                   <button
                     key={`${image.src}-${index}`}
                     type="button"
-                    onClick={() => {
-                      setLightboxIndex(index);
-                      setLightboxOpen(true);
-                    }}
-                    className={`group relative block overflow-hidden rounded-xl ${index === 0 ? "h-64 md:h-96" : "h-48 md:h-64"}`}
+                    onClick={() => { setLightboxIndex(index); setLightboxOpen(true); }}
+                    className={`group relative block w-full overflow-hidden rounded-xl ${index === 0 ? "h-48 sm:h-64 md:h-96" : "h-36 sm:h-48 md:h-64"}`}
                   >
                     <img src={image.src} alt={image.alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
-                    <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-                      <Expand className="h-3.5 w-3.5" /> Voir l'image
+                    <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                      <Expand className="h-3.5 w-3.5" /> Voir
                     </div>
                     {index === 0 && event.is_live && (
-                      <Badge className="absolute left-4 top-4 border-0 bg-destructive px-4 py-1 text-sm text-destructive-foreground animate-pulse-live">
+                      <Badge className="absolute left-3 top-3 border-0 bg-destructive px-3 py-1 text-sm text-destructive-foreground animate-pulse-live sm:left-4 sm:top-4 sm:px-4">
                         🔴 EN DIRECT
                       </Badge>
                     )}
@@ -182,6 +201,7 @@ const EventDetail = () => {
                 ))}
               </div>
 
+              {/* Info */}
               <div>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   <Badge className="border-0 bg-primary text-primary-foreground">
@@ -192,19 +212,36 @@ const EventDetail = () => {
                       <Lock className="h-3.5 w-3.5 text-primary" /> Privé
                     </Badge>
                   )}
+                  {event.is_live && event.live_url && (
+                    <a href={event.live_url} target="_blank" rel="noopener noreferrer">
+                      <Badge className="gap-1 bg-destructive text-destructive-foreground">
+                        <Video className="h-3.5 w-3.5" /> Regarder le Live
+                      </Badge>
+                    </a>
+                  )}
                 </div>
-                <h1 className="mb-4 font-display text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">{event.title}</h1>
-                <p className="whitespace-pre-wrap font-body leading-relaxed text-muted-foreground">
+                <h1 className="mb-3 font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{event.title}</h1>
+                <p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {event.description || "Aucune description disponible."}
                 </p>
               </div>
 
+              {/* QR Invitation notification */}
+              {qrToken && (
+                <div className="rounded-xl border-2 border-primary bg-primary/5 p-4 text-center">
+                  <p className="font-display text-lg font-bold text-foreground">🎫 Invitation QR valide</p>
+                  <p className="font-body text-sm text-muted-foreground mt-1">Présentez ce code à l'organisateur à l'entrée pour être scanné.</p>
+                  <p className="font-mono text-xs text-primary mt-2 break-all">{qrToken}</p>
+                </div>
+              )}
+
+              {/* Contacts */}
               {hasContactInfo && (
                 <div className="rounded-xl bg-card p-4 sm:p-6">
-                  <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-foreground">
+                  <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-foreground sm:text-xl">
                     <Phone className="h-5 w-5 text-primary" /> Contact & Réseaux
                   </h2>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                     {event.whatsapp && (
                       <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
                         <MessageCircle className="h-4 w-4 text-primary" /> WhatsApp
@@ -245,21 +282,26 @@ const EventDetail = () => {
                         <Twitter className="h-4 w-4 text-primary" /> Twitter / X
                       </a>
                     )}
-                    {event.tiktok_url && (
-                      <a href={event.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg p-2 text-sm font-body text-foreground transition-colors hover:bg-muted hover:text-primary">
-                        <Globe className="h-4 w-4 text-primary" /> TikTok
-                      </a>
-                    )}
                   </div>
                 </div>
               )}
 
+              {/* Map with itinerary */}
               {event.latitude && event.longitude && (
                 <div className="rounded-xl bg-card p-4 sm:p-6">
-                  <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-foreground">
-                    <MapPin className="h-5 w-5 text-primary" /> Localisation
-                  </h2>
-                  <div className="h-64 overflow-hidden rounded-lg">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="flex items-center gap-2 font-display text-lg font-bold text-foreground sm:text-xl">
+                      <MapPin className="h-5 w-5 text-primary" /> Localisation
+                    </h2>
+                    {itineraryUrl && (
+                      <a href={itineraryUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                          <Navigation className="h-3.5 w-3.5" /> Itinéraire
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                  <div className="h-48 overflow-hidden rounded-lg sm:h-64">
                     <LeafletMap
                       center={[event.latitude, event.longitude]}
                       zoom={14}
@@ -267,7 +309,7 @@ const EventDetail = () => {
                         id: event.id,
                         lat: event.latitude,
                         lng: event.longitude,
-                        popupHtml: `<strong>${event.title}</strong><br />${event.location}, ${event.city}`,
+                        popupHtml: `<strong>${event.venue_name || event.title}</strong><br />${event.location}, ${event.city}<br/><a href="${itineraryUrl}" target="_blank" style="color:#2563eb;">📍 Itinéraire</a>`,
                       }]}
                       className="z-0"
                       style={{ height: "100%", width: "100%" }}
@@ -277,8 +319,14 @@ const EventDetail = () => {
                 </div>
               )}
 
+              {/* Invitation manager for organizer/admin */}
+              {canManageInvitations && event.visibility === "private" && (
+                <InvitationManager eventId={event.id} eventTitle={event.title} />
+              )}
+
+              {/* Comments */}
               <div className="rounded-xl bg-card p-4 sm:p-6">
-                <h2 className="mb-4 font-display text-xl font-bold text-foreground">
+                <h2 className="mb-4 font-display text-lg font-bold text-foreground sm:text-xl">
                   Commentaires ({comments.length})
                 </h2>
                 {user && (
@@ -314,10 +362,11 @@ const EventDetail = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            {/* Sidebar */}
+            <div className="space-y-4 sm:space-y-6">
               <div className="space-y-4 rounded-xl bg-card p-4 sm:p-6 lg:sticky lg:top-24">
                 <div className="text-center">
-                  <p className="font-display text-2xl font-bold text-foreground">{priceDisplay}</p>
+                  <p className="font-display text-xl font-bold text-foreground sm:text-2xl">{priceDisplay}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -332,10 +381,13 @@ const EventDetail = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <MapPin className="h-5 w-5 flex-shrink-0 text-primary" />
+                  <div className="flex items-start gap-3 text-sm">
+                    <MapPin className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                     <div>
-                      <p className="font-body font-medium text-foreground">{event.location}</p>
+                      {event.venue_name && (
+                        <p className="font-body font-bold text-foreground">{event.venue_name}</p>
+                      )}
+                      <p className="font-body text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
                     </div>
                   </div>
@@ -367,6 +419,22 @@ const EventDetail = () => {
                   <a href={`https://wa.me/${event.whatsapp.replace(/[^0-9+]/g, "")}`} target="_blank" rel="noopener noreferrer" className="block">
                     <Button variant="outline" className="w-full">
                       <MessageCircle className="mr-2 h-4 w-4" /> Contacter via WhatsApp
+                    </Button>
+                  </a>
+                )}
+
+                {itineraryUrl && (
+                  <a href={itineraryUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button variant="outline" className="w-full gap-2">
+                      <Navigation className="h-4 w-4" /> Voir l'itinéraire
+                    </Button>
+                  </a>
+                )}
+
+                {event.is_live && event.live_url && (
+                  <a href={event.live_url} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <Video className="h-4 w-4" /> Rejoindre le Live
                     </Button>
                   </a>
                 )}

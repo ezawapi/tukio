@@ -13,7 +13,7 @@ const Footer = () => {
       links: [
         { label: "Événements", href: "/events" },
         { label: "Agenda", href: "/agenda" },
-        { label: "Explorer", href: "/explorer" },
+        { label: "Carte", href: "/explorer" },
         { label: "Catégories", href: "/categories" },
       ],
     },
@@ -22,7 +22,6 @@ const Footer = () => {
       links: [
         { label: "Profil", href: user ? "/profile" : "/auth" },
         { label: "Favoris", href: user ? "/favorites" : "/auth" },
-        { label: "Publier", href: user ? "/create" : "/auth" },
         ...(isAdmin ? [{ label: "Administration", href: "/admin" }] : []),
       ],
     },
@@ -30,14 +29,14 @@ const Footer = () => {
       title: "Navigation",
       links: [
         { label: "Accueil", href: "/" },
+        { label: "Créer un événement", href: user ? "/create" : "/auth" },
         { label: "Connexion", href: "/auth" },
-        { label: "Créer une activité", href: user ? "/create" : "/auth" },
       ],
     },
   ];
 
   return (
-    <footer className="bg-card border-t border-border py-12">
+    <footer className="bg-card border-t border-border py-10 sm:py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -64,7 +63,7 @@ const Footer = () => {
           ))}
         </div>
         <div className="border-t border-border mt-8 pt-8 text-center">
-          <p className="font-body text-sm text-muted-foreground">© 2026 Tukio. Tous droits réservés.</p>
+          <p className="font-body text-xs text-muted-foreground">© 2026 Tukio. Tous droits réservés.</p>
         </div>
       </div>
     </footer>
