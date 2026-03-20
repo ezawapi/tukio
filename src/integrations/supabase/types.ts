@@ -629,6 +629,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_event_organizer: {
+        Args: { _event_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_invited_to_event: {
+        Args: { _email: string; _event_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

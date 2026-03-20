@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { type ChangeEvent, useEffect, useState } from "react";
+import { Plus, Trash2, ExternalLink, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ const AdminPartnersManager = () => {
   const [logoUrl, setLogoUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const fetchPartners = async () => {
     const { data } = await supabase.from("partners").select("*").order("display_order");
@@ -30,6 +31,44 @@ const AdminPartnersManager = () => {
   };
 
   useEffect(() => { fetchPartners(); }, []);
+
+  const uploadLocalLogo = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Sélectionnez une image (PNG, JPG, GIF, WEBP)");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Le logo ne doit pas dépasser 5MB");
+      event.target.value = "";
+      return;
+    }
+
+    setUploadingLogo(true);
+    const extension = file.name.split(".").pop() || "png";
+    const path = `partners/${crypto.randomUUID()}.${extension}`;
+
+    const { error } = await supabase.storage
+      .from("event-images")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+
+    if (error) {
+      toast.error(error.message);
+      setUploadingLogo(false);
+      event.target.value = "";
+      return;
+    }
+
+    const { data } = supabase.storage.from("event-images").getPublicUrl(path);
+    setLogoUrl(data.publicUrl);
+    toast.success("Logo local importé");
+    setUploadingLogo(false);
+    event.target.value = "";
+  };
 
   const addPartner = async () => {
     if (!name || !logoUrl) { toast.error("Nom et URL du logo requis"); return; }
@@ -59,11 +98,17 @@ const AdminPartnersManager = () => {
       <Card>
         <CardHeader><CardTitle className="font-display text-lg">Ajouter un partenaire</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div><Label>Nom</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du partenaire" /></div>
             <div><Label>Logo (URL)</Label><Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://..." /></div>
+            <div>
+              <Label className="flex items-center gap-1"><Upload className="h-3.5 w-3.5" /> Logo local</Label>
+              <Input type="file" accept="image/*" onChange={uploadLocalLogo} disabled={uploadingLogo} />
+              <p className="mt-1 text-xs text-muted-foreground">Téléversez une image locale ou utilisez une URL.</p>
+            </div>
             <div><Label>Site web</Label><Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://..." /></div>
           </div>
+          {uploadingLogo ? <p className="text-xs text-muted-foreground">Import du logo en cours...</p> : null}
           <Button onClick={addPartner} disabled={loading} className="gradient-hero border-0 text-primary-foreground">
             <Plus className="h-4 w-4" /> Ajouter
           </Button>
