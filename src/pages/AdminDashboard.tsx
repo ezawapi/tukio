@@ -12,6 +12,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdminAdsManager from "@/components/admin/AdminAdsManager";
+import AdminPartnersManager from "@/components/admin/AdminPartnersManager";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -192,11 +193,12 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 md:w-auto md:grid-cols-4">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 md:w-auto md:grid-cols-5">
               <TabsTrigger value="pending" className="text-xs sm:text-sm">En attente</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">Tous</TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notifs</TabsTrigger>
               <TabsTrigger value="ads" className="text-xs sm:text-sm">Publicités</TabsTrigger>
+              <TabsTrigger value="partners" className="text-xs sm:text-sm">Partenaires</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending">
@@ -317,6 +319,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="ads">
               <AdminAdsManager userId={user?.id} />
+            </TabsContent>
+
+            <TabsContent value="partners">
+              <AdminPartnersManager />
             </TabsContent>
           </Tabs>
         </div>

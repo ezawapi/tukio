@@ -27,7 +27,7 @@ const Navbar = () => {
       { label: "Accueil", href: "/" },
       { label: "Événements", href: "/events" },
       { label: "Agenda", href: "/agenda" },
-      { label: "Explorer", href: "/explorer", icon: Compass },
+      { label: "Carte", href: "/explorer", icon: Compass },
       { label: "Catégories", href: "/categories" },
     ],
     [],
