@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { Plus, Trash2, ExternalLink, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +32,7 @@ const AdminPartnersManager = () => {
 
   useEffect(() => { fetchPartners(); }, []);
 
-  const uploadLocalLogo = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadLocalLogo = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
