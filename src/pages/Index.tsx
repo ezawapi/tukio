@@ -242,7 +242,7 @@ const Index = () => {
                     <EventCard compact title={event.title}
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
-                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0} price={event.price} />
+                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0} price={event.price ? `${event.price} ${event.currency || "CDF"}` : undefined} />
                   </Link>
                 </motion.div>
               ))}
