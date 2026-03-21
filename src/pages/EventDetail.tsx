@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import LeafletMap from "@/components/LeafletMap";
+import { formatEventPrice } from "@/lib/format-price";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -157,9 +158,7 @@ const EventDetail = () => {
     );
   }
 
-  const priceDisplay = event.price === "Gratuit" || !event.price
-    ? "Gratuit"
-    : `${event.price} ${event.currency || "FCFA"}`;
+  const priceDisplay = formatEventPrice(event.price, event.currency);
 
   const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
 

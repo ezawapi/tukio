@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import { supabase } from "@/integrations/supabase/client";
+import { formatEventPrice } from "@/lib/format-price";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
@@ -172,7 +173,9 @@ const Index = () => {
                           {" • "}{event.location}
                         </p>
                         {event.price && event.price !== "Gratuit" && (
-                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">{event.price} {event.currency || "CDF"}</span>
+                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                            {formatEventPrice(event.price, event.currency)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -242,7 +245,8 @@ const Index = () => {
                     <EventCard compact title={event.title}
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
-                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0} price={event.price && event.price !== "Gratuit" ? `${event.price} ${event.currency || "CDF"}` : undefined} />
+                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0}
+                      price={event.price && event.price !== "Gratuit" ? formatEventPrice(event.price, event.currency) : undefined} />
                   </Link>
                 </motion.div>
               ))}

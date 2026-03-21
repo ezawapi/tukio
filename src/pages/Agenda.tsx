@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatEventPrice } from "@/lib/format-price";
 
 interface AgendaEvent {
   id: string;
@@ -177,7 +178,7 @@ const Agenda = () => {
                                 </span>
                               </div>
                               <p className="font-body font-semibold text-sm text-foreground mt-1">
-                                {event.price && event.price !== "Gratuit" ? `${event.price} ${event.currency || "CDF"}` : "Gratuit"}
+                                {formatEventPrice(event.price, event.currency)}
                               </p>
                             </div>
                           </motion.div>
