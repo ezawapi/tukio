@@ -157,9 +157,7 @@ const EventDetail = () => {
     );
   }
 
-  const priceDisplay = event.price === "Gratuit" || !event.price
-    ? "Gratuit"
-    : `${event.price} ${event.currency || "FCFA"}`;
+  const priceDisplay = formatEventPrice(event.price, event.currency);
 
   const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
 

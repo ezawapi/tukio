@@ -1,16 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, Calendar, Filter, Grid3X3, List } from "lucide-react";
+import { Search, MapPin, Calendar, Filter, Grid3X3, List, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { formatEventPrice } from "@/lib/format-price";
 
 interface EventRow {
   id: string;
@@ -35,6 +38,8 @@ const Events = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
   const [selectedDate, setSelectedDate] = useState(searchParams.get("date") || "");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [showFreeOnly, setShowFreeOnly] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -89,6 +94,15 @@ const Events = () => {
     setEvents((data as unknown as EventRow[]) || []);
     setLoading(false);
   };
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      if (showFreeOnly) return !event.price || event.price === "Gratuit";
+      const numPrice = parseFloat((event.price || "0").replace(/[^\d]/g, ""));
+      if (!event.price || event.price === "Gratuit") return priceRange[0] === 0;
+      return numPrice >= priceRange[0] && numPrice <= priceRange[1];
+    });
+  }, [events, priceRange, showFreeOnly]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -149,6 +163,36 @@ const Events = () => {
                 className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto p-0"
               />
             </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="default" className="gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Prix
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Fourchette de prix</h4>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={showFreeOnly} onChange={(e) => setShowFreeOnly(e.target.checked)} className="rounded" />
+                    Gratuit uniquement
+                  </label>
+                  {!showFreeOnly && (
+                    <>
+                      <Slider
+                        min={0} max={100000} step={1000}
+                        value={priceRange}
+                        onValueChange={(v) => setPriceRange(v as [number, number])}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{priceRange[0].toLocaleString()} CDF</span>
+                        <span>{priceRange[1].toLocaleString()} CDF</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button onClick={handleSearch} className="gradient-hero text-primary-foreground border-0">
               <Filter className="h-4 w-4 mr-2" />
               Filtrer
@@ -169,14 +213,14 @@ const Events = () => {
                 <div key={i} className="rounded-xl bg-card animate-pulse h-72" />
               ))}
             </div>
-          ) : events.length === 0 ? (
+          ) : filteredEvents.length === 0 ? (
             <div className="text-center py-20">
               <p className="font-display text-2xl text-foreground mb-2">Aucun événement trouvé</p>
               <p className="font-body text-muted-foreground">Essayez de modifier vos filtres</p>
             </div>
           ) : (
             <div className={viewMode === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {events.map((event) => (
+              {filteredEvents.map((event) => (
                 <Link key={event.id} to={`/events/${event.id}`}>
                   <motion.div
                     whileHover={{ y: -4 }}
@@ -212,7 +256,7 @@ const Events = () => {
                         </div>
                       </div>
                       <div className="flex items-center justify-between gap-3 mt-3">
-                        <span className="font-body font-semibold text-sm text-foreground truncate">{event.price && event.price !== "Gratuit" ? `${event.price} ${(event as any).currency || "CDF"}` : "Gratuit"}</span>
+                        <span className="font-body font-semibold text-sm text-foreground truncate">{formatEventPrice(event.price, (event as any).currency)}</span>
                         <span className="text-xs text-muted-foreground shrink-0">{event.attendees_count || 0} participants</span>
                       </div>
                     </div>

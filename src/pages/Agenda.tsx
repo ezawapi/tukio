@@ -177,7 +177,7 @@ const Agenda = () => {
                                 </span>
                               </div>
                               <p className="font-body font-semibold text-sm text-foreground mt-1">
-                                {event.price && event.price !== "Gratuit" ? `${event.price} ${event.currency || "CDF"}` : "Gratuit"}
+                                {formatEventPrice(event.price, event.currency)}
                               </p>
                             </div>
                           </motion.div>
