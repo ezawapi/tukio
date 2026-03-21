@@ -68,10 +68,10 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="font-display text-2xl">
-            {isLogin ? "Connexion" : "Inscription"}
+            {forgotMode ? "Mot de passe oublié" : isLogin ? "Connexion" : "Inscription"}
           </CardTitle>
           <CardDescription className="font-body">
-            {isLogin ? "Connectez-vous à votre compte Tukio" : "Créez votre compte Tukio"}
+            {forgotMode ? "Entrez votre email pour recevoir un lien de réinitialisation" : isLogin ? "Connectez-vous à votre compte Tukio" : "Créez votre compte Tukio"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,20 +87,31 @@ const Auth = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="font-body">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            {!forgotMode && (
+              <div className="space-y-2">
+                <Label htmlFor="password" className="font-body">Mot de passe</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
+            {isLogin && !forgotMode && (
+              <button
+                type="button"
+                onClick={() => setForgotMode(true)}
+                className="text-xs text-primary hover:underline font-body"
+              >
+                Mot de passe oublié ?
+              </button>
+            )}
             <Button type="submit" className="w-full gradient-hero text-primary-foreground border-0" disabled={loading}>
-              {loading ? "Chargement..." : isLogin ? "Se connecter" : "S'inscrire"}
+              {loading ? "Chargement..." : forgotMode ? "Envoyer le lien" : isLogin ? "Se connecter" : "S'inscrire"}
             </Button>
           </form>
           <div className="mt-4 flex items-center gap-2">
