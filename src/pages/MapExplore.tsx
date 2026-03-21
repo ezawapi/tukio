@@ -74,7 +74,8 @@ const MapExplore = () => {
           </p>
         </div>
 
-        <div className="flex-1 relative" style={{ minHeight: "calc(100vh - 180px)" }}>
+        <div className="flex-1 px-4 pb-4">
+          <div className="relative h-[calc(100vh-180px)] min-h-[420px] overflow-hidden rounded-xl border border-border bg-muted/30">
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
@@ -84,10 +85,11 @@ const MapExplore = () => {
               center={defaultCenter}
               zoom={4}
               markers={markers}
-              className="z-0"
+              className="z-0 h-full w-full"
               style={{ height: "100%", width: "100%" }}
             />
           )}
+          </div>
         </div>
       </div>
       <Footer />

@@ -39,7 +39,27 @@ const Auth = () => {
         setForgotMode(false);
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          const errorMessage = (error.message || "").toLowerCase();
+
+          if (errorMessage.includes("email not confirmed")) {
+            const { error: resendError } = await supabase.auth.resend({
+              type: "signup",
+              email,
+              options: { emailRedirectTo: window.location.origin },
+            });
+
+            if (resendError) throw resendError;
+
+            toast({
+              title: "Email non confirmé",
+              description: "Un nouveau lien de confirmation vient d’être envoyé à votre adresse email.",
+            });
+            return;
+          }
+
+          throw error;
+        }
         toast({ title: "Connexion réussie !" });
         navigate("/");
       } else {
@@ -48,8 +68,33 @@ const Auth = () => {
           password,
           options: { emailRedirectTo: window.location.origin },
         });
-        if (error) throw error;
-        toast({ title: "Inscription réussie !", description: "Votre compte est prêt, vous pouvez vous connecter." });
+
+        if (error) {
+          const errorMessage = (error.message || "").toLowerCase();
+
+          if (errorMessage.includes("already registered")) {
+            const { error: resendError } = await supabase.auth.resend({
+              type: "signup",
+              email,
+              options: { emailRedirectTo: window.location.origin },
+            });
+
+            if (resendError) throw resendError;
+
+            toast({
+              title: "Compte déjà existant",
+              description: "Un nouveau lien de confirmation a été envoyé à votre email.",
+            });
+            return;
+          }
+
+          throw error;
+        }
+
+        toast({
+          title: "Inscription créée",
+          description: "Vérifiez votre email puis cliquez sur le lien de confirmation pour activer votre compte.",
+        });
       }
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });

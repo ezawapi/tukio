@@ -29,16 +29,11 @@ interface LeafletMapProps {
 const LeafletMap = ({ center, zoom, markers, className, style, scrollWheelZoom = true }: LeafletMapProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
 
   // Initialize map
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Clean up any existing map
-    if (mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
-    }
+    if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
       center,
@@ -50,34 +45,54 @@ const LeafletMap = ({ center, zoom, markers, className, style, scrollWheelZoom =
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
-    mapRef.current = map;
+    const markerLayer = L.layerGroup().addTo(map);
 
-    // Force a resize after mount to fix tiles not loading
-    setTimeout(() => map.invalidateSize(), 100);
+    mapRef.current = map;
+    markerLayerRef.current = markerLayer;
+
+    const resizeObserver = new ResizeObserver(() => map.invalidateSize());
+    resizeObserver.observe(containerRef.current);
+    const rafId = requestAnimationFrame(() => map.invalidateSize());
 
     return () => {
+      cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
+      markerLayerRef.current = null;
     };
-  }, [center[0], center[1], zoom, scrollWheelZoom]);
+  }, []);
 
-  // Update markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) map.removeLayer(layer);
-    });
+    map.setView(center, zoom);
+
+    if (scrollWheelZoom) {
+      map.scrollWheelZoom.enable();
+    } else {
+      map.scrollWheelZoom.disable();
+    }
+
+    requestAnimationFrame(() => map.invalidateSize());
+  }, [center[0], center[1], zoom, scrollWheelZoom]);
+
+  // Update markers
+  useEffect(() => {
+    const markerLayer = markerLayerRef.current;
+    if (!markerLayer) return;
+
+    markerLayer.clearLayers();
 
     markers.forEach((m) => {
       L.marker([m.lat, m.lng])
-        .addTo(map)
+        .addTo(markerLayer)
         .bindPopup(m.popupHtml);
     });
   }, [markers]);
 
-  return <div ref={containerRef} className={className} style={style} />;
+  return <div ref={containerRef} className={`h-full w-full ${className ?? ""}`.trim()} style={style} />;
 };
 
 export default LeafletMap;
