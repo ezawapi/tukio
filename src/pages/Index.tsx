@@ -62,7 +62,7 @@ const Index = () => {
       const counts: Record<string, number> = {};
       await Promise.all(
         data.map(async (cat) => {
-          const { count } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("category_id", cat.id).eq("is_published", true);
+          const { count } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("category_id", cat.id).eq("is_published", true).eq("visibility", "public");
           counts[cat.id] = count || 0;
         }),
       );
