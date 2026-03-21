@@ -43,6 +43,7 @@ const NearbyEvents = () => {
           .from("events")
           .select("id, title, date, location, city, image_url, price, attendees_count, latitude, longitude, categories(name)")
           .eq("is_published", true)
+          .eq("visibility", "public")
           .not("latitude", "is", null)
           .not("longitude", "is", null);
 

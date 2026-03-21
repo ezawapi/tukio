@@ -62,7 +62,7 @@ const Index = () => {
       const counts: Record<string, number> = {};
       await Promise.all(
         data.map(async (cat) => {
-          const { count } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("category_id", cat.id).eq("is_published", true);
+          const { count } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("category_id", cat.id).eq("is_published", true).eq("visibility", "public");
           counts[cat.id] = count || 0;
         }),
       );
@@ -71,17 +71,17 @@ const Index = () => {
   };
 
   const fetchLiveEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_live", true).eq("is_published", true).limit(4);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_live", true).eq("is_published", true).eq("visibility", "public").limit(4);
     setLiveEvents(data || []);
   };
 
   const fetchUpcomingEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(8);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(8);
     setUpcomingEvents(data || []);
   };
 
   const fetchRecentEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).order("created_at", { ascending: false }).limit(6);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(6);
     setRecentEvents(data || []);
   };
 
