@@ -31,6 +31,7 @@ const MapExplore = () => {
         .from("events")
         .select("id, title, date, location, city, latitude, longitude, image_url, price, is_live, categories(name)")
         .eq("is_published", true)
+        .eq("visibility", "public")
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .order("date", { ascending: true });
