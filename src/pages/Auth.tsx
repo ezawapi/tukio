@@ -23,12 +23,21 @@ const Auth = () => {
     if (user) navigate("/");
   }, [user, navigate]);
 
+  const [forgotMode, setForgotMode] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (forgotMode) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({ title: "Email envoyé !", description: "Consultez votre boîte mail pour réinitialiser votre mot de passe." });
+        setForgotMode(false);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast({ title: "Connexion réussie !" });
@@ -40,7 +49,7 @@ const Auth = () => {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast({ title: "Inscription réussie !", description: "Vérifiez votre email pour confirmer." });
+        toast({ title: "Inscription réussie !", description: "Votre compte est prêt, vous pouvez vous connecter." });
       }
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
