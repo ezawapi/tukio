@@ -212,7 +212,7 @@ const Events = () => {
                         </div>
                       </div>
                       <div className="flex items-center justify-between gap-3 mt-3">
-                        <span className="font-body font-semibold text-sm text-foreground truncate">{event.price || "Gratuit"}</span>
+                        <span className="font-body font-semibold text-sm text-foreground truncate">{event.price && event.price !== "Gratuit" ? `${event.price} ${(event as any).currency || "CDF"}` : "Gratuit"}</span>
                         <span className="text-xs text-muted-foreground shrink-0">{event.attendees_count || 0} participants</span>
                       </div>
                     </div>
