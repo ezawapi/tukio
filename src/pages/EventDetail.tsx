@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import LeafletMap from "@/components/LeafletMap";
+import { formatEventPrice } from "@/lib/format-price";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();

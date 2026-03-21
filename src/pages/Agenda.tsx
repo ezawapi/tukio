@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatEventPrice } from "@/lib/format-price";
 
 interface AgendaEvent {
   id: string;
