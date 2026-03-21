@@ -108,7 +108,6 @@ const CreateEvent = () => {
       category_id: form.category_id || null,
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
-      venue_name: form.venue_name.trim() || null,
       location: form.location,
       city: form.city,
       price: form.price,
@@ -134,7 +133,6 @@ const CreateEvent = () => {
       external_ticket_url: form.ticketing_mode === "external" ? form.external_ticket_url.trim() : null,
       reservation_cta_label: form.ticketing_mode === "external" ? (form.reservation_cta_label.trim() || "Réserver") : "Réserver",
       is_live: form.is_live,
-      live_url: form.live_url.trim() || null,
     });
 
     setLoading(false);
