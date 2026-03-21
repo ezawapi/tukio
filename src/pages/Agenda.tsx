@@ -51,6 +51,7 @@ const Agenda = () => {
       .from("events")
       .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name)")
       .eq("is_published", true)
+      .eq("visibility", "public")
       .gte("date", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
       .order("date", { ascending: true });
     setAllEvents((data as unknown as AgendaEvent[]) || []);
