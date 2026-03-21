@@ -245,7 +245,8 @@ const Index = () => {
                     <EventCard compact title={event.title}
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
-                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0} price={formatEventPrice(event.price, event.currency)} />
+                      image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0}
+                      price={event.price && event.price !== "Gratuit" ? formatEventPrice(event.price, event.currency) : undefined} />
                   </Link>
                 </motion.div>
               ))}
