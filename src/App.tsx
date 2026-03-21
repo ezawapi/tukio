@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import Profile from "./pages/Profile.tsx";
 import Terms from "./pages/Terms.tsx";
 import About from "./pages/About.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
