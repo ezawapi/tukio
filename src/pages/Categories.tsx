@@ -38,7 +38,8 @@ const Categories = () => {
           .from("events")
           .select("*", { count: "exact", head: true })
           .eq("category_id", cat.id)
-          .eq("is_published", true);
+          .eq("is_published", true)
+          .eq("visibility", "public");
         counts[cat.id] = count || 0;
       }
       setEventCounts(counts);
