@@ -172,9 +172,11 @@ const Index = () => {
                           {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           {" • "}{event.location}
                         </p>
-                        <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-                          {formatEventPrice(event.price, event.currency)}
-                        </span>
+                        {event.price && event.price !== "Gratuit" && (
+                          <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                            {formatEventPrice(event.price, event.currency)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
