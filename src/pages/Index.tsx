@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import { supabase } from "@/integrations/supabase/client";
+import { formatEventPrice } from "@/lib/format-price";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
