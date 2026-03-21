@@ -60,8 +60,9 @@ const Events = () => {
     setLoading(true);
     let query = supabase
       .from("events")
-      .select("id, title, date, location, city, image_url, price, attendees_count, is_live, categories(name)")
+      .select("id, title, date, location, city, image_url, price, currency, attendees_count, is_live, visibility, categories(name)")
       .eq("is_published", true)
+      .eq("visibility", "public")
       .order("date", { ascending: true });
 
     const q = searchParams.get("q");
