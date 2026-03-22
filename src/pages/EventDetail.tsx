@@ -177,28 +177,36 @@ const EventDetail = () => {
 
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             <div className="space-y-5 lg:col-span-2 lg:space-y-6">
-              {/* Gallery */}
-              <div className="space-y-2 sm:space-y-3">
-                {galleryImages.map((image, index) => (
-                  <button
-                    key={`${image.src}-${index}`}
-                    type="button"
-                    onClick={() => { setLightboxIndex(index); setLightboxOpen(true); }}
-                    className={`group relative block w-full overflow-hidden rounded-xl ${index === 0 ? "h-48 sm:h-64 md:h-96" : "h-36 sm:h-48 md:h-64"}`}
-                  >
-                    <img src={image.src} alt={image.alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+              {/* Gallery - grid layout */}
+              {galleryImages.length === 1 ? (
+                <button type="button" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                  className="group relative block w-full overflow-hidden rounded-xl h-48 sm:h-64 md:h-96">
+                  <img src={galleryImages[0].src} alt={galleryImages[0].alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
+                  <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm"><Expand className="h-3.5 w-3.5" /> Voir</div>
+                  {event.is_live && <Badge className="absolute left-3 top-3 border-0 bg-destructive px-3 py-1 text-sm text-destructive-foreground animate-pulse-live">🔴 EN DIRECT</Badge>}
+                </button>
+              ) : galleryImages.length >= 2 ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.2fr_0.8fr] sm:gap-3">
+                  <button type="button" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                    className="group relative block w-full overflow-hidden rounded-xl h-48 sm:h-72 md:h-[380px]">
+                    <img src={galleryImages[0].src} alt={galleryImages[0].alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
-                    <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-                      <Expand className="h-3.5 w-3.5" /> Voir
-                    </div>
-                    {index === 0 && event.is_live && (
-                      <Badge className="absolute left-3 top-3 border-0 bg-destructive px-3 py-1 text-sm text-destructive-foreground animate-pulse-live sm:left-4 sm:top-4 sm:px-4">
-                        🔴 EN DIRECT
-                      </Badge>
-                    )}
+                    <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm"><Expand className="h-3.5 w-3.5" /> Voir</div>
+                    {event.is_live && <Badge className="absolute left-3 top-3 border-0 bg-destructive px-3 py-1 text-sm text-destructive-foreground animate-pulse-live">🔴 EN DIRECT</Badge>}
                   </button>
-                ))}
-              </div>
+                  <div className="flex flex-row gap-2 sm:flex-col sm:gap-3">
+                    {galleryImages.slice(1).map((image, idx) => (
+                      <button key={image.src} type="button" onClick={() => { setLightboxIndex(idx + 1); setLightboxOpen(true); }}
+                        className="group relative block w-full overflow-hidden rounded-xl h-32 sm:h-full sm:flex-1">
+                        <img src={image.src} alt={image.alt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
+                        <div className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm"><Expand className="h-3 w-3" /> Voir</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {/* Info */}
               <div>

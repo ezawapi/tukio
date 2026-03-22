@@ -255,7 +255,15 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+      <section className="pb-2">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+            <AdSlotBanner slotCode="home-bottom-left" compact />
+            <AdSlotBanner slotCode="home-bottom-center" compact />
+            <AdSlotBanner slotCode="home-bottom-right" compact />
+          </div>
+        </div>
+      </section>
 
       {/* CTA */}
       <section className="py-12 sm:py-16">
