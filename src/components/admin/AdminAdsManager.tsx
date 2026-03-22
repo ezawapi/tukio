@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Trash2, Image } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AdMedia from "@/components/AdMedia";
+import ImageUpload from "@/components/ImageUpload";
 
 interface AdminAdsManagerProps {
   userId?: string;
@@ -176,10 +177,12 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
               <Input value={form.title} onChange={(event) => handleChange("title", event.target.value)} placeholder="Nom de la pub" />
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Image className="h-3.5 w-3.5" /> Image ou vidéo YouTube *</Label>
-              <Input value={form.image_url} onChange={(event) => handleChange("image_url", event.target.value)} placeholder="https://... (.png, .jpg, .gif ou youtube)" required />
-            </div>
+            <ImageUpload
+              value={form.image_url}
+              onChange={(url) => handleChange("image_url", url)}
+              userId={userId || "admin"}
+              label="Image ou vidéo YouTube *"
+            />
 
             <div className="space-y-2">
               <Label>Lien cible (clic)</Label>
