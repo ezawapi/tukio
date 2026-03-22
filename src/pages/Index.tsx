@@ -172,7 +172,7 @@ const Index = () => {
                           {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           {" • "}{event.location}
                         </p>
-                        {event.price && event.price !== "Gratuit" && (
+                        {(
                           <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
                             {formatEventPrice(event.price, event.currency)}
                           </span>
@@ -246,7 +246,7 @@ const Index = () => {
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
                       image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0}
-                      price={event.price && event.price !== "Gratuit" ? formatEventPrice(event.price, event.currency) : undefined} />
+                      price={formatEventPrice(event.price, event.currency)} />
                   </Link>
                 </motion.div>
               ))}
