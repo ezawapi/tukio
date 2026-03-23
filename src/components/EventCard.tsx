@@ -1,7 +1,8 @@
-import { Calendar, MapPin, Users, Heart } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getCountdown } from "@/lib/countdown";
 
 interface EventCardProps {
   title: string;
@@ -13,9 +14,13 @@ interface EventCardProps {
   price?: string;
   isLive?: boolean;
   compact?: boolean;
+  eventDate?: string;
+  endDate?: string | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate }: EventCardProps) => {
+  const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
+
   return (
     <motion.div
       whileHover={{ y: -3 }}
@@ -32,8 +37,22 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
             </Badge>
           )}
         </div>
-        <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground backdrop-blur-sm sm:right-3 sm:top-3 sm:h-8 sm:w-8" aria-hidden="true">
-          <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <div className="absolute right-2 top-2 flex items-center gap-1.5 sm:right-3 sm:top-3">
+          {countdown && (
+            <Badge className={cn(
+              "border-0 text-[10px] font-bold backdrop-blur-sm sm:text-xs",
+              countdown === "Aujourd'hui" ? "bg-destructive/90 text-destructive-foreground" :
+              countdown === "Demain" ? "bg-secondary/90 text-secondary-foreground" :
+              countdown === "En cours" ? "bg-destructive/90 text-destructive-foreground animate-pulse-live" :
+              "bg-muted/90 text-foreground"
+            )}>
+              <Clock className="mr-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              {countdown}
+            </Badge>
+          )}
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-muted-foreground backdrop-blur-sm sm:h-8 sm:w-8" aria-hidden="true">
+            <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </div>
         </div>
         {price && (
           <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3">

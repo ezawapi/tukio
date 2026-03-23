@@ -292,8 +292,14 @@ const CreateEvent = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="font-body">Devise</Label>
-                      <Select value={form.currency} onValueChange={(v) => handleChange("currency", v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      <Select
+                        value={(!form.price || form.price.toLowerCase() === "gratuit") ? "" : form.currency}
+                        onValueChange={(v) => handleChange("currency", v)}
+                        disabled={!form.price || form.price.toLowerCase() === "gratuit"}
+                      >
+                        <SelectTrigger className={(!form.price || form.price.toLowerCase() === "gratuit") ? "opacity-50" : ""}>
+                          <SelectValue placeholder={(!form.price || form.price.toLowerCase() === "gratuit") ? "—" : undefined} />
+                        </SelectTrigger>
                         <SelectContent>
                           {CURRENCIES.map((c) => (
                             <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
