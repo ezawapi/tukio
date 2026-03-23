@@ -15,6 +15,7 @@ import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { formatEventPrice } from "@/lib/format-price";
+import { getCountdown } from "@/lib/countdown";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
@@ -161,9 +162,10 @@ const Index = () => {
                       />
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                      {/* Category badge top-left */}
-                      <div className="absolute left-3 top-3">
+                      {/* Badges top */}
+                      <div className="absolute left-3 top-3 flex items-center gap-1.5">
                         <Badge className="border-0 bg-primary/90 text-[10px] text-primary-foreground backdrop-blur-sm">{event.categories?.name || "Événement"}</Badge>
+                        {(() => { const cd = getCountdown(event.date, event.end_date); return cd ? <Badge className="border-0 bg-white/20 text-[10px] font-bold text-white backdrop-blur-sm">{cd}</Badge> : null; })()}
                       </div>
                       {/* Text overlay bottom */}
                       <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -208,7 +210,7 @@ const Index = () => {
                   <Link to={`/events/${event.id}`}>
                     <EventCard compact title={event.title} date="En direct maintenant" location={event.location}
                       category={event.categories?.name || "Événement"} image={event.image_url || "/placeholder.svg"}
-                      attendees={event.attendees_count || 0} isLive />
+                      attendees={event.attendees_count || 0} isLive eventDate={event.date} endDate={event.end_date} />
                   </Link>
                 </motion.div>
               ))}
@@ -246,7 +248,7 @@ const Index = () => {
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
                       image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} />
+                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date} />
                   </Link>
                 </motion.div>
               ))}
