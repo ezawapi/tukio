@@ -208,7 +208,7 @@ const Index = () => {
                   <Link to={`/events/${event.id}`}>
                     <EventCard compact title={event.title} date="En direct maintenant" location={event.location}
                       category={event.categories?.name || "Événement"} image={event.image_url || "/placeholder.svg"}
-                      attendees={event.attendees_count || 0} isLive />
+                      attendees={event.attendees_count || 0} isLive eventDate={event.date} endDate={event.end_date} />
                   </Link>
                 </motion.div>
               ))}
@@ -246,7 +246,7 @@ const Index = () => {
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || "Événement"}
                       image={event.image_url || "/placeholder.svg"} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} />
+                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date} />
                   </Link>
                 </motion.div>
               ))}
