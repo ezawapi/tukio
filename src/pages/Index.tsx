@@ -132,6 +132,9 @@ const Index = () => {
 
       <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
 
+      {/* Ad: before latest */}
+      <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+
       {/* Recent — overlay card style (image 2) */}
       <section className="bg-background py-10 sm:py-14">
         <div className="container mx-auto max-w-6xl px-4">

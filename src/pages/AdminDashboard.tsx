@@ -230,28 +230,48 @@ const AdminDashboard = () => {
                   <CardTitle className="font-display text-base sm:text-lg">Événements en attente ({pendingCount})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 sm:space-y-3">
-                    {pendingEvents.length === 0 ? (
-                      <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement en attente.</p>
-                    ) : pendingEvents.map((event) => (
-                      <EventRow key={event.id} event={event}
-                        actions={
-                          <div className="flex flex-wrap items-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/events/${event.id}`)} className="h-8 w-8 p-0">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <AdminEventEditDialog event={event} onSaved={fetchAll} />
-                            <Button variant="ghost" size="sm" onClick={() => approveEvent(event.id)} className="h-8 w-8 p-0">
-                              <CheckCircle className="h-4 w-4 text-primary" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => rejectEvent(event.id)} className="h-8 w-8 p-0">
-                              <XCircle className="h-4 w-4 text-destructive" />
-                            </Button>
+                  {pendingEvents.length === 0 ? (
+                    <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement en attente.</p>
+                  ) : (
+                    <div className="space-y-5">
+                      {(() => {
+                        const grouped = new Map<string, any[]>();
+                        pendingEvents.forEach((event) => {
+                          const cat = event.categories?.name || "Sans catégorie";
+                          if (!grouped.has(cat)) grouped.set(cat, []);
+                          grouped.get(cat)!.push(event);
+                        });
+                        return Array.from(grouped.entries()).map(([catName, catEvents]) => (
+                          <div key={catName}>
+                            <div className="mb-2 flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">{catName}</Badge>
+                              <span className="font-body text-xs text-muted-foreground">({catEvents.length})</span>
+                            </div>
+                            <div className="space-y-2 sm:space-y-3">
+                              {catEvents.map((event) => (
+                                <EventRow key={event.id} event={event}
+                                  actions={
+                                    <div className="flex flex-wrap items-center gap-1">
+                                      <Button variant="ghost" size="sm" onClick={() => navigate(`/events/${event.id}`)} className="h-8 w-8 p-0">
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                      <AdminEventEditDialog event={event} onSaved={fetchAll} />
+                                      <Button variant="ghost" size="sm" onClick={() => approveEvent(event.id)} className="h-8 w-8 p-0">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={() => rejectEvent(event.id)} className="h-8 w-8 p-0">
+                                        <XCircle className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  }
+                                />
+                              ))}
+                            </div>
                           </div>
-                        }
-                      />
-                    ))}
-                  </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
