@@ -18,6 +18,7 @@ import Profile from "./pages/Profile.tsx";
 import Terms from "./pages/Terms.tsx";
 import About from "./pages/About.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/about" element={<About />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
