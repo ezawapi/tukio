@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Settings } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ProfileEditor from "@/components/ProfileEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,6 +101,10 @@ const Profile = () => {
                   <div>
                     <h1 className="font-display text-3xl font-bold text-foreground">Mon profil</h1>
                     <p className="font-body text-muted-foreground mt-1 break-all">{user.email}</p>
+                  </div>
+                  {/* Profile Editor */}
+                  <div className="pt-2">
+                    <ProfileEditor userId={user.id} email={user.email || ""} />
                   </div>
                   <p className="max-w-2xl font-body text-sm text-muted-foreground">
                     Suivez vos publications, commentaires et favoris depuis votre mini tableau de bord personnel.
