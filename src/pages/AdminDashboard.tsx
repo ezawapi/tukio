@@ -342,7 +342,7 @@ const AdminDashboard = () => {
                         <div key={notif.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
                           <div>
                             <p className="font-body text-sm text-foreground">
-                              <span className="font-semibold">Nouvel événement :</span>{" "}
+                              <span className="font-semibold">{notif.type === "event_modified" ? "Événement modifié :" : "Nouvel événement :"}</span>{" "}
                               {notif.events?.title || "Événement supprimé"}
                             </p>
                             <p className="font-body text-xs text-muted-foreground">
