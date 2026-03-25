@@ -257,11 +257,11 @@ const EditEvent = () => {
             <h2 className="font-display text-lg font-semibold text-foreground">Images</h2>
             <div>
               <label className="font-body text-sm font-medium text-foreground mb-1 block">Image principale</label>
-              <ImageUpload value={form.image_url} onChange={(url) => handleChange("image_url", url)} />
+              <ImageUpload value={form.image_url} onChange={(url) => handleChange("image_url", url)} userId={user?.id || ""} />
             </div>
             <div>
               <label className="font-body text-sm font-medium text-foreground mb-1 block">Image secondaire</label>
-              <ImageUpload value={form.image_url2} onChange={(url) => handleChange("image_url2", url)} />
+              <ImageUpload value={form.image_url2} onChange={(url) => handleChange("image_url2", url)} userId={user?.id || ""} />
             </div>
           </div>
 
