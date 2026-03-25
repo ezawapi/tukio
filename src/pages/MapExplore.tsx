@@ -1,16 +1,23 @@
-import { useState, useEffect } from "react";
-import { Compass } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { Compass, MapPin, Calendar, Search, List, Map as MapIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LeafletMap, { MapMarker } from "@/components/LeafletMap";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getCountdown } from "@/lib/countdown";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MapEvent {
   id: string;
   title: string;
   date: string;
+  end_date: string | null;
   location: string;
   city: string;
   latitude: number;
@@ -24,12 +31,15 @@ interface MapEvent {
 const MapExplore = () => {
   const [events, setEvents] = useState<MapEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [mobileView, setMobileView] = useState<"map" | "list">("map");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchEvents = async () => {
       const { data } = await supabase
         .from("events")
-        .select("id, title, date, location, city, latitude, longitude, image_url, price, is_live, categories(name)")
+        .select("id, title, date, end_date, location, city, latitude, longitude, image_url, price, is_live, categories(name)")
         .eq("is_published", true)
         .eq("visibility", "public")
         .not("latitude", "is", null)
@@ -42,7 +52,15 @@ const MapExplore = () => {
     fetchEvents();
   }, []);
 
-  const markers: MapMarker[] = events.map((event) => ({
+  const filtered = useMemo(() => {
+    if (!search.trim()) return events;
+    const q = search.toLowerCase();
+    return events.filter(e =>
+      e.title.toLowerCase().includes(q) || e.city.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
+    );
+  }, [events, search]);
+
+  const markers: MapMarker[] = filtered.map((event) => ({
     id: event.id,
     lat: event.latitude,
     lng: event.longitude,
@@ -64,33 +82,115 @@ const MapExplore = () => {
 
   const defaultCenter: [number, number] = [2.0, 15.0];
 
+  const eventListPanel = (
+    <div className="flex flex-col h-full">
+      <div className="p-3 border-b border-border">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un lieu, ville..."
+            className="pl-9 h-9 text-sm"
+          />
+        </div>
+        <p className="font-body text-xs text-muted-foreground mt-2">
+          {filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {filtered.map((event) => {
+          const countdown = getCountdown(event.date, event.end_date);
+          return (
+            <Link key={event.id} to={`/events/${event.id}`} className="flex gap-3 p-3 border-b border-border hover:bg-muted/50 transition-colors">
+              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg">
+                <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="h-full w-full object-cover" loading="lazy" />
+                {event.is_live && (
+                  <div className="absolute top-1 left-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-sm font-semibold text-foreground truncate">{event.title}</h3>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <Badge variant="secondary" className="text-[9px]">{event.categories?.name || "Événement"}</Badge>
+                  {countdown && <Badge className="border-0 bg-primary/10 text-[9px] font-bold text-primary">{countdown}</Badge>}
+                </div>
+                <p className="font-body text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-primary shrink-0" />
+                  {format(new Date(event.date), "d MMM yyyy", { locale: fr })}
+                </p>
+                <p className="font-body text-[11px] text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-primary shrink-0" />
+                  <span className="truncate">{event.city}</span>
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="pt-16 flex-1 flex flex-col">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2"><Compass className="h-6 w-6 text-primary" /> Explorer</h1>
-          <p className="font-body text-sm text-muted-foreground">
-            {events.length} activité{events.length !== 1 ? "s" : ""} affichée{events.length !== 1 ? "s" : ""} sur la carte interactive selon leur lieu
-          </p>
+        {/* Header */}
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="font-display text-xl font-bold text-foreground flex items-center gap-2 sm:text-2xl">
+              <Compass className="h-5 w-5 text-primary sm:h-6 sm:w-6" /> Explorer
+            </h1>
+            <p className="font-body text-xs text-muted-foreground sm:text-sm">
+              {filtered.length} activité{filtered.length !== 1 ? "s" : ""} sur la carte
+            </p>
+          </div>
+          {/* Mobile toggle */}
+          {isMobile && (
+            <div className="flex gap-1 rounded-lg border border-border p-0.5">
+              <Button variant={mobileView === "map" ? "default" : "ghost"} size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setMobileView("map")}>
+                <MapIcon className="h-3.5 w-3.5" /> Carte
+              </Button>
+              <Button variant={mobileView === "list" ? "default" : "ghost"} size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setMobileView("list")}>
+                <List className="h-3.5 w-3.5" /> Liste
+              </Button>
+            </div>
+          )}
         </div>
 
+        {/* Content */}
         <div className="flex-1 px-4 pb-4">
-          <div className="relative h-[calc(100vh-180px)] min-h-[420px] overflow-hidden rounded-xl border border-border bg-muted/30">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="flex items-center justify-center h-[calc(100vh-180px)] bg-muted rounded-xl">
               <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" />
             </div>
           ) : (
-            <LeafletMap
-              center={defaultCenter}
-              zoom={4}
-              markers={markers}
-              className="z-0 h-full w-full"
-              style={{ height: "100%", width: "100%" }}
-            />
+            <div className="relative h-[calc(100vh-180px)] min-h-[420px] overflow-hidden rounded-xl border border-border bg-muted/30 flex">
+              {/* Desktop: sidebar + map */}
+              {!isMobile && (
+                <div className="w-80 border-r border-border bg-background flex-shrink-0 overflow-hidden flex flex-col">
+                  {eventListPanel}
+                </div>
+              )}
+
+              {/* Mobile: toggle between map and list */}
+              {isMobile && mobileView === "list" ? (
+                <div className="w-full bg-background overflow-hidden flex flex-col">
+                  {eventListPanel}
+                </div>
+              ) : (
+                <div className={`flex-1 ${isMobile && mobileView !== "map" ? "hidden" : ""}`}>
+                  <LeafletMap
+                    center={defaultCenter}
+                    zoom={4}
+                    markers={markers}
+                    className="z-0 h-full w-full"
+                    style={{ height: "100%", width: "100%" }}
+                  />
+                </div>
+              )}
+            </div>
           )}
-          </div>
         </div>
       </div>
       <Footer />
