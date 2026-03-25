@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -227,7 +227,16 @@ const EventDetail = () => {
                     </a>
                   )}
                 </div>
-                <h1 className="mb-3 font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{event.title}</h1>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{event.title}</h1>
+                  {isOrganizer && (
+                    <Link to={`/events/${id}/edit`}>
+                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                        <Pencil className="h-3.5 w-3.5" /> Modifier
+                      </Button>
+                    </Link>
+                  )}
+                </div>
                 <p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {event.description || "Aucune description disponible."}
                 </p>
