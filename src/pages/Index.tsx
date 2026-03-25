@@ -16,6 +16,7 @@ import NearbyEvents from "@/components/NearbyEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
+import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
@@ -44,6 +45,7 @@ const itemVariants = {
 };
 
 const Index = () => {
+  useFavoriteAlerts();
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [liveEvents, setLiveEvents] = useState<any[]>([]);
