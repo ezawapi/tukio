@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import Events from "./pages/Events.tsx";
 import EventDetail from "./pages/EventDetail.tsx";
 import CreateEvent from "./pages/CreateEvent.tsx";
+import EditEvent from "./pages/EditEvent.tsx";
 import Categories from "./pages/Categories.tsx";
 import Favorites from "./pages/Favorites.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/create" element={<CreateEvent />} />
+            <Route path="/events/:id/edit" element={<EditEvent />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/agenda" element={<Agenda />} />
