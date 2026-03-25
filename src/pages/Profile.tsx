@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Settings } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Settings, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProfileEditor from "@/components/ProfileEditor";
@@ -181,7 +181,12 @@ const Profile = () => {
                               <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-primary" /> {format(new Date(event.date), "d MMM yyyy", { locale: fr })}</span>
                             </p>
                           </div>
-                          <Button variant="ghost" size="sm">Voir</Button>
+                          <div className="flex items-center gap-2">
+                            <Link to={`/events/${event.id}/edit`} onClick={(e) => e.stopPropagation()}>
+                              <Button variant="outline" size="sm" className="gap-1"><Pencil className="h-3 w-3" /> Modifier</Button>
+                            </Link>
+                            <Button variant="ghost" size="sm">Voir</Button>
+                          </div>
                         </div>
                       </Link>
                     ))
