@@ -151,7 +151,7 @@ const Index = () => {
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
           <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 max-w-4xl"
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-4xl"
           >
             {recentEvents.map((event) => (
               <motion.div key={event.id} variants={itemVariants}>
