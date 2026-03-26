@@ -89,10 +89,10 @@ const Agenda = () => {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-[350px_1fr] gap-8">
+          <div className="grid lg:grid-cols-[280px_1fr] gap-6">
             {/* Calendar */}
             <Card className="h-fit sticky top-24">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -100,7 +100,7 @@ const Agenda = () => {
                   locale={fr}
                   modifiers={modifiers}
                   modifiersStyles={modifiersStyles}
-                  className="w-full"
+                  className="w-full text-sm [&_.rdp-cell]:h-8 [&_.rdp-cell]:w-8 [&_.rdp-head_cell]:w-8 [&_.rdp-button]:h-8 [&_.rdp-button]:w-8 [&_.rdp-nav_button]:h-7 [&_.rdp-nav_button]:w-7 [&_.rdp-caption]:text-sm"
                 />
                 <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground font-body">
                   <div className="w-3 h-3 rounded-full bg-primary/20" />

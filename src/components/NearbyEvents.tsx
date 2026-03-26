@@ -53,7 +53,7 @@ const NearbyEvents = () => {
         const withDist = (data as unknown as NearbyEvent[])
           .map((e) => ({ ...e, distance: getDistance(latitude, longitude, e.latitude, e.longitude) }))
           .sort((a, b) => a.distance! - b.distance!)
-          .slice(0, 6);
+          .slice(0, 4);
         setEvents(withDist);
       }
       setStatus("ready");
@@ -97,7 +97,7 @@ const NearbyEvents = () => {
         </div>
 
         {/* Horizontal scroll on mobile, grid on desktop */}
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-2 md:overflow-visible md:pb-0 xl:grid-cols-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-2 md:overflow-visible md:pb-0">
           {events.map((event) => {
             const countdown = getCountdown(event.date, event.end_date);
             return (
