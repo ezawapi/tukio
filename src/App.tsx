@@ -40,7 +40,6 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/events" element={<Events />} />
