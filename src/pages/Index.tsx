@@ -244,7 +244,7 @@ const Index = () => {
             </div>
           ) : (
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
+              className="grid grid-cols-2 gap-3 sm:gap-4"
             >
               {upcomingEvents.map((event) => (
                 <motion.div key={event.id} variants={itemVariants}>
