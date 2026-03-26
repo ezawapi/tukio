@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Compass, MapPin, Calendar, Search, List, Map as MapIcon } from "lucide-react";
+import { Compass, MapPin, Calendar, Search, List, Map as MapIcon, SlidersHorizontal, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LeafletMap, { MapMarker } from "@/components/LeafletMap";
@@ -25,13 +26,26 @@ interface MapEvent {
   image_url: string | null;
   price: string | null;
   is_live: boolean | null;
+  category_id: string | null;
   categories: { name: string } | null;
 }
 
+const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
 const MapExplore = () => {
   const [events, setEvents] = useState<MapEvent[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [sortByProximity, setSortByProximity] = useState(false);
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [mobileView, setMobileView] = useState<"map" | "list">("map");
   const isMobile = useIsMobile();
 
@@ -39,7 +53,7 @@ const MapExplore = () => {
     const fetchEvents = async () => {
       const { data } = await supabase
         .from("events")
-        .select("id, title, date, end_date, location, city, latitude, longitude, image_url, price, is_live, categories(name)")
+        .select("id, title, date, end_date, location, city, latitude, longitude, image_url, price, is_live, category_id, categories(name)")
         .eq("is_published", true)
         .eq("visibility", "public")
         .not("latitude", "is", null)
@@ -49,16 +63,42 @@ const MapExplore = () => {
       setEvents((data as unknown as MapEvent[]) || []);
       setLoading(false);
     };
+    const fetchCategories = async () => {
+      const { data } = await supabase.from("categories").select("id, name").order("name");
+      setCategories(data || []);
+    };
     fetchEvents();
+    fetchCategories();
+
+    // Get user position for proximity sorting
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
   }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return events;
-    const q = search.toLowerCase();
-    return events.filter(e =>
-      e.title.toLowerCase().includes(q) || e.city.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
-    );
-  }, [events, search]);
+    let result = events;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(e =>
+        e.title.toLowerCase().includes(q) || e.city.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
+      );
+    }
+    if (selectedCategory !== "all") {
+      result = result.filter(e => e.category_id === selectedCategory);
+    }
+    if (sortByProximity && userPos) {
+      result = [...result].sort((a, b) =>
+        getDistance(userPos.lat, userPos.lng, a.latitude, a.longitude) -
+        getDistance(userPos.lat, userPos.lng, b.latitude, b.longitude)
+      );
+    }
+    return result;
+  }, [events, search, selectedCategory, sortByProximity, userPos]);
 
   const markers: MapMarker[] = filtered.map((event) => ({
     id: event.id,
@@ -84,7 +124,7 @@ const MapExplore = () => {
 
   const eventListPanel = (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-border">
+      <div className="p-3 border-b border-border space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -94,7 +134,32 @@ const MapExplore = () => {
             className="pl-9 h-9 text-sm"
           />
         </div>
-        <p className="font-body text-xs text-muted-foreground mt-2">
+        <div className="flex gap-2">
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="h-8 text-xs flex-1">
+              <SlidersHorizontal className="h-3 w-3 mr-1 text-muted-foreground" />
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes catégories</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant={sortByProximity ? "default" : "outline"}
+            size="sm"
+            className="h-8 text-xs gap-1 shrink-0"
+            onClick={() => setSortByProximity(!sortByProximity)}
+            disabled={!userPos}
+            title={!userPos ? "Position non disponible" : "Trier par proximité"}
+          >
+            <Navigation className="h-3 w-3" />
+            Proximité
+          </Button>
+        </div>
+        <p className="font-body text-xs text-muted-foreground">
           {filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
         </p>
       </div>

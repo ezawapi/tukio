@@ -80,12 +80,12 @@ const Index = () => {
   };
 
   const fetchUpcomingEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(8);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(4);
     setUpcomingEvents(data || []);
   };
 
   const fetchRecentEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(6);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(4);
     setRecentEvents(data || []);
   };
 
