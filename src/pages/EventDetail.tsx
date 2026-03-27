@@ -36,6 +36,11 @@ const EventDetail = () => {
   // Handle QR code scan
   const qrToken = searchParams.get("qr");
 
+  // Scroll to top on mount (fixes mobile footer-first issue)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     if (id) {
       fetchEvent();
@@ -166,10 +171,6 @@ const EventDetail = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
     : null;
 
-  // Scroll to top on mount (fixes mobile footer-first issue)
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
 
   return (
     <div className="min-h-screen bg-background">
