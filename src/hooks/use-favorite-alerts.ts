@@ -5,8 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 
 /**
  * Hook that checks user's favorite events and shows toast notifications
- * when an event is approaching (tomorrow = J-1, today = Aujourd'hui).
- * Runs once per session.
+ * when an event is approaching based on user's reminder setting (localStorage).
+ * Default: J-1. Runs once per session.
  */
 export function useFavoriteAlerts() {
   const { user } = useAuth();
@@ -18,6 +18,9 @@ export function useFavoriteAlerts() {
     checkedRef.current = true;
 
     const checkFavorites = async () => {
+      const reminderDays = parseInt(localStorage.getItem("tukio_reminder_days") || "1", 10);
+      if (reminderDays === 0) return; // disabled
+
       const { data: favorites } = await supabase
         .from("favorites")
         .select("events(id, title, date)")
@@ -36,21 +39,25 @@ export function useFavoriteAlerts() {
         const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const diffDays = Math.round((eventDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 1) {
+        if (diffDays === 0) {
+          toast({
+            title: "🎉 C'est aujourd'hui !",
+            description: `« ${event.title} » commence aujourd'hui !`,
+          });
+        } else if (diffDays === 1) {
           toast({
             title: "🔔 Demain !",
             description: `« ${event.title} » a lieu demain. Ne le manquez pas !`,
           });
-        } else if (diffDays === 0) {
+        } else if (diffDays > 1 && diffDays <= reminderDays) {
           toast({
-            title: "🎉 C'est aujourd'hui !",
-            description: `« ${event.title} » commence aujourd'hui !`,
+            title: `📅 Dans ${diffDays} jours`,
+            description: `« ${event.title} » approche. Préparez-vous !`,
           });
         }
       });
     };
 
-    // Slight delay so UI loads first
     const timer = setTimeout(checkFavorites, 2000);
     return () => clearTimeout(timer);
   }, [user]);
