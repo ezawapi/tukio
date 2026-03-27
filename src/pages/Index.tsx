@@ -151,14 +151,13 @@ const Index = () => {
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
           <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-4xl"
+            className="grid grid-cols-2 gap-2 sm:gap-3 max-w-4xl"
           >
             {recentEvents.map((event) => (
               <motion.div key={event.id} variants={itemVariants}>
                 <Link to={`/events/${event.id}`}>
                   <div className="group relative overflow-hidden rounded-xl shadow-card transition-shadow hover:shadow-warm">
-                    {/* Full image background */}
-                    <div className="relative h-40 sm:h-48">
+                    <div className="relative h-32 sm:h-40">
                       <img
                         src={event.image_url || "/placeholder.svg"}
                         alt={event.title}
@@ -174,7 +173,7 @@ const Index = () => {
                       </div>
                       {/* Text overlay bottom */}
                       <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="font-display text-base font-bold leading-tight text-white line-clamp-2 sm:text-lg">{event.title}</h3>
+                        <h3 className="font-display text-sm font-bold leading-tight text-white line-clamp-2 sm:text-base">{event.title}</h3>
                         <p className="mt-1 font-body text-xs text-white/70">
                           {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                           {" • "}{event.location}

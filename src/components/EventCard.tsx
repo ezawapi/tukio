@@ -76,12 +76,14 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
             <span className="truncate">{location}</span>
           </div>
         </div>
-        <div className="flex items-center justify-between pt-0.5">
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground sm:gap-1.5 sm:text-xs">
-            <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            <span>{attendees} participants</span>
+        {attendees > 0 && (
+          <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground sm:gap-1.5 sm:text-xs">
+              <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span>{attendees} participants</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </motion.div>
   );

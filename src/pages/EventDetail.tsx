@@ -36,6 +36,11 @@ const EventDetail = () => {
   // Handle QR code scan
   const qrToken = searchParams.get("qr");
 
+  // Scroll to top on mount (fixes mobile footer-first issue)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   useEffect(() => {
     if (id) {
       fetchEvent();
@@ -166,6 +171,7 @@ const EventDetail = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
     : null;
 
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -176,7 +182,8 @@ const EventDetail = () => {
           </Link>
 
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
-            <div className="space-y-5 lg:col-span-2 lg:space-y-6">
+            {/* On mobile, sidebar shows AFTER main content via order */}
+            <div className="space-y-5 lg:col-span-2 lg:space-y-6 order-1">
               {/* Gallery - grid layout */}
               {galleryImages.length === 1 ? (
                 <button type="button" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
@@ -378,8 +385,8 @@ const EventDetail = () => {
               </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4 sm:space-y-6">
+            {/* Sidebar — on mobile, push below main content */}
+            <div className="space-y-4 sm:space-y-6 order-2">
               <div className="space-y-4 rounded-xl bg-card p-4 sm:p-6 lg:sticky lg:top-24">
                 <div className="text-center">
                   <p className="font-display text-xl font-bold text-foreground sm:text-2xl">{priceDisplay}</p>
@@ -407,10 +414,12 @@ const EventDetail = () => {
                       <p className="font-body text-muted-foreground">{event.city}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Users className="h-5 w-5 flex-shrink-0 text-primary" />
-                    <p className="font-body text-foreground">{event.attendees_count || 0} participants</p>
-                  </div>
+                  {(event.attendees_count ?? 0) > 0 && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Users className="h-5 w-5 flex-shrink-0 text-primary" />
+                      <p className="font-body text-foreground">{event.attendees_count} participants</p>
+                    </div>
+                  )}
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
                       <User className="h-5 w-5 flex-shrink-0 text-primary" />
