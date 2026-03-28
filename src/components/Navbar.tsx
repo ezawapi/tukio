@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Compass, Heart, LogOut, Menu, Plus, Settings, Shield, UserCircle2, Wifi, WifiOff, Info } from "lucide-react";
+import { Bell, Compass, Heart, LogOut, Menu, Plus, Settings, Shield, UserCircle2, Wifi, WifiOff, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -87,6 +87,11 @@ const Navbar = () => {
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="icon">
+                <Link to="/notifications" aria-label="Notifications">
+                  <Bell className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="icon">
                 <Link to="/settings" aria-label="Paramètres">
                   <Settings className="h-4 w-4" />
                 </Link>
@@ -147,6 +152,9 @@ const Navbar = () => {
                   </NavLink>
                   <NavLink to="/favorites" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" activeClassName="bg-muted text-foreground">
                     Mes favoris
+                  </NavLink>
+                  <NavLink to="/notifications" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" activeClassName="bg-muted text-foreground">
+                    Notifications
                   </NavLink>
                   <NavLink to="/settings" className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" activeClassName="bg-muted text-foreground">
                     Paramètres
