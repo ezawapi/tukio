@@ -5,6 +5,7 @@ import { Calendar, MapPin, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -101,6 +102,7 @@ const Favorites = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

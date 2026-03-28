@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import EventCard from "@/components/EventCard";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,7 +91,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
       <HeroSection />
 
@@ -286,6 +287,7 @@ const Index = () => {
       </section>
 
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

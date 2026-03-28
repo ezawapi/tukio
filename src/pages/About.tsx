@@ -1,19 +1,23 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import { Globe, Heart, MapPin, Shield, Users } from "lucide-react";
+import { useSiteContent } from "@/hooks/use-site-content";
 
 const About = () => {
+  const content = useSiteContent();
+  const intro = content["about_intro"] || "Tukio est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales.";
+  const vision = content["about_vision"] || "";
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
       <div className="pb-16 pt-24">
         <div className="container mx-auto max-w-3xl px-4">
           <h1 className="mb-6 font-display text-3xl font-bold text-foreground sm:text-4xl">À propos de Tukio</h1>
 
           <div className="space-y-8 font-body text-muted-foreground leading-relaxed">
-            <p className="text-lg text-foreground">
-              <strong>Tukio</strong> est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales. Notre mission : connecter les communautés à travers des expériences culturelles, éducatives et sociales.
-            </p>
+            <p className="text-lg text-foreground">{intro}</p>
 
             <div className="grid gap-6 sm:grid-cols-2">
               {[
@@ -32,25 +36,23 @@ const About = () => {
               ))}
             </div>
 
-            <div className="rounded-2xl bg-card border border-border p-6">
-              <h2 className="mb-3 font-display text-xl font-bold text-foreground flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" /> Notre vision
-              </h2>
-              <p>
-                Nous croyons que chaque événement mérite d'être vu. Que ce soit un festival de musique, une conférence académique, un atelier créatif ou une rencontre communautaire, Tukio vous aide à trouver ce qui se passe autour de vous et à y participer.
-              </p>
-              <p className="mt-3">
-                Basée en Afrique, notre équipe travaille chaque jour pour rendre la découverte d'événements plus simple, plus inclusive et plus connectée.
-              </p>
-            </div>
+            {vision && (
+              <div className="rounded-2xl bg-card border border-border p-6">
+                <h2 className="mb-3 font-display text-xl font-bold text-foreground flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" /> Notre vision
+                </h2>
+                <p>{vision}</p>
+              </div>
+            )}
 
             <p className="text-center text-sm">
-              Des questions ? Contactez-nous à <a href="mailto:contact@tukio.app" className="text-primary underline">contact@tukio.app</a>
+              Des questions ? Contactez-nous à <a href={`mailto:${content["footer_contact_email"] || "contact@tukio.app"}`} className="text-primary underline">{content["footer_contact_email"] || "contact@tukio.app"}</a>
             </p>
           </div>
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

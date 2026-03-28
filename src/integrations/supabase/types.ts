@@ -520,6 +520,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       ticket_orders: {
         Row: {
           attendance_status: string
@@ -651,6 +672,50 @@ export type Database = {
           {
             foreignKeyName: "ticket_types_event_id_fkey"
             columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          is_favorite: boolean
+          is_read: boolean
+          related_event_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_favorite?: boolean
+          is_read?: boolean
+          related_event_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_favorite?: boolean
+          is_read?: boolean
+          related_event_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_related_event_id_fkey"
+            columns: ["related_event_id"]
             isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
