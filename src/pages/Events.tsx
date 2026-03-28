@@ -268,6 +268,7 @@ const Events = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

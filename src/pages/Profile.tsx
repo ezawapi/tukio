@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Settings, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import ProfileEditor from "@/components/ProfileEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -266,6 +267,7 @@ const Profile = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

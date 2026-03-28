@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Download, Smartphone, Monitor, Bell, BellOff, Info, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -236,6 +237,7 @@ const Settings = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import ShareDialog from "@/components/ShareDialog";
 import ImageLightbox from "@/components/ImageLightbox";
 import AdSlotBanner from "@/components/AdSlotBanner";
@@ -485,6 +486,7 @@ const EventDetail = () => {
 
       <ImageLightbox images={galleryImages} open={lightboxOpen} onOpenChange={setLightboxOpen} initialIndex={lightboxIndex} />
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };
