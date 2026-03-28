@@ -400,6 +400,10 @@ const AdminDashboard = () => {
             <TabsContent value="partners">
               <AdminPartnersManager />
             </TabsContent>
+
+            <TabsContent value="content">
+              <AdminContentManager />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
