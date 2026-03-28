@@ -13,6 +13,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdminAdsManager from "@/components/admin/AdminAdsManager";
 import AdminPartnersManager from "@/components/admin/AdminPartnersManager";
+import AdminContentManager from "@/components/admin/AdminContentManager";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -222,6 +223,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="ads" className="text-xs sm:text-sm">Publicités</TabsTrigger>
               <TabsTrigger value="analytics" className="text-xs sm:text-sm">Analytics</TabsTrigger>
               <TabsTrigger value="partners" className="text-xs sm:text-sm">Partenaires</TabsTrigger>
+              <TabsTrigger value="content" className="text-xs sm:text-sm">Contenu</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending">
