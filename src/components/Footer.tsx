@@ -2,11 +2,13 @@ import { Link } from "react-router-dom";
 import tukioLogo from "@/assets/tukio-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
+import { useSiteContent } from "@/hooks/use-site-content";
 import PartnersBlock from "@/components/PartnersBlock";
 
 const Footer = () => {
   const { user } = useAuth();
   const { isAdmin } = useUserRole(user?.id);
+  const content = useSiteContent();
 
   const footerSections = [
     {
@@ -23,6 +25,7 @@ const Footer = () => {
       links: [
         { label: "Profil", href: user ? "/profile" : "/auth" },
         { label: "Favoris", href: user ? "/favorites" : "/auth" },
+        { label: "Notifications", href: user ? "/notifications" : "/auth" },
         ...(isAdmin ? [{ label: "Administration", href: "/admin" }] : []),
       ],
     },
@@ -37,6 +40,9 @@ const Footer = () => {
     },
   ];
 
+  const contactEmail = content["footer_contact_email"] || "contact@tukio.app";
+  const description = content["footer_description"] || "Tukio centralise les activités, les lieux et le suivi de vos publications sur tous les écrans.";
+
   return (
     <footer className="bg-card border-t border-border py-10 sm:py-12">
       <div className="container mx-auto px-4">
@@ -46,7 +52,7 @@ const Footer = () => {
               <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
             </div>
             <p className="font-body text-sm text-muted-foreground max-w-xs">
-              Tukio centralise les activités, les lieux et le suivi de vos publications sur tous les écrans.
+              {description}
             </p>
           </div>
           {footerSections.map((section) => (
@@ -65,7 +71,10 @@ const Footer = () => {
           ))}
         </div>
         <PartnersBlock />
-        <div className="border-t border-border mt-8 pt-8 text-center">
+        <div className="border-t border-border mt-8 pt-8 text-center space-y-2">
+          <p className="font-body text-xs text-muted-foreground">
+            Contact : <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">{contactEmail}</a>
+          </p>
           <p className="font-body text-xs text-muted-foreground">© 2026 Tukio. Tous droits réservés.</p>
         </div>
       </div>
