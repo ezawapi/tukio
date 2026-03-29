@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Compass, Heart, LogOut, Menu, Plus, Settings, Shield, UserCircle2, Wifi, WifiOff, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,7 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const { isAdmin, role } = useUserRole(user?.id);
   const isOnline = useOnlineStatus();
+  const unreadCount = useUnreadNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -86,9 +88,14 @@ const Navbar = () => {
                   <UserCircle2 className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="ghost" size="icon">
+              <Button asChild variant="ghost" size="icon" className="relative">
                 <Link to="/notifications" aria-label="Notifications">
                   <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="icon">

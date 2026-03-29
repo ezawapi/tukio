@@ -11,6 +11,12 @@ import { toast } from "sonner";
 const CONTENT_FIELDS = [
   { key: "footer_description", label: "Description du footer", type: "textarea" },
   { key: "footer_contact_email", label: "Email de contact (footer)", type: "input" },
+  { key: "footer_contact_phone", label: "Téléphone de contact (footer)", type: "input" },
+  { key: "footer_facebook", label: "Facebook (URL)", type: "input" },
+  { key: "footer_twitter", label: "X / Twitter (URL)", type: "input" },
+  { key: "footer_instagram", label: "Instagram (URL)", type: "input" },
+  { key: "footer_youtube", label: "YouTube (URL)", type: "input" },
+  { key: "footer_tiktok", label: "TikTok (URL)", type: "input" },
   { key: "about_intro", label: "Introduction (À propos)", type: "textarea" },
   { key: "about_vision", label: "Vision (À propos)", type: "textarea" },
 ] as const;
