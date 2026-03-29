@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Users can receive notifications" ON public.user_notifications;
+CREATE POLICY "Anyone can insert notifications" ON public.user_notifications FOR INSERT TO authenticated, anon WITH CHECK (true);
