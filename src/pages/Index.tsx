@@ -158,27 +158,27 @@ const Index = () => {
               <motion.div key={event.id} variants={itemVariants}>
                 <Link to={`/events/${event.id}`}>
                   <div className="group relative overflow-hidden rounded-xl shadow-card transition-shadow hover:shadow-warm">
-                    <div className="relative h-44 sm:h-52">
+                    <div className="relative h-52 sm:h-56">
                       <img
                         src={event.image_url || "/placeholder.svg"}
                         alt={event.title}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                      {/* Badges top - single row */}
-                      <div className="absolute left-2 top-2 flex items-center gap-1">
-                        <Badge className="border-0 bg-primary/90 text-[9px] text-primary-foreground backdrop-blur-sm px-1.5 py-0.5">{event.categories?.name || "Événement"}</Badge>
-                        {(() => { const cd = getCountdown(event.date, event.end_date); return cd ? <Badge className="border-0 bg-white/20 text-[9px] font-bold text-white backdrop-blur-sm px-1.5 py-0.5">{cd}</Badge> : null; })()}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
+                      {/* Badges top */}
+                      <div className="absolute left-1.5 top-1.5 flex flex-wrap items-center gap-1 right-1.5">
+                        <Badge className="border-0 bg-primary/90 text-[8px] text-primary-foreground backdrop-blur-sm px-1 py-0.5 leading-none shrink-0">{event.categories?.name || "Événement"}</Badge>
+                        {(() => { const cd = getCountdown(event.date, event.end_date); return cd ? <Badge className="border-0 bg-white/25 text-[8px] font-bold text-white backdrop-blur-sm px-1 py-0.5 leading-none shrink-0">{cd}</Badge> : null; })()}
                       </div>
-                      {/* Text overlay bottom - more padding from badges */}
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className="font-display text-xs font-bold leading-snug text-white line-clamp-2 sm:text-sm">{event.title}</h3>
-                        <p className="mt-0.5 font-body text-[10px] text-white/70 truncate">
+                      {/* Text overlay bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 p-2 pt-6">
+                        <h3 className="font-display text-[11px] font-bold leading-tight text-white line-clamp-2 sm:text-sm">{event.title}</h3>
+                        <p className="mt-0.5 font-body text-[9px] text-white/70 truncate sm:text-[10px]">
                           {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                           {" • "}{event.location}
                         </p>
-                        <span className="mt-1 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm">
+                        <span className="mt-0.5 inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[8px] font-semibold text-white backdrop-blur-sm sm:text-[9px]">
                           {formatEventPrice(event.price, event.currency)}
                         </span>
                       </div>
