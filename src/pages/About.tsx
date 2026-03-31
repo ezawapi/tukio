@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import { Globe, Heart, MapPin, Shield, Users } from "lucide-react";
+import { Facebook, Globe, Heart, Instagram, Mail, MapPin, Phone, Shield, Twitter, Users, Youtube } from "lucide-react";
 import { useSiteContent } from "@/hooks/use-site-content";
 
 const About = () => {
