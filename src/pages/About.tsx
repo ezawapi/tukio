@@ -88,11 +88,6 @@ const About = () => {
       </div>
       <Footer />
       <MobileTabBar />
-          </div>
-        </div>
-      </div>
-      <Footer />
-      <MobileTabBar />
     </div>
   );
 };
