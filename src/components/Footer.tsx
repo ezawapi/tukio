@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Youtube, Phone, Mail } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, Phone, Mail, Linkedin } from "lucide-react";
 import tukioLogo from "@/assets/tukio-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
