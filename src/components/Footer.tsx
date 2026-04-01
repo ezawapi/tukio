@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Youtube, Phone, Mail } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, Phone, Mail, Linkedin } from "lucide-react";
 import tukioLogo from "@/assets/tukio-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -50,6 +50,7 @@ const Footer = () => {
     { key: "footer_instagram", icon: Instagram, label: "Instagram" },
     { key: "footer_youtube", icon: Youtube, label: "YouTube" },
     { key: "footer_tiktok", icon: null, label: "TikTok" },
+    { key: "footer_linkedin", icon: Linkedin, label: "LinkedIn" },
   ].filter(s => content[s.key]);
 
   return (

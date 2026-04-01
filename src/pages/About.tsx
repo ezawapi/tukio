@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import { Facebook, Globe, Heart, Instagram, Mail, MapPin, Phone, Shield, Twitter, Users, Youtube } from "lucide-react";
+import { Facebook, Globe, Heart, Instagram, Linkedin, Mail, MapPin, Phone, Shield, Twitter, Users, Youtube } from "lucide-react";
 import { useSiteContent } from "@/hooks/use-site-content";
 
 const About = () => {
@@ -17,6 +17,7 @@ const About = () => {
     { key: "footer_instagram", icon: Instagram, label: "Instagram" },
     { key: "footer_youtube", icon: Youtube, label: "YouTube" },
     { key: "footer_tiktok", icon: null, label: "TikTok" },
+    { key: "footer_linkedin", icon: Linkedin, label: "LinkedIn" },
   ].filter(s => content[s.key]);
 
   return (

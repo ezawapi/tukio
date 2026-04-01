@@ -17,6 +17,7 @@ const CONTENT_FIELDS = [
   { key: "footer_instagram", label: "Instagram (URL)", type: "input" },
   { key: "footer_youtube", label: "YouTube (URL)", type: "input" },
   { key: "footer_tiktok", label: "TikTok (URL)", type: "input" },
+  { key: "footer_linkedin", label: "LinkedIn (URL)", type: "input" },
   { key: "about_intro", label: "Introduction (À propos)", type: "textarea" },
   { key: "about_vision", label: "Vision (À propos)", type: "textarea" },
 ] as const;
