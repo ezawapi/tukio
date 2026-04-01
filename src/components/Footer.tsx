@@ -50,6 +50,7 @@ const Footer = () => {
     { key: "footer_instagram", icon: Instagram, label: "Instagram" },
     { key: "footer_youtube", icon: Youtube, label: "YouTube" },
     { key: "footer_tiktok", icon: null, label: "TikTok" },
+    { key: "footer_linkedin", icon: Linkedin, label: "LinkedIn" },
   ].filter(s => content[s.key]);
 
   return (
