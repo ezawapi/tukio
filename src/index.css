@@ -151,3 +151,11 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* Text size preferences */
+.text-size-small {
+  font-size: 14px;
+}
+.text-size-large {
+  font-size: 18px;
+}
