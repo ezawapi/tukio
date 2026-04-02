@@ -43,13 +43,12 @@ const AdminContentManager = () => {
     setSaving(true);
     for (const field of CONTENT_FIELDS) {
       const value = content[field.key] || "";
+      // Use upsert to handle both insert and update
       const { error } = await supabase
         .from("site_content")
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq("key", field.key);
+        .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
       if (error) {
-        // Try insert if row doesn't exist
-        await supabase.from("site_content").insert({ key: field.key, value });
+        console.error(`Error saving ${field.key}:`, error.message);
       }
     }
     toast.success("Contenu mis à jour");

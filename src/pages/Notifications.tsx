@@ -4,6 +4,7 @@ import { Bell, Trash2, Star, StarOff, Check, CheckCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
+import PaginationControls from "@/components/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+
+const ITEMS_PER_PAGE = 15;
 
 interface UserNotification {
   id: string;
@@ -36,6 +39,7 @@ const Notifications = () => {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "favorites">("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
@@ -45,11 +49,8 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     if (!user) return;
     const { data } = await supabase
-      .from("user_notifications")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(100);
+      .from("user_notifications").select("*").eq("user_id", user.id)
+      .order("created_at", { ascending: false }).limit(100);
     setNotifications((data as UserNotification[]) || []);
   };
 
@@ -82,6 +83,8 @@ const Notifications = () => {
     return true;
   });
 
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
@@ -103,24 +106,22 @@ const Notifications = () => {
             )}
           </div>
 
-          {/* Filters */}
           <div className="flex gap-2">
             {(["all", "unread", "favorites"] as const).map((f) => (
-              <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)}
-                className="text-xs">
+              <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => { setFilter(f); setCurrentPage(1); }} className="text-xs">
                 {f === "all" ? "Toutes" : f === "unread" ? "Non lues" : "Favoris"}
               </Button>
             ))}
           </div>
 
-          {filtered.length === 0 ? (
+          {paginated.length === 0 ? (
             <div className="py-16 text-center">
               <Bell className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
               <p className="font-body text-muted-foreground">Aucune notification</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {filtered.map((n) => (
+              {paginated.map((n) => (
                 <div key={n.id} className={`rounded-xl border p-3 flex gap-3 items-start transition-colors ${n.is_read ? "border-border bg-card" : "border-primary/30 bg-primary/5"}`}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -154,6 +155,7 @@ const Notifications = () => {
               ))}
             </div>
           )}
+          <PaginationControls currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} label="notifications" />
         </div>
       </div>
       <Footer />

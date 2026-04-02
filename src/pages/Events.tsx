@@ -11,10 +11,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
+import PaginationControls from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatEventPrice } from "@/lib/format-price";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+const DEFAULT_EVENT_IMAGE = "/placeholder.svg";
+const ITEMS_PER_PAGE = 15;
 
 interface EventRow {
   id: string;
@@ -41,6 +46,8 @@ const Events = () => {
   const [selectedDate, setSelectedDate] = useState(searchParams.get("date") || "");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [showFreeOnly, setShowFreeOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchCategories();
@@ -55,6 +62,7 @@ const Events = () => {
 
   useEffect(() => {
     fetchEvents();
+    setCurrentPage(1);
   }, [searchParams]);
 
   const fetchCategories = async () => {
@@ -105,6 +113,10 @@ const Events = () => {
     });
   }, [events, priceRange, showFreeOnly]);
 
+  const totalItems = filteredEvents.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("q", search.trim());
@@ -113,6 +125,9 @@ const Events = () => {
     if (selectedDate) params.set("date", selectedDate);
     setSearchParams(params);
   };
+
+  // On mobile, force list view
+  const effectiveViewMode = isMobile ? "list" : viewMode;
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,7 +150,7 @@ const Events = () => {
                 className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto p-0"
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={(v) => { setSelectedCategory(v); setCurrentPage(1); }}>
               <SelectTrigger className="w-full xl:w-48">
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
@@ -175,7 +190,7 @@ const Events = () => {
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Fourchette de prix</h4>
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={showFreeOnly} onChange={(e) => setShowFreeOnly(e.target.checked)} className="rounded" />
+                    <input type="checkbox" checked={showFreeOnly} onChange={(e) => { setShowFreeOnly(e.target.checked); setCurrentPage(1); }} className="rounded" />
                     Gratuit uniquement
                   </label>
                   {!showFreeOnly && (
@@ -183,7 +198,7 @@ const Events = () => {
                       <Slider
                         min={0} max={100000} step={1000}
                         value={priceRange}
-                        onValueChange={(v) => setPriceRange(v as [number, number])}
+                        onValueChange={(v) => { setPriceRange(v as [number, number]); setCurrentPage(1); }}
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>{priceRange[0].toLocaleString()} CDF</span>
@@ -198,14 +213,17 @@ const Events = () => {
               <Filter className="h-4 w-4 mr-2" />
               Filtrer
             </Button>
-            <div className="flex gap-1 self-end xl:self-auto">
-              <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" onClick={() => setViewMode("grid")}>
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" onClick={() => setViewMode("list")}>
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+            {/* Only show view toggle on desktop */}
+            {!isMobile && (
+              <div className="flex gap-1 self-end xl:self-auto">
+                <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" onClick={() => setViewMode("grid")}>
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" onClick={() => setViewMode("list")}>
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -220,51 +238,63 @@ const Events = () => {
               <p className="font-body text-muted-foreground">Essayez de modifier vos filtres</p>
             </div>
           ) : (
-            <div className={viewMode === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {filteredEvents.map((event) => (
-                <Link key={event.id} to={`/events/${event.id}`}>
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    className={`group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-warm transition-all cursor-pointer ${
-                      viewMode === "list" ? "flex flex-col sm:flex-row" : ""
-                    }`}
-                  >
-                    <div className={`relative overflow-hidden ${viewMode === "list" ? "w-full sm:w-48 h-48 sm:h-32" : "h-48"}`}>
-                      <img
-                        src={event.image_url || "/placeholder.svg"}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {event.is_live && (
-                        <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground border-0 text-xs animate-pulse-live">
-                          🔴 LIVE
+            <>
+              <div className={effectiveViewMode === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                {paginatedEvents.map((event) => (
+                  <Link key={event.id} to={`/events/${event.id}`}>
+                    <motion.div
+                      whileHover={{ y: -4 }}
+                      className={`group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-warm transition-all cursor-pointer ${
+                        effectiveViewMode === "list" ? "flex flex-col sm:flex-row" : ""
+                      }`}
+                    >
+                      <div className={`relative overflow-hidden ${effectiveViewMode === "list" ? "w-full sm:w-48 h-48 sm:h-32" : "h-48"}`}>
+                        <img
+                          src={event.image_url || DEFAULT_EVENT_IMAGE}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {event.is_live && (
+                          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground border-0 text-xs animate-pulse-live">
+                            🔴 LIVE
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="p-4 flex-1 min-w-0">
+                        <Badge variant="secondary" className="mb-2 text-xs">
+                          {event.categories?.name || "Événement"}
                         </Badge>
-                      )}
-                    </div>
-                    <div className="p-4 flex-1 min-w-0">
-                      <Badge variant="secondary" className="mb-2 text-xs">
-                        {event.categories?.name || "Événement"}
-                      </Badge>
-                      <h3 className="font-display font-semibold text-lg text-card-foreground line-clamp-2 mb-2">{event.title}</h3>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-primary" />
-                          <span>{format(new Date(event.date), "d MMMM yyyy", { locale: fr })}</span>
+                        <h3 className="font-display font-semibold text-lg text-card-foreground line-clamp-2 mb-2">{event.title}</h3>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5 text-primary" />
+                            <span>{format(new Date(event.date), "d MMMM yyyy", { locale: fr })}</span>
+                          </div>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="truncate">{event.location}</span>
+                        <div className="flex items-center justify-between gap-3 mt-3">
+                          <span className="font-body font-semibold text-sm text-foreground truncate">{formatEventPrice(event.price, (event as any).currency)}</span>
+                          {(event.attendees_count || 0) > 0 && (
+                            <span className="text-xs text-muted-foreground shrink-0">{event.attendees_count} participants</span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-3 mt-3">
-                        <span className="font-body font-semibold text-sm text-foreground truncate">{formatEventPrice(event.price, (event as any).currency)}</span>
-                        <span className="text-xs text-muted-foreground shrink-0">{event.attendees_count || 0} participants</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                label="activités"
+              />
+            </>
           )}
         </div>
       </div>
