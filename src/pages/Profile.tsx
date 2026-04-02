@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Settings, Pencil } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import ProfileEditor from "@/components/ProfileEditor";
+import PaginationControls from "@/components/PaginationControls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+const ITEMS_PER_PAGE = 15;
+
 const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -26,38 +29,23 @@ const Profile = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
+  const [eventsPage, setEventsPage] = useState(1);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [favoritesPage, setFavoritesPage] = useState(1);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
+    if (!user) { navigate("/auth"); return; }
     const fetchDashboard = async () => {
       const [eventsResult, commentsResult, favoritesResult] = await Promise.all([
-        supabase
-          .from("events")
-          .select("id, title, city, date, created_at, status, is_published")
-          .eq("organizer_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("comments")
-          .select("id, content, created_at, event_id, events(title)")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("favorites")
-          .select("id, created_at, events(id, title, city, date, image_url)")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
+        supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
-
       setEvents(eventsResult.data || []);
       setComments(commentsResult.data || []);
       setFavorites(favoritesResult.data || []);
       setLoading(false);
     };
-
     fetchDashboard();
   }, [user, navigate]);
 
@@ -81,6 +69,15 @@ const Profile = () => {
   const publishedCount = events.filter((event) => event.is_published).length;
   const pendingCount = events.filter((event) => event.status === "pending").length;
 
+  const eventsTotalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const paginatedEvents = events.slice((eventsPage - 1) * ITEMS_PER_PAGE, eventsPage * ITEMS_PER_PAGE);
+
+  const commentsTotalPages = Math.ceil(comments.length / ITEMS_PER_PAGE);
+  const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
+
+  const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
+  const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -103,7 +100,6 @@ const Profile = () => {
                     <h1 className="font-display text-3xl font-bold text-foreground">Mon profil</h1>
                     <p className="font-body text-muted-foreground mt-1 break-all">{user.email}</p>
                   </div>
-                  {/* Profile Editor */}
                   <div className="pt-2">
                     <ProfileEditor userId={user.id} email={user.email || ""} />
                   </div>
@@ -111,7 +107,6 @@ const Profile = () => {
                     Suivez vos publications, commentaires et favoris depuis votre mini tableau de bord personnel.
                   </p>
                 </div>
-
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Link to="/create">
                     <Button className="w-full gradient-hero text-primary-foreground border-0 sm:w-auto">
@@ -161,13 +156,13 @@ const Profile = () => {
             <TabsContent value="events">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-xl">Mes publications</CardTitle>
+                  <CardTitle className="font-display text-xl">Mes publications ({events.length})</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {events.length === 0 ? (
                     <p className="font-body text-sm text-muted-foreground">Vous n'avez encore publié aucune activité.</p>
                   ) : (
-                    events.map((event) => (
+                    paginatedEvents.map((event) => (
                       <Link key={event.id} to={`/events/${event.id}`} className="block rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:bg-muted">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="min-w-0 space-y-1">
@@ -192,6 +187,7 @@ const Profile = () => {
                       </Link>
                     ))
                   )}
+                  <PaginationControls currentPage={eventsPage} totalPages={eventsTotalPages} totalItems={events.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setEventsPage} label="activités" />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -199,13 +195,13 @@ const Profile = () => {
             <TabsContent value="comments">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-xl">Mes commentaires</CardTitle>
+                  <CardTitle className="font-display text-xl">Mes commentaires ({comments.length})</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {comments.length === 0 ? (
                     <p className="font-body text-sm text-muted-foreground">Aucun commentaire enregistré pour le moment.</p>
                   ) : (
-                    comments.map((comment) => (
+                    paginatedComments.map((comment) => (
                       <div key={comment.id} className="rounded-xl border border-border bg-muted/40 p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="font-body text-sm font-semibold text-foreground">
@@ -219,6 +215,7 @@ const Profile = () => {
                       </div>
                     ))
                   )}
+                  <PaginationControls currentPage={commentsPage} totalPages={commentsTotalPages} totalItems={comments.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCommentsPage} label="commentaires" />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -226,16 +223,15 @@ const Profile = () => {
             <TabsContent value="favorites">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-xl">Mes favoris</CardTitle>
+                  <CardTitle className="font-display text-xl">Mes favoris ({favorites.length})</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {favorites.length === 0 ? (
                     <p className="font-body text-sm text-muted-foreground">Aucun favori pour le moment.</p>
                   ) : (
-                    favorites.map((favorite) => {
+                    paginatedFavorites.map((favorite) => {
                       const event = favorite.events;
                       if (!event) return null;
-
                       return (
                         <Link key={favorite.id} to={`/events/${event.id}`} className="block rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:bg-muted">
                           <div className="flex items-center gap-4">
@@ -257,12 +253,12 @@ const Profile = () => {
                       );
                     })
                   )}
+                  <PaginationControls currentPage={favoritesPage} totalPages={favoritesTotalPages} totalItems={favorites.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setFavoritesPage} label="favoris" />
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
 
-          {/* Organizer QR Dashboard */}
           <OrganizerInvitations userId={user.id} />
         </div>
       </div>

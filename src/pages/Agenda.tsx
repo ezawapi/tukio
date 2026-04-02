@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -38,9 +39,7 @@ const Agenda = () => {
 
   useEffect(() => {
     if (selectedDate && allEvents.length > 0) {
-      const filtered = allEvents.filter((e) =>
-        isSameDay(new Date(e.date), selectedDate)
-      );
+      const filtered = allEvents.filter((e) => isSameDay(new Date(e.date), selectedDate));
       setEvents(filtered);
     } else {
       setEvents([]);
@@ -59,16 +58,11 @@ const Agenda = () => {
     setLoading(false);
   };
 
-  // Get dates that have events for calendar highlighting
   const eventDates = allEvents.map((e) => new Date(e.date));
-
-  const modifiers = {
-    hasEvent: eventDates,
-  };
-
+  const modifiers = { hasEvent: eventDates };
   const modifiersStyles = {
     hasEvent: {
-      backgroundColor: "hsl(205 65% 45% / 0.15)",
+      backgroundColor: "hsl(var(--primary) / 0.15)",
       borderRadius: "50%",
       fontWeight: 700,
     },
@@ -84,15 +78,13 @@ const Agenda = () => {
               <CalendarIcon className="h-8 w-8 text-primary" />
               Agenda
             </h1>
-            <p className="font-body text-muted-foreground mt-1">
-              Calendrier interactif des activités
-            </p>
+            <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
           </div>
 
-          <div className="grid lg:grid-cols-[260px_1fr] gap-4">
+          <div className="grid lg:grid-cols-[300px_1fr] gap-4">
             {/* Calendar */}
             <Card className="h-fit sticky top-24">
-              <CardContent className="p-2">
+              <CardContent className="p-3">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -100,7 +92,7 @@ const Agenda = () => {
                   locale={fr}
                   modifiers={modifiers}
                   modifiersStyles={modifiersStyles}
-                  className="w-full text-xs [&_.rdp-cell]:h-7 [&_.rdp-cell]:w-7 [&_.rdp-head_cell]:w-7 [&_.rdp-button]:h-7 [&_.rdp-button]:w-7 [&_.rdp-nav_button]:h-6 [&_.rdp-nav_button]:w-6 [&_.rdp-caption]:text-xs"
+                  className="w-full"
                 />
                 <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground font-body">
                   <div className="w-3 h-3 rounded-full bg-primary/20" />
@@ -146,26 +138,16 @@ const Agenda = () => {
                             className="flex gap-4 bg-card rounded-xl p-4 shadow-card hover:shadow-warm transition-shadow cursor-pointer"
                           >
                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
-                              <img
-                                src={event.image_url || "/placeholder.svg"}
-                                alt={event.title}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <Badge variant="secondary" className="text-xs">
-                                  {event.categories?.name || "Événement"}
-                                </Badge>
+                                <Badge variant="secondary" className="text-xs">{event.categories?.name || "Événement"}</Badge>
                                 {event.is_live && (
-                                  <Badge className="bg-destructive text-destructive-foreground border-0 text-xs animate-pulse-live">
-                                    🔴 LIVE
-                                  </Badge>
+                                  <Badge className="bg-destructive text-destructive-foreground border-0 text-xs animate-pulse-live">🔴 LIVE</Badge>
                                 )}
                               </div>
-                              <h3 className="font-display font-semibold text-foreground line-clamp-1">
-                                {event.title}
-                              </h3>
+                              <h3 className="font-display font-semibold text-foreground line-clamp-1">{event.title}</h3>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3.5 w-3.5 text-primary" />
@@ -193,6 +175,7 @@ const Agenda = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };
