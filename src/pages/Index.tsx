@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
 import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
+import defaultEventImg from "@/assets/default-event.png";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
