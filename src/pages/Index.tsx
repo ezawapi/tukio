@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
 import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
+import defaultEventImg from "@/assets/default-event.png";
 
 const iconMap: Record<string, LucideIcon> = {
   music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
@@ -138,7 +139,7 @@ const Index = () => {
       {/* Ad: before latest */}
       <section className="pb-2"><div className="container mx-auto max-w-6xl px-4"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
 
-      {/* Recent — overlay card style (image 2) */}
+      {/* Recent — horizontal scroll carousel style */}
       <section className="bg-background py-10 sm:py-14">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="mb-5 flex items-end justify-between gap-4">
@@ -151,43 +152,64 @@ const Index = () => {
             </div>
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
-          <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="grid grid-cols-2 gap-2 sm:gap-3 max-w-4xl"
-          >
-            {recentEvents.map((event) => (
-              <motion.div key={event.id} variants={itemVariants}>
-                <Link to={`/events/${event.id}`}>
-                   <div className="group relative overflow-hidden rounded-xl shadow-card transition-shadow hover:shadow-warm">
-                    <div className="relative h-56 sm:h-60">
-                      <img
-                        src={event.image_url || "/placeholder.svg"}
-                        alt={event.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                      {/* Badges top — single row, no wrap */}
-                      <div className="absolute left-1.5 top-1.5 right-1.5 flex items-center gap-1 overflow-hidden">
-                        <Badge className="border-0 bg-primary/90 text-[7px] text-primary-foreground backdrop-blur-sm px-1.5 py-0.5 leading-none shrink-0 sm:text-[9px]">{event.categories?.name || "Événement"}</Badge>
-                        {(() => { const cd = getCountdown(event.date, event.end_date); return cd ? <Badge className="border-0 bg-white/25 text-[7px] font-bold text-white backdrop-blur-sm px-1.5 py-0.5 leading-none shrink-0 sm:text-[9px]">{cd}</Badge> : null; })()}
+          <div className="relative">
+            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+              className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {recentEvents.map((event) => {
+                const countdown = getCountdown(event.date, event.end_date);
+                const hasImage = !!event.image_url;
+                return (
+                  <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[220px] sm:w-[260px]">
+                    <Link to={`/events/${event.id}`}>
+                      <div className="group relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+                        <div className="relative h-64 sm:h-72">
+                          <img
+                            src={hasImage ? event.image_url : defaultEventImg}
+                            alt={event.title}
+                            className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          {/* Price badge top */}
+                          <div className="absolute right-2 top-2">
+                            <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+                              {formatEventPrice(event.price, event.currency)}
+                            </Badge>
+                          </div>
+                          {/* Countdown badge top-left */}
+                          {countdown && (
+                            <div className="absolute left-2 top-2">
+                              <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
+                                {countdown}
+                              </Badge>
+                            </div>
+                          )}
+                          {/* Bottom overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <span className="font-body text-[10px] text-white/80 sm:text-xs">
+                                {event.categories?.name || "Événement"}
+                              </span>
+                              <span className="text-white/50">·</span>
+                              <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">
+                                {event.attendees_count || 0} visites
+                              </span>
+                            </div>
+                            <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
+                              {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      {/* Text overlay bottom — separated from top badges */}
-                      <div className="absolute bottom-0 left-0 right-0 p-2">
-                        <h3 className="font-display text-[11px] font-bold leading-snug text-white line-clamp-1 sm:text-sm sm:line-clamp-2">{event.title}</h3>
-                        <p className="mt-0.5 font-body text-[8px] text-white/70 truncate sm:text-[10px]">
-                          {new Date(event.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                          {" • "}{event.location}
-                        </p>
-                        <span className="mt-0.5 inline-block rounded-full bg-white/20 px-1.5 py-0.5 text-[7px] font-semibold text-white backdrop-blur-sm sm:text-[9px]">
-                          {formatEventPrice(event.price, event.currency)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
         </div>
       </section>
 
