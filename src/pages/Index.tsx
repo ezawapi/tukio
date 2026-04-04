@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Music, Mic2, Palette, Trophy, Church, GraduationCap, PartyPopper, Globe,
-  Landmark, Lock, LucideIcon, Sparkles, Clock3, Users, Wrench,
+  Landmark, Lock, LucideIcon, Sparkles, Clock3, Users, Wrench, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,113 @@ const containerVariants = {
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
+const RecentCarousel = ({ events }: { events: any[] }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    el?.addEventListener("scroll", checkScroll);
+    return () => el?.removeEventListener("scroll", checkScroll);
+  }, [events]);
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.7;
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  return (
+    <div className="relative group">
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-10 w-10 items-center justify-center rounded-full bg-background/90 border border-border shadow-md text-foreground hover:bg-accent transition-colors"
+          aria-label="Précédent"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-10 w-10 items-center justify-center rounded-full bg-background/90 border border-border shadow-md text-foreground hover:bg-accent transition-colors"
+          aria-label="Suivant"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
+      <motion.div
+        ref={scrollRef}
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {events.map((event) => {
+          const countdown = getCountdown(event.date, event.end_date);
+          const hasImage = !!event.image_url;
+          return (
+            <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[220px] sm:w-[260px]">
+              <Link to={`/events/${event.id}`}>
+                <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+                  <div className="relative h-64 sm:h-72">
+                    <img
+                      src={hasImage ? event.image_url : defaultEventImg}
+                      alt={event.title}
+                      className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute right-2 top-2">
+                      <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+                        {formatEventPrice(event.price, event.currency)}
+                      </Badge>
+                    </div>
+                    {countdown && (
+                      <div className="absolute left-2 top-2">
+                        <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
+                          {countdown}
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="font-body text-[10px] text-white/80 sm:text-xs">
+                          {event.categories?.name || "Événement"}
+                        </span>
+                        <span className="text-white/50">·</span>
+                        <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">
+                          {event.attendees_count || 0} visites
+                        </span>
+                      </div>
+                      <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
+                        {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+    </div>
+  );
 };
 
 const Index = () => {
@@ -87,7 +194,7 @@ const Index = () => {
   };
 
   const fetchRecentEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(4);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(8);
     setRecentEvents(data || []);
   };
 
@@ -152,64 +259,7 @@ const Index = () => {
             </div>
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
-          <div className="relative">
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {recentEvents.map((event) => {
-                const countdown = getCountdown(event.date, event.end_date);
-                const hasImage = !!event.image_url;
-                return (
-                  <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[220px] sm:w-[260px]">
-                    <Link to={`/events/${event.id}`}>
-                      <div className="group relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-                        <div className="relative h-64 sm:h-72">
-                          <img
-                            src={hasImage ? event.image_url : defaultEventImg}
-                            alt={event.title}
-                            className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                          {/* Price badge top */}
-                          <div className="absolute right-2 top-2">
-                            <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
-                              {formatEventPrice(event.price, event.currency)}
-                            </Badge>
-                          </div>
-                          {/* Countdown badge top-left */}
-                          {countdown && (
-                            <div className="absolute left-2 top-2">
-                              <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
-                                {countdown}
-                              </Badge>
-                            </div>
-                          )}
-                          {/* Bottom overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="font-body text-[10px] text-white/80 sm:text-xs">
-                                {event.categories?.name || "Événement"}
-                              </span>
-                              <span className="text-white/50">·</span>
-                              <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">
-                                {event.attendees_count || 0} visites
-                              </span>
-                            </div>
-                            <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
-                              {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
+          <RecentCarousel events={recentEvents} />
         </div>
       </section>
 
