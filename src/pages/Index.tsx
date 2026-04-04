@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Music, Mic2, Palette, Trophy, Church, GraduationCap, PartyPopper, Globe,
-  Landmark, Lock, LucideIcon, Sparkles, Clock3, Users, Wrench,
+  Landmark, Lock, LucideIcon, Sparkles, Clock3, Users, Wrench, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
