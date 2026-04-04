@@ -153,7 +153,7 @@ const RecentCarousel = ({ events }: { events: any[] }) => {
   );
 };
 
-
+const Index = () => {
   useFavoriteAlerts();
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
