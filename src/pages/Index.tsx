@@ -87,7 +87,7 @@ const Index = () => {
   };
 
   const fetchRecentEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(4);
+    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(8);
     setRecentEvents(data || []);
   };
 
