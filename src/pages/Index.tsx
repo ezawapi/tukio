@@ -152,11 +152,7 @@ const Index = () => {
             </div>
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
-          <div className="relative">
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+          <RecentCarousel events={recentEvents} />
               {recentEvents.map((event) => {
                 const countdown = getCountdown(event.date, event.end_date);
                 const hasImage = !!event.image_url;
