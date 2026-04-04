@@ -153,59 +153,6 @@ const Index = () => {
             <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> Nouveau</Badge>
           </div>
           <RecentCarousel events={recentEvents} />
-              {recentEvents.map((event) => {
-                const countdown = getCountdown(event.date, event.end_date);
-                const hasImage = !!event.image_url;
-                return (
-                  <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[220px] sm:w-[260px]">
-                    <Link to={`/events/${event.id}`}>
-                      <div className="group relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-                        <div className="relative h-64 sm:h-72">
-                          <img
-                            src={hasImage ? event.image_url : defaultEventImg}
-                            alt={event.title}
-                            className={`h-full w-full transition-transform duration-500 group-hover:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                          {/* Price badge top */}
-                          <div className="absolute right-2 top-2">
-                            <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
-                              {formatEventPrice(event.price, event.currency)}
-                            </Badge>
-                          </div>
-                          {/* Countdown badge top-left */}
-                          {countdown && (
-                            <div className="absolute left-2 top-2">
-                              <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
-                                {countdown}
-                              </Badge>
-                            </div>
-                          )}
-                          {/* Bottom overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="font-body text-[10px] text-white/80 sm:text-xs">
-                                {event.categories?.name || "Événement"}
-                              </span>
-                              <span className="text-white/50">·</span>
-                              <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">
-                                {event.attendees_count || 0} visites
-                              </span>
-                            </div>
-                            <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
-                              {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
         </div>
       </section>
 
