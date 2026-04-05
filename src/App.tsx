@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { I18nProvider } from "@/contexts/I18nContext";
 import Index from "./pages/Index.tsx";
 import Events from "./pages/Events.tsx";
 import EventDetail from "./pages/EventDetail.tsx";
@@ -35,6 +36,7 @@ const App = () => {
 
   return (
   <QueryClientProvider client={queryClient}>
+    <I18nProvider>
     <AuthProvider>
       <TooltipProvider>
         {showSplash && <SplashScreen onFinish={hideSplash} />}
@@ -65,6 +67,7 @@ const App = () => {
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    </I18nProvider>
   </QueryClientProvider>
   );
 };
