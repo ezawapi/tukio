@@ -3,9 +3,11 @@ import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import { Facebook, Globe, Heart, Instagram, Linkedin, Mail, MapPin, Phone, Shield, Twitter, Users, Youtube } from "lucide-react";
 import { useSiteContent } from "@/hooks/use-site-content";
+import { useTranslation } from "@/contexts/I18nContext";
 
 const About = () => {
   const content = useSiteContent();
+  const { t } = useTranslation();
   const intro = content["about_intro"] || "Tukio est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales.";
   const vision = content["about_vision"] || "";
   const contactEmail = content["footer_contact_email"] || "contact@tukio.app";
@@ -24,18 +26,18 @@ const About = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
       <div className="pb-16 pt-24">
-        <div className="container mx-auto max-w-4xl px-4">
-          <h1 className="mb-6 font-display text-3xl font-bold text-foreground sm:text-4xl">À propos de Tukio</h1>
+        <div className="container mx-auto w-[90%] md:w-[80%] max-w-4xl">
+          <h1 className="mb-6 font-display text-3xl font-bold text-foreground sm:text-4xl">{t("about.title")}</h1>
 
           <div className="space-y-8 font-body text-muted-foreground leading-relaxed">
             <p className="text-lg text-foreground">{intro}</p>
 
             <div className="grid gap-6 sm:grid-cols-2">
               {[
-                { icon: Globe, title: "Visibilité locale & internationale", desc: "Nous offrons aux organisateurs une vitrine numérique pour toucher un public local et international." },
-                { icon: Users, title: "Communauté", desc: "Tukio rassemble organisateurs, participants et partenaires autour d'événements de qualité." },
-                { icon: MapPin, title: "Géolocalisation", desc: "Trouvez les activités les plus proches de vous grâce à notre carte interactive." },
-                { icon: Shield, title: "Fiabilité", desc: "Chaque publication est vérifiée par notre équipe avant d'être mise en ligne." },
+                { icon: Globe, title: t("about.visibility"), desc: t("about.visibility_desc") },
+                { icon: Users, title: t("about.community"), desc: t("about.community_desc") },
+                { icon: MapPin, title: t("about.geo"), desc: t("about.geo_desc") },
+                { icon: Shield, title: t("about.reliability"), desc: t("about.reliability_desc") },
               ].map((item) => (
                 <div key={item.title} className="rounded-xl border border-border bg-card p-5">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -50,7 +52,7 @@ const About = () => {
             {vision && (
               <div className="rounded-2xl bg-card border border-border p-6">
                 <h2 className="mb-3 font-display text-xl font-bold text-foreground flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-primary" /> Notre vision
+                  <Heart className="h-5 w-5 text-primary" /> {t("about.vision")}
                 </h2>
                 <p>{vision}</p>
               </div>
@@ -59,8 +61,15 @@ const About = () => {
             {/* Contact & Réseaux sociaux */}
             <div className="rounded-2xl bg-card border border-border p-6 space-y-4">
               <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" /> Nous contacter
+                <Mail className="h-5 w-5 text-primary" /> {t("about.contact")}
               </h2>
+
+              {/* Localisation - non cliquable */}
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <MapPin className="h-4 w-4 text-primary shrink-0" />
+                <span>{t("about.location")}</span>
+              </div>
+
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
                 <a href={`mailto:${contactEmail}`} className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
                   <Mail className="h-4 w-4" /> {contactEmail}
@@ -72,7 +81,7 @@ const About = () => {
                 )}
               </div>
               {socials.length > 0 && (
-                <div className="flex items-center gap-4 pt-2">
+                <div className="flex items-center gap-4 pt-2 flex-wrap">
                   {socials.map(s => (
                     <a key={s.key} href={content[s.key]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors" aria-label={s.label}>
                       {s.icon ? <s.icon className="h-5 w-5" /> : (
