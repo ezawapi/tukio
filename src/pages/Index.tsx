@@ -161,9 +161,9 @@ const RecentCarousel = ({ events }: { events: any[] }) => {
 };
 
 const CategorySkeleton = () => (
-  <div className="flex flex-wrap gap-2">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <Skeleton key={i} className="h-9 w-28 rounded-full" />
+  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
+    {Array.from({ length: 9 }).map((_, i) => (
+      <Skeleton key={i} className="h-24 rounded-2xl sm:h-28" />
     ))}
   </div>
 );
