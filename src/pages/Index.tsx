@@ -250,19 +250,21 @@ const Index = () => {
           </div>
           {loadingCats ? <CategorySkeleton /> : (
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
-              className="flex flex-wrap gap-2 sm:gap-2.5">
+              className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
               {categories.map((cat) => {
                 const Icon = iconMap[cat.icon] || Globe;
                 const colorClass = categoryColorMap[cat.color] || "bg-primary";
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link to={`/events?category=${cat.id}`}>
-                      <div className="group inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-sm sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
-                        <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${colorClass} sm:h-6 sm:w-6`}>
-                          <Icon className="h-3 w-3 text-primary-foreground sm:h-3.5 sm:w-3.5" />
-                        </span>
-                        <span className="font-body text-foreground">{cat.name}</span>
-                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 font-body text-[10px] font-medium text-muted-foreground sm:text-xs">{categoryCounts[cat.id] || 0}</span>
+                      <div className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-2.5 sm:p-4">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClass} shadow-sm transition-transform group-hover:scale-110 sm:h-12 sm:w-12 sm:rounded-2xl`}>
+                          <Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{cat.name}</p>
+                          <p className="font-body text-[10px] text-muted-foreground sm:text-xs">{categoryCounts[cat.id] || 0} évén.</p>
+                        </div>
                       </div>
                     </Link>
                   </motion.div>
