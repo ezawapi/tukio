@@ -238,7 +238,7 @@ const Index = () => {
 
       {/* Categories */}
       <section className="bg-background py-8 sm:py-12">
-        <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+        <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("home.categories")}</h2>
@@ -275,12 +275,12 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-2"><div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
-      <section className="pb-2"><div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+      <section className="pb-2"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
+      <section className="pb-2"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
 
       {/* Recent — horizontal scroll carousel */}
       <section className="bg-background py-10 sm:py-14">
-        <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+        <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-primary/10 p-2 text-primary"><Clock3 className="h-5 w-5" /></div>
@@ -303,7 +303,7 @@ const Index = () => {
       {/* Live Events */}
       {liveEvents.length > 0 && (
         <section className="bg-card py-10 sm:py-14">
-          <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+          <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-destructive animate-pulse-live" />
@@ -334,7 +334,7 @@ const Index = () => {
 
       {/* Upcoming */}
       <section className="bg-background py-10 sm:py-14">
-        <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+        <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("home.upcoming")}</h2>
@@ -367,7 +367,7 @@ const Index = () => {
       </section>
 
       <section className="pb-2">
-        <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+        <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <AdSlotBanner slotCode="home-bottom-left" compact />
             <AdSlotBanner slotCode="home-bottom-center" compact />
@@ -378,7 +378,7 @@ const Index = () => {
 
       {/* CTA */}
       <section className="py-12 sm:py-16">
-        <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+        <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="relative overflow-hidden rounded-3xl p-8 text-center gradient-hero sm:p-12">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
             <div className="relative z-10">
