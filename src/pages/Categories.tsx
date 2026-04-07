@@ -118,7 +118,6 @@ const Categories = () => {
                         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${colorClass} shadow-md transition-transform group-hover:scale-110 sm:h-16 sm:w-16`}>
                           <DynIcon name={cat.icon} className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
                         </div>
-                        </div>
                         <div className="space-y-1">
                           <p className="font-body text-sm font-bold text-card-foreground sm:text-base">{cat.name}</p>
                           <p className="font-body text-xs text-muted-foreground sm:text-sm">
