@@ -108,7 +108,6 @@ const Categories = () => {
               className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4"
             >
               {categories.map((cat) => {
-                const Icon = iconMap[cat.icon] || Globe;
                 const colorClass = categoryColorMap[cat.color] || "bg-primary";
                 const bgTint = categoryBgMap[cat.color] || "bg-primary/5";
                 const count = eventCounts[cat.id] || 0;
@@ -117,7 +116,8 @@ const Categories = () => {
                     <Link to={`/events?category=${cat.id}`}>
                       <div className={`group relative flex flex-col items-center gap-4 rounded-2xl border border-border ${bgTint} p-5 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-5 sm:p-7`}>
                         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${colorClass} shadow-md transition-transform group-hover:scale-110 sm:h-16 sm:w-16`}>
-                          <Icon className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
+                          <DynIcon name={cat.icon} className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
+                        </div>
                         </div>
                         <div className="space-y-1">
                           <p className="font-body text-sm font-bold text-card-foreground sm:text-base">{cat.name}</p>
