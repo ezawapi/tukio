@@ -125,6 +125,8 @@ export type Database = {
       }
       ads: {
         Row: {
+          bg_color: string | null
+          bg_gradient: string | null
           body: string | null
           created_at: string
           created_by: string | null
@@ -137,10 +139,14 @@ export type Database = {
           slot_id: string
           starts_at: string | null
           target_url: string | null
+          text_animation: string | null
+          text_color: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          bg_color?: string | null
+          bg_gradient?: string | null
           body?: string | null
           created_at?: string
           created_by?: string | null
@@ -153,10 +159,14 @@ export type Database = {
           slot_id: string
           starts_at?: string | null
           target_url?: string | null
+          text_animation?: string | null
+          text_color?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          bg_color?: string | null
+          bg_gradient?: string | null
           body?: string | null
           created_at?: string
           created_by?: string | null
@@ -169,6 +179,8 @@ export type Database = {
           slot_id?: string
           starts_at?: string | null
           target_url?: string | null
+          text_animation?: string | null
+          text_color?: string | null
           title?: string
           updated_at?: string
         }
