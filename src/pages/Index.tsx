@@ -263,7 +263,6 @@ const Index = () => {
                         <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClass} shadow-sm transition-transform group-hover:scale-110 sm:h-12 sm:w-12 sm:rounded-2xl`}>
                           <DynIcon name={cat.icon} className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
                         </div>
-                        </div>
                         <div className="space-y-0.5">
                           <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{cat.name}</p>
                           <p className="font-body text-[10px] text-muted-foreground sm:text-xs">{categoryCounts[cat.id] || 0} évén.</p>
