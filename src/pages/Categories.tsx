@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Music, Mic2, Palette, Trophy, Church, GraduationCap, PartyPopper, Globe,
-  Landmark, Lock, LucideIcon, Users, Wrench, Sparkles,
-} from "lucide-react";
+import { icons as lucideIcons } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,10 +9,14 @@ import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/contexts/I18nContext";
 
-const iconMap: Record<string, LucideIcon> = {
-  music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
-  "graduation-cap": GraduationCap, "party-popper": PartyPopper, globe: Globe,
-  landmark: Landmark, lock: Lock, users: Users, wrench: Wrench, sparkles: Sparkles,
+const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+  const Comp = (lucideIcons as any)[toPascal(name)];
+  if (!Comp) {
+    const Globe = (lucideIcons as any)["Globe"];
+    return Globe ? <Globe className={className} /> : null;
+  }
+  return <Comp className={className} />;
 };
 
 const categoryColorMap: Record<string, string> = {
@@ -107,7 +108,6 @@ const Categories = () => {
               className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4"
             >
               {categories.map((cat) => {
-                const Icon = iconMap[cat.icon] || Globe;
                 const colorClass = categoryColorMap[cat.color] || "bg-primary";
                 const bgTint = categoryBgMap[cat.color] || "bg-primary/5";
                 const count = eventCounts[cat.id] || 0;
@@ -116,7 +116,7 @@ const Categories = () => {
                     <Link to={`/events?category=${cat.id}`}>
                       <div className={`group relative flex flex-col items-center gap-4 rounded-2xl border border-border ${bgTint} p-5 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-5 sm:p-7`}>
                         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${colorClass} shadow-md transition-transform group-hover:scale-110 sm:h-16 sm:w-16`}>
-                          <Icon className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
+                          <DynIcon name={cat.icon} className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
                         </div>
                         <div className="space-y-1">
                           <p className="font-body text-sm font-bold text-card-foreground sm:text-base">{cat.name}</p>

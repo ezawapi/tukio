@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Music, Mic2, Palette, Trophy, Church, GraduationCap, PartyPopper, Globe,
-  Landmark, Lock, LucideIcon, Sparkles, Clock3, Users, Wrench, ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,10 +19,16 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/default-event.png";
 
-const iconMap: Record<string, LucideIcon> = {
-  music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
-  "graduation-cap": GraduationCap, "party-popper": PartyPopper, globe: Globe,
-  landmark: Landmark, lock: Lock, users: Users, wrench: Wrench, sparkles: Sparkles,
+const toKebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+
+const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+  const Comp = (lucideIcons as any)[toPascal(name)];
+  if (!Comp) {
+    const Globe = (lucideIcons as any)["Globe"];
+    return Globe ? <Globe className={className} /> : null;
+  }
+  return <Comp className={className} />;
 };
 
 const categoryColorMap: Record<string, string> = {
@@ -252,14 +255,13 @@ const Index = () => {
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
               className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
               {categories.map((cat) => {
-                const Icon = iconMap[cat.icon] || Globe;
                 const colorClass = categoryColorMap[cat.color] || "bg-primary";
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link to={`/events?category=${cat.id}`}>
                       <div className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-2.5 sm:p-4">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClass} shadow-sm transition-transform group-hover:scale-110 sm:h-12 sm:w-12 sm:rounded-2xl`}>
-                          <Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+                          <DynIcon name={cat.icon} className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
                         </div>
                         <div className="space-y-0.5">
                           <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{cat.name}</p>
