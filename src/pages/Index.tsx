@@ -255,14 +255,14 @@ const Index = () => {
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
               className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
               {categories.map((cat) => {
-                const Icon = iconMap[cat.icon] || Globe;
                 const colorClass = categoryColorMap[cat.color] || "bg-primary";
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link to={`/events?category=${cat.id}`}>
                       <div className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-2.5 sm:p-4">
                         <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClass} shadow-sm transition-transform group-hover:scale-110 sm:h-12 sm:w-12 sm:rounded-2xl`}>
-                          <Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+                          <DynIcon name={cat.icon} className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+                        </div>
                         </div>
                         <div className="space-y-0.5">
                           <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{cat.name}</p>
