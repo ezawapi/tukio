@@ -19,10 +19,16 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/default-event.png";
 
-const iconMap: Record<string, LucideIcon> = {
-  music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
-  "graduation-cap": GraduationCap, "party-popper": PartyPopper, globe: Globe,
-  landmark: Landmark, lock: Lock, users: Users, wrench: Wrench, sparkles: Sparkles,
+const toKebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+
+const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+  const Comp = (lucideIcons as any)[toPascal(name)];
+  if (!Comp) {
+    const Globe = (lucideIcons as any)["Globe"];
+    return Globe ? <Globe className={className} /> : null;
+  }
+  return <Comp className={className} />;
 };
 
 const categoryColorMap: Record<string, string> = {
