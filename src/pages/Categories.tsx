@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Music, Mic2, Palette, Trophy, Church, GraduationCap, PartyPopper, Globe,
-  Landmark, Lock, LucideIcon, Users, Wrench, Sparkles,
-} from "lucide-react";
+import { icons as lucideIcons } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,10 +9,14 @@ import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/contexts/I18nContext";
 
-const iconMap: Record<string, LucideIcon> = {
-  music: Music, "mic-2": Mic2, palette: Palette, trophy: Trophy, church: Church,
-  "graduation-cap": GraduationCap, "party-popper": PartyPopper, globe: Globe,
-  landmark: Landmark, lock: Lock, users: Users, wrench: Wrench, sparkles: Sparkles,
+const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+  const Comp = (lucideIcons as any)[toPascal(name)];
+  if (!Comp) {
+    const Globe = (lucideIcons as any)["Globe"];
+    return Globe ? <Globe className={className} /> : null;
+  }
+  return <Comp className={className} />;
 };
 
 const categoryColorMap: Record<string, string> = {
