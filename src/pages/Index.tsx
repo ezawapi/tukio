@@ -19,7 +19,6 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/default-event.png";
 
-const toKebab = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
 const DynIcon = ({ name, className }: { name: string; className?: string }) => {
@@ -32,14 +31,14 @@ const DynIcon = ({ name, className }: { name: string; className?: string }) => {
 };
 
 const categoryColorMap: Record<string, string> = {
-  "bg-emerald": "bg-[hsl(160,60%,38%)]", "bg-amber": "bg-[hsl(38,90%,50%)]",
-  "bg-blue": "bg-primary", "bg-green": "bg-[hsl(142,55%,38%)]",
-  "bg-purple": "bg-[hsl(270,55%,50%)]", "bg-pink": "bg-[hsl(330,65%,50%)]",
-  "bg-orange": "bg-secondary", "bg-indigo": "bg-[hsl(240,50%,50%)]",
-  "bg-slate": "bg-[hsl(215,20%,42%)]", "bg-cyan": "bg-[hsl(190,65%,38%)]",
-  "bg-red": "bg-accent", "bg-rose": "bg-[hsl(350,60%,50%)]",
-  "bg-teal": "bg-[hsl(170,50%,38%)]", "bg-primary": "bg-primary",
-  "bg-secondary": "bg-secondary", "bg-accent": "bg-accent",
+  "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
+  "bg-blue": "hsl(205,65%,45%)", "bg-green": "hsl(142,55%,38%)",
+  "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
+  "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
+  "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
+  "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
+  "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
+  "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
 };
 
 const containerVariants = {
@@ -73,7 +72,6 @@ const RecentCarousel = ({ events }: { events: any[] }) => {
     return () => el?.removeEventListener("scroll", checkScroll);
   }, [events]);
 
-  // Auto-scroll
   useEffect(() => {
     if (events.length === 0) return;
     const startAutoScroll = () => {
@@ -164,9 +162,9 @@ const RecentCarousel = ({ events }: { events: any[] }) => {
 };
 
 const CategorySkeleton = () => (
-  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
-    {Array.from({ length: 9 }).map((_, i) => (
-      <Skeleton key={i} className="h-24 rounded-2xl sm:h-28" />
+  <div className="flex flex-wrap gap-2.5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <Skeleton key={i} className="h-10 w-32 rounded-full" />
     ))}
   </div>
 );
@@ -191,10 +189,13 @@ const Index = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
 
   useEffect(() => {
-    fetchCategories();
-    fetchLiveEvents();
-    fetchUpcomingEvents();
-    fetchRecentEvents();
+    // Fetch all data in parallel for speed
+    Promise.all([
+      fetchCategories(),
+      fetchLiveEvents(),
+      fetchUpcomingEvents(),
+      fetchRecentEvents(),
+    ]);
   }, []);
 
   const fetchCategories = async () => {
@@ -202,8 +203,7 @@ const Index = () => {
     const { data } = await supabase.from("categories").select("*").order("name");
     if (data) {
       setCategories(data);
-      setLoadingCats(false);
-      // Fetch counts in background
+      // Fetch counts in parallel
       const counts: Record<string, number> = {};
       await Promise.all(
         data.map(async (cat) => {
@@ -212,9 +212,8 @@ const Index = () => {
         }),
       );
       setCategoryCounts(counts);
-    } else {
-      setLoadingCats(false);
     }
+    setLoadingCats(false);
   };
 
   const fetchLiveEvents = async () => {
@@ -239,7 +238,7 @@ const Index = () => {
       <Navbar />
       <HeroSection />
 
-      {/* Categories */}
+      {/* Categories - pill/chip design like Cat1.png */}
       <section className="bg-background py-8 sm:py-12">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
@@ -248,25 +247,29 @@ const Index = () => {
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.categories_sub")}</p>
             </div>
             <Link to="/categories">
-              <Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button>
+              <Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")} →</Button>
             </Link>
           </div>
           {loadingCats ? <CategorySkeleton /> : (
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
-              className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3">
+              className="flex flex-wrap gap-2.5 sm:gap-3">
               {categories.map((cat) => {
-                const colorClass = categoryColorMap[cat.color] || "bg-primary";
+                const color = categoryColorMap[cat.color] || "hsl(205,65%,45%)";
+                const count = categoryCounts[cat.id] ?? 0;
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link to={`/events?category=${cat.id}`}>
-                      <div className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-card transition-all hover:shadow-warm hover:-translate-y-1 sm:gap-2.5 sm:p-4">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colorClass} shadow-sm transition-transform group-hover:scale-110 sm:h-12 sm:w-12 sm:rounded-2xl`}>
-                          <DynIcon name={cat.icon} className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
+                      <div className="group flex items-center gap-2.5 rounded-full border border-border bg-card pl-1.5 pr-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 sm:pl-2 sm:pr-4 sm:py-2">
+                        <div
+                          className="flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-110 sm:h-9 sm:w-9"
+                          style={{ backgroundColor: color }}
+                        >
+                          <DynIcon name={cat.icon} className="h-4 w-4 text-white sm:h-[18px] sm:w-[18px]" />
                         </div>
-                        <div className="space-y-0.5">
-                          <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{cat.name}</p>
-                          <p className="font-body text-[10px] text-muted-foreground sm:text-xs">{categoryCounts[cat.id] || 0} évén.</p>
-                        </div>
+                        <span className="font-body text-xs font-medium text-card-foreground whitespace-nowrap sm:text-sm">{cat.name}</span>
+                        <Badge variant="secondary" className="ml-0.5 h-5 min-w-[20px] justify-center rounded-full px-1.5 text-[10px] font-bold sm:h-6 sm:text-xs">
+                          {count}
+                        </Badge>
                       </div>
                     </Link>
                   </motion.div>

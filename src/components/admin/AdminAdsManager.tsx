@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -77,13 +77,14 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
   const [form, setForm] = useState(defaultForm);
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
 
   const fetchData = async () => {
     const [{ data: slotData }, { data: adData }] = await Promise.all([
       supabase.from("ad_slots").select("id, name, code, placement, recommended_width, recommended_height").order("name"),
       supabase
         .from("ads")
-        .select("id, title, body, cta_label, image_url, target_url, display_order, starts_at, ends_at, is_active, text_color, bg_color, bg_gradient, text_animation, ad_slots(name, code, recommended_width, recommended_height)")
+        .select("id, title, body, cta_label, image_url, target_url, display_order, starts_at, ends_at, is_active, text_color, bg_color, bg_gradient, text_animation, slot_id, ad_slots(name, code, recommended_width, recommended_height)")
         .order("display_order", { ascending: true })
         .order("created_at", { ascending: false }),
     ]);
@@ -106,6 +107,32 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     setSelectedSlotIds((prev) => checked ? [...new Set([...prev, slotId])] : prev.filter((id) => id !== slotId));
   };
 
+  const resetForm = () => {
+    setForm(defaultForm);
+    setSelectedSlotIds([]);
+    setEditingAdId(null);
+  };
+
+  const startEdit = (ad: any) => {
+    setEditingAdId(ad.id);
+    setForm({
+      title: ad.title || "",
+      body: ad.body || "",
+      cta_label: ad.cta_label || "",
+      image_url: ad.image_url || "",
+      target_url: ad.target_url || "",
+      display_order: String(ad.display_order || 0),
+      starts_at: ad.starts_at ? new Date(ad.starts_at).toISOString().slice(0, 16) : "",
+      ends_at: ad.ends_at ? new Date(ad.ends_at).toISOString().slice(0, 16) : "",
+      is_active: ad.is_active ? "true" : "false",
+      text_color: ad.text_color || "#ffffff",
+      bg_color: ad.bg_color || "",
+      bg_gradient: ad.bg_gradient || "",
+      text_animation: ad.text_animation || "none",
+    });
+    setSelectedSlotIds(ad.slot_id ? [ad.slot_id] : []);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (selectedSlotIds.length === 0) {
@@ -118,8 +145,8 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     }
 
     setSaving(true);
-    const payload = selectedSlotIds.map((slotId) => ({
-      slot_id: slotId,
+
+    const basePayload = {
       title: form.title || "Publicité",
       body: form.body.trim() || null,
       cta_label: form.cta_label.trim() || null,
@@ -129,14 +156,27 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
       starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
       ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
       is_active: form.is_active === "true",
-      created_by: userId || null,
       text_color: form.text_color || "#ffffff",
       bg_color: form.bg_color || null,
       bg_gradient: form.bg_gradient || null,
       text_animation: form.text_animation || "none",
-    }));
+    };
 
-    const { error } = await supabase.from("ads").insert(payload);
+    let error: any;
+
+    if (editingAdId) {
+      // Update existing ad
+      ({ error } = await supabase.from("ads").update({ ...basePayload, slot_id: selectedSlotIds[0] }).eq("id", editingAdId));
+    } else {
+      // Insert new ad(s)
+      const payload = selectedSlotIds.map((slotId) => ({
+        ...basePayload,
+        slot_id: slotId,
+        created_by: userId || null,
+      }));
+      ({ error } = await supabase.from("ads").insert(payload));
+    }
+
     setSaving(false);
 
     if (error) {
@@ -144,9 +184,8 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
       return;
     }
 
-    toast({ title: "Publicité ajoutée" });
-    setForm(defaultForm);
-    setSelectedSlotIds([]);
+    toast({ title: editingAdId ? "Publicité modifiée" : "Publicité ajoutée" });
+    resetForm();
     fetchData();
   };
 
@@ -160,10 +199,10 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     const { error } = await supabase.from("ads").delete().eq("id", adId);
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Publicité supprimée" });
+    if (editingAdId === adId) resetForm();
     fetchData();
   };
 
-  // Preview banner style
   const previewStyle: React.CSSProperties = {
     backgroundColor: form.bg_gradient ? undefined : (form.bg_color || "#1a1a2e"),
     backgroundImage: form.bg_gradient || undefined,
@@ -174,19 +213,32 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
     <div className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
       <Card>
         <CardHeader>
-          <CardTitle className="font-display text-base sm:text-lg">Nouvelle publicité / annonce</CardTitle>
+          <CardTitle className="font-display text-base sm:text-lg">
+            {editingAdId ? "✏️ Modifier la publicité" : "Nouvelle publicité / annonce"}
+          </CardTitle>
           <p className="text-xs text-muted-foreground">Image, vidéo YouTube, ou zone texte stylisée avec animation.</p>
+          {editingAdId && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={resetForm}>
+              ← Annuler la modification
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Slots */}
             <div className="space-y-2">
-              <Label>Emplacements (multi-choix)</Label>
+              <Label>Emplacements {editingAdId ? "(1 seul en modification)" : "(multi-choix)"}</Label>
               <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
                 {slots.map((slot) => (
                   <label key={slot.id} htmlFor={`slot-${slot.id}`} className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-muted/50">
                     <Checkbox id={`slot-${slot.id}`} checked={selectedSlotIds.includes(slot.id)}
-                      onCheckedChange={(v) => handleSlotCheckedChange(slot.id, v === true)} />
+                      onCheckedChange={(v) => {
+                        if (editingAdId) {
+                          setSelectedSlotIds(v === true ? [slot.id] : []);
+                        } else {
+                          handleSlotCheckedChange(slot.id, v === true);
+                        }
+                      }} />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{slot.name}</p>
                       <p className="text-xs text-muted-foreground">{slot.recommended_width || "?"}×{slot.recommended_height || "?"} px</p>
@@ -247,11 +299,11 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
 
               <div className="space-y-1">
                 <Label className="text-xs">Dégradé de fond</Label>
-                <Select value={form.bg_gradient} onValueChange={(v) => handleChange("bg_gradient", v)}>
+                <Select value={form.bg_gradient} onValueChange={(v) => handleChange("bg_gradient", v === "none" ? "" : v)}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Choisir un dégradé" /></SelectTrigger>
                   <SelectContent>
                     {GRADIENT_PRESETS.map((g) => (
-                      <SelectItem key={g.value} value={g.value || "none"}>
+                      <SelectItem key={g.value || "none"} value={g.value || "none"}>
                         <div className="flex items-center gap-2">
                           {g.value && <div className="h-4 w-8 rounded" style={{ backgroundImage: g.value }} />}
                           <span>{g.label}</span>
@@ -317,7 +369,7 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
             </div>
 
             <Button type="submit" className="w-full gradient-hero border-0 text-primary-foreground" disabled={saving}>
-              {saving ? "Enregistrement..." : "Ajouter la publicité"}
+              {saving ? "Enregistrement..." : editingAdId ? "Enregistrer les modifications" : "Ajouter la publicité"}
             </Button>
           </form>
         </CardContent>
@@ -360,7 +412,7 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
             <p className="font-body text-sm text-muted-foreground">Aucune publicité pour le moment.</p>
           ) : (
             ads.map((ad) => (
-              <div key={ad.id} className="rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+              <div key={ad.id} className={`rounded-xl border bg-muted/30 p-3 sm:p-4 ${editingAdId === ad.id ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2 min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -390,6 +442,9 @@ const AdminAdsManager = ({ userId }: AdminAdsManagerProps) => {
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => startEdit(ad)} className="text-xs h-8 gap-1">
+                      <Pencil className="h-3.5 w-3.5" /> Modifier
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => toggleAd(ad.id, !ad.is_active)} className="text-xs h-8">
                       {ad.is_active ? "Désactiver" : "Activer"}
                     </Button>
