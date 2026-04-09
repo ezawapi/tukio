@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trash2, ShieldOff, ShieldCheck, Search, Users } from "lucide-react";
+import { Trash2, ShieldOff, ShieldCheck, Search, Users, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PaginationControls from "@/components/PaginationControls";
+import AdminUserProfileDialog from "@/components/admin/AdminUserProfileDialog";
 
 const ITEMS_PER_PAGE = 15;
 
@@ -19,6 +20,8 @@ const AdminUsersManager = () => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const fetchProfiles = async () => {
     const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
@@ -40,6 +43,11 @@ const AdminUsersManager = () => {
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Profil supprimé" });
     fetchProfiles();
+  };
+
+  const viewProfile = (id: string) => {
+    setSelectedUserId(id);
+    setProfileDialogOpen(true);
   };
 
   const filtered = profiles.filter(p => {
@@ -85,6 +93,9 @@ const AdminUsersManager = () => {
                 {profile.is_blocked && <Badge variant="destructive" className="text-[10px]">Bloqué</Badge>}
               </div>
               <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={() => viewProfile(profile.id)} className="h-8 w-8 p-0" title="Voir le profil">
+                  <Eye className="h-4 w-4 text-primary" />
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => toggleBlock(profile)} className="h-8 w-8 p-0"
                   title={profile.is_blocked ? "Débloquer" : "Bloquer"}>
                   {profile.is_blocked ? <ShieldCheck className="h-4 w-4 text-primary" /> : <ShieldOff className="h-4 w-4 text-muted-foreground" />}
@@ -111,6 +122,7 @@ const AdminUsersManager = () => {
         </div>
         <PaginationControls currentPage={page} totalPages={totalPages} totalItems={filtered.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setPage} label="utilisateurs" />
       </CardContent>
+      <AdminUserProfileDialog profileId={selectedUserId} open={profileDialogOpen} onOpenChange={setProfileDialogOpen} />
     </Card>
   );
 };
