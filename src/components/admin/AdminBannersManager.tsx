@@ -169,7 +169,7 @@ const AdminBannersManager = () => {
 
                 <div>
                   <Label>Image (optionnelle)</Label>
-                  <ImageUpload currentUrl={form.image_url} onUpload={(url) => set("image_url", url)} folder="banners" />
+                  <Input value={form.image_url} onChange={e => set("image_url", e.target.value)} placeholder="URL de l'image" />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
