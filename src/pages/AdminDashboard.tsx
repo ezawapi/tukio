@@ -19,6 +19,7 @@ import AdminContentManager from "@/components/admin/AdminContentManager";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import AdminCategoriesManager from "@/components/admin/AdminCategoriesManager";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
+import AdminBannersManager from "@/components/admin/AdminBannersManager";
 import PaginationControls from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -159,11 +160,12 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-9">
+            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-10">
               <TabsTrigger value="pending" className="text-xs sm:text-sm">{t("admin.pending")}</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">{t("admin.all")}</TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">{t("admin.notifs")}</TabsTrigger>
               <TabsTrigger value="ads" className="text-xs sm:text-sm">{t("admin.ads")}</TabsTrigger>
+              <TabsTrigger value="banners" className="text-xs sm:text-sm">Bannières</TabsTrigger>
               <TabsTrigger value="analytics" className="text-xs sm:text-sm">{t("admin.analytics")}</TabsTrigger>
               <TabsTrigger value="partners" className="text-xs sm:text-sm">{t("admin.partners")}</TabsTrigger>
               <TabsTrigger value="content" className="text-xs sm:text-sm">{t("admin.content")}</TabsTrigger>
@@ -261,6 +263,7 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="banners"><AdminBannersManager /></TabsContent>
             <TabsContent value="partners"><AdminPartnersManager /></TabsContent>
             <TabsContent value="content"><AdminContentManager /></TabsContent>
             <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>

@@ -86,7 +86,7 @@ const NearbyEvents = () => {
 
   return (
     <section className="bg-card py-10 sm:py-16">
-      <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
+      <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-primary/10 p-2 text-primary"><Navigation className="h-5 w-5" /></div>

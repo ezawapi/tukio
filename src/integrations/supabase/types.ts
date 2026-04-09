@@ -516,6 +516,7 @@ export type Database = {
           id: string
           is_blocked: boolean
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -524,6 +525,7 @@ export type Database = {
           id: string
           is_blocked?: boolean
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -531,6 +533,67 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_blocked?: boolean
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      promotional_banners: {
+        Row: {
+          bg_color: string | null
+          bg_gradient: string | null
+          body: string | null
+          button_label: string | null
+          button_url: string | null
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          subtitle: string | null
+          subtitle_font_size: string | null
+          text_animation: string | null
+          text_color: string | null
+          title: string
+          title_font_size: string | null
+          updated_at: string
+        }
+        Insert: {
+          bg_color?: string | null
+          bg_gradient?: string | null
+          body?: string | null
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          subtitle?: string | null
+          subtitle_font_size?: string | null
+          text_animation?: string | null
+          text_color?: string | null
+          title?: string
+          title_font_size?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bg_color?: string | null
+          bg_gradient?: string | null
+          body?: string | null
+          button_label?: string | null
+          button_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          subtitle?: string | null
+          subtitle_font_size?: string | null
+          text_animation?: string | null
+          text_color?: string | null
+          title?: string
+          title_font_size?: string | null
           updated_at?: string
         }
         Relationships: []
