@@ -58,6 +58,8 @@ const defaultForm = {
   bg_color: "#f59e0b", bg_gradient: "", text_color: "#ffffff",
   title_font_size: "2xl", subtitle_font_size: "base", text_animation: "none",
   display_order: 0, is_active: true,
+  width_percent: 100, height_px: null as number | null,
+  border_width: 0, border_color: "#000000",
 };
 
 const AdminBannersManager = () => {
@@ -100,9 +102,19 @@ const AdminBannersManager = () => {
       bg_color: b.bg_color || "#f59e0b", bg_gradient: b.bg_gradient || "", text_color: b.text_color || "#ffffff",
       title_font_size: b.title_font_size || "2xl", subtitle_font_size: b.subtitle_font_size || "base",
       text_animation: b.text_animation || "none", display_order: b.display_order || 0, is_active: b.is_active,
+      width_percent: b.width_percent ?? 100, height_px: b.height_px ?? null,
+      border_width: b.border_width ?? 0, border_color: b.border_color || "#000000",
     });
     setEditingId(b.id);
     setDialogOpen(true);
+  };
+
+  const duplicateBanner = async (b: any) => {
+    const { id, created_at, updated_at, ...rest } = b;
+    const { error } = await supabase.from("promotional_banners").insert({ ...rest, title: `${rest.title} (copie)`, is_active: false });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Bannière dupliquée");
+    fetchBanners();
   };
 
   const deleteBanner = async (id: string) => {

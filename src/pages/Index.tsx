@@ -240,14 +240,14 @@ const Index = () => {
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-          <div className="relative h-64 sm:h-72">
+        <div className="group/card relative overflow-hidden rounded-2xl border-2 border-destructive/30 shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+          <div className="relative h-44 sm:h-52">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
-              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
+              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute left-2 top-2">
-              <Badge className="animate-pulse-live border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
                 🔴 LIVE
               </Badge>
             </div>
