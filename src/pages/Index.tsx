@@ -33,13 +33,17 @@ const DynIcon = ({ name, className }: { name: string; className?: string }) => {
 
 const categoryColorMap: Record<string, string> = {
   "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
-  "bg-blue": "hsl(205,65%,45%)", "bg-green": "hsl(142,55%,38%)",
+  "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
   "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
   "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
   "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
   "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
   "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
   "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
+  "bg-lime": "hsl(84,60%,45%)", "bg-fuchsia": "hsl(292,60%,50%)",
+  "bg-sky": "hsl(200,80%,50%)", "bg-yellow": "hsl(50,90%,50%)",
+  "bg-violet": "hsl(258,60%,55%)", "bg-stone": "hsl(30,10%,40%)",
+  "bg-zinc": "hsl(240,5%,35%)", "bg-brown": "hsl(20,50%,35%)",
 };
 
 const containerVariants = {
