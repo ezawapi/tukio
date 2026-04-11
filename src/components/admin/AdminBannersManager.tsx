@@ -247,25 +247,55 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
+                {/* Layout: width, height, border */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div>
+                    <Label>Largeur (%)</Label>
+                    <Input type="number" min={20} max={100} value={form.width_percent} onChange={e => set("width_percent", Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Hauteur (px)</Label>
+                    <Input type="number" min={0} value={form.height_px ?? ""} onChange={e => set("height_px", e.target.value ? Number(e.target.value) : null)} placeholder="Auto" />
+                  </div>
+                  <div>
+                    <Label>Bordure (px)</Label>
+                    <Input type="number" min={0} max={10} value={form.border_width} onChange={e => set("border_width", Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Couleur bordure</Label>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input type="color" value={form.border_color} onChange={e => set("border_color", e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Preview */}
                 <div>
                   <Label className="mb-2 block">Aperçu</Label>
-                  <div className="overflow-hidden rounded-2xl p-6 relative" style={bannerStyle}>
-                    {form.bg_gradient && <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />}
-                    <div className="relative z-10 flex items-center gap-4">
-                      <div className="flex-1 space-y-2">
-                        {form.subtitle && <p className={`text-sm opacity-80 ${getAnimationClass(form.text_animation)}`}>{form.subtitle}</p>}
-                        <h3 className={`font-display font-bold text-${form.title_font_size} ${getAnimationClass(form.text_animation)}`}>{form.title || "Titre"}</h3>
-                        {form.body && <p className={`text-${form.subtitle_font_size} opacity-90 ${getAnimationClass(form.text_animation)}`}>{form.body}</p>}
-                        {form.button_label && (
-                          <span className="inline-block mt-2 px-5 py-2 rounded-lg font-semibold text-sm border-2 border-current/30" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
-                            {form.button_label}
-                          </span>
+                  <div className="flex justify-center">
+                    <div className="overflow-hidden rounded-2xl p-6 relative"
+                      style={{
+                        ...bannerStyle,
+                        width: `${form.width_percent}%`,
+                        height: form.height_px ? `${form.height_px}px` : undefined,
+                        border: form.border_width ? `${form.border_width}px solid ${form.border_color}` : undefined,
+                      }}>
+                      {form.bg_gradient && <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />}
+                      <div className="relative z-10 flex items-center gap-4">
+                        <div className="flex-1 space-y-2">
+                          {form.subtitle && <p className={`text-sm opacity-80 ${getAnimationClass(form.text_animation)}`}>{form.subtitle}</p>}
+                          <h3 className={`font-display font-bold text-${form.title_font_size} ${getAnimationClass(form.text_animation)}`}>{form.title || "Titre"}</h3>
+                          {form.body && <p className={`text-${form.subtitle_font_size} opacity-90 ${getAnimationClass(form.text_animation)}`}>{form.body}</p>}
+                          {form.button_label && (
+                            <span className="inline-block mt-2 px-5 py-2 rounded-lg font-semibold text-sm border-2 border-current/30" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+                              {form.button_label}
+                            </span>
+                          )}
+                        </div>
+                        {form.image_url && (
+                          <img src={form.image_url} alt="" className="h-20 w-20 rounded-xl object-cover shadow-lg flex-shrink-0" />
                         )}
                       </div>
-                      {form.image_url && (
-                        <img src={form.image_url} alt="" className="h-20 w-20 rounded-xl object-cover shadow-lg flex-shrink-0" />
-                      )}
                     </div>
                   </div>
                 </div>
@@ -297,7 +327,8 @@ const AdminBannersManager = () => {
               </div>
               <div className="flex items-center gap-1">
                 <Switch checked={b.is_active} onCheckedChange={(v) => toggleActive(b.id, v)} />
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(b)}><Edit2 className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(b)} title="Modifier"><Edit2 className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => duplicateBanner(b)} title="Dupliquer"><Plus className="h-4 w-4 text-primary" /></Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Trash2 className="h-4 w-4 text-destructive" /></Button>
