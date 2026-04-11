@@ -331,6 +331,7 @@ export type Database = {
           last_reviewed_at: string | null
           last_submitted_at: string
           latitude: number | null
+          live_url: string | null
           location: string
           longitude: number | null
           organizer_id: string | null
@@ -346,6 +347,7 @@ export type Database = {
           twitter_url: string | null
           updated_at: string
           updated_by_admin: boolean
+          venue_name: string | null
           visibility: string
           website_url: string | null
           whatsapp: string | null
@@ -374,6 +376,7 @@ export type Database = {
           last_reviewed_at?: string | null
           last_submitted_at?: string
           latitude?: number | null
+          live_url?: string | null
           location: string
           longitude?: number | null
           organizer_id?: string | null
@@ -389,6 +392,7 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           updated_by_admin?: boolean
+          venue_name?: string | null
           visibility?: string
           website_url?: string | null
           whatsapp?: string | null
@@ -417,6 +421,7 @@ export type Database = {
           last_reviewed_at?: string | null
           last_submitted_at?: string
           latitude?: number | null
+          live_url?: string | null
           location?: string
           longitude?: number | null
           organizer_id?: string | null
@@ -432,6 +437,7 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           updated_by_admin?: boolean
+          venue_name?: string | null
           visibility?: string
           website_url?: string | null
           whatsapp?: string | null
@@ -513,28 +519,61 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           is_blocked: boolean
+          linkedin_url: string | null
+          organization_name: string | null
+          organization_role: string | null
+          phone_primary: string | null
+          phone_secondary: string | null
+          physical_address: string | null
+          tiktok_url: string | null
+          twitter_url: string | null
           updated_at: string
           video_url: string | null
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          facebook_url?: string | null
           id: string
+          instagram_url?: string | null
           is_blocked?: boolean
+          linkedin_url?: string | null
+          organization_name?: string | null
+          organization_role?: string | null
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          physical_address?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           video_url?: string | null
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           is_blocked?: boolean
+          linkedin_url?: string | null
+          organization_name?: string | null
+          organization_role?: string | null
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          physical_address?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           video_url?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -543,10 +582,13 @@ export type Database = {
           bg_color: string | null
           bg_gradient: string | null
           body: string | null
+          border_color: string | null
+          border_width: number | null
           button_label: string | null
           button_url: string | null
           created_at: string
           display_order: number
+          height_px: number | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -554,18 +596,23 @@ export type Database = {
           subtitle_font_size: string | null
           text_animation: string | null
           text_color: string | null
+          text_lines: Json | null
           title: string
           title_font_size: string | null
           updated_at: string
+          width_percent: number | null
         }
         Insert: {
           bg_color?: string | null
           bg_gradient?: string | null
           body?: string | null
+          border_color?: string | null
+          border_width?: number | null
           button_label?: string | null
           button_url?: string | null
           created_at?: string
           display_order?: number
+          height_px?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -573,18 +620,23 @@ export type Database = {
           subtitle_font_size?: string | null
           text_animation?: string | null
           text_color?: string | null
+          text_lines?: Json | null
           title?: string
           title_font_size?: string | null
           updated_at?: string
+          width_percent?: number | null
         }
         Update: {
           bg_color?: string | null
           bg_gradient?: string | null
           body?: string | null
+          border_color?: string | null
+          border_width?: number | null
           button_label?: string | null
           button_url?: string | null
           created_at?: string
           display_order?: number
+          height_px?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -592,9 +644,11 @@ export type Database = {
           subtitle_font_size?: string | null
           text_animation?: string | null
           text_color?: string | null
+          text_lines?: Json | null
           title?: string
           title_font_size?: string | null
           updated_at?: string
+          width_percent?: number | null
         }
         Relationships: []
       }

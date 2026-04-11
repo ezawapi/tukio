@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { User, Calendar, MessageSquare, Heart, FileText, Video, ShieldCheck, ShieldOff, Mail } from "lucide-react";
+import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +17,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -40,6 +40,19 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
   }, [profileId, open]);
 
   if (!open) return null;
+
+  const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) => {
+    if (!value) return null;
+    return (
+      <div className="flex items-start gap-2 text-sm">
+        <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground">{label}</p>
+          <p className="font-medium text-foreground break-all text-xs">{value}</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,7 +84,33 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               </div>
             </div>
 
-            {/* Info */}
+            {/* Contact Info */}
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <p className="font-display text-xs font-semibold text-foreground mb-2">Coordonnées</p>
+              <InfoRow icon={Phone} label="Téléphone principal" value={profile.phone_primary} />
+              <InfoRow icon={Phone} label="Téléphone secondaire" value={profile.phone_secondary} />
+              <InfoRow icon={MapPin} label="Adresse physique" value={profile.physical_address} />
+              <InfoRow icon={Building2} label="Organisation" value={profile.organization_name} />
+              {profile.organization_role && (
+                <InfoRow icon={User} label="Fonction" value={profile.organization_role} />
+              )}
+              <InfoRow icon={Video} label="Vidéo" value={profile.video_url} />
+            </div>
+
+            {/* Social */}
+            {(profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.tiktok_url || profile.linkedin_url || profile.website_url) && (
+              <div className="rounded-lg border border-border p-3 space-y-2">
+                <p className="font-display text-xs font-semibold text-foreground mb-2">Réseaux sociaux</p>
+                <InfoRow icon={Facebook} label="Facebook" value={profile.facebook_url} />
+                <InfoRow icon={Instagram} label="Instagram" value={profile.instagram_url} />
+                <InfoRow icon={Globe} label="Twitter / X" value={profile.twitter_url} />
+                <InfoRow icon={Globe} label="TikTok" value={profile.tiktok_url} />
+                <InfoRow icon={Linkedin} label="LinkedIn" value={profile.linkedin_url} />
+                <InfoRow icon={Globe} label="Site web" value={profile.website_url} />
+              </div>
+            )}
+
+            {/* Dates */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-lg bg-muted/50 p-3">
                 <p className="text-muted-foreground text-xs">Inscrit le</p>
@@ -82,13 +121,6 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                 <p className="font-medium">{new Date(profile.updated_at).toLocaleDateString("fr-FR")}</p>
               </div>
             </div>
-
-            {profile.video_url && (
-              <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-2">
-                <Video className="h-4 w-4 text-primary" />
-                <a href={profile.video_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline truncate">{profile.video_url}</a>
-              </div>
-            )}
 
             {/* Contributions */}
             <Tabs defaultValue="events" className="w-full">
@@ -129,7 +161,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               </TabsContent>
             </Tabs>
 
-            {/* Stats summary */}
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg bg-primary/10 p-2">
                 <p className="font-display text-lg font-bold text-primary">{events.length}</p>

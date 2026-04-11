@@ -43,6 +43,14 @@ const COLOR_OPTIONS = [
   { key: "bg-rose", label: "Rosé", hsl: "hsl(350,60%,50%)" },
   { key: "bg-slate", label: "Ardoise", hsl: "hsl(215,20%,42%)" },
   { key: "bg-blue", label: "Bleu ciel", hsl: "hsl(210,70%,50%)" },
+  { key: "bg-lime", label: "Lime", hsl: "hsl(84,60%,45%)" },
+  { key: "bg-fuchsia", label: "Fuchsia", hsl: "hsl(292,60%,50%)" },
+  { key: "bg-sky", label: "Ciel", hsl: "hsl(200,80%,50%)" },
+  { key: "bg-yellow", label: "Jaune", hsl: "hsl(50,90%,50%)" },
+  { key: "bg-violet", label: "Violet vif", hsl: "hsl(258,60%,55%)" },
+  { key: "bg-stone", label: "Pierre", hsl: "hsl(30,10%,40%)" },
+  { key: "bg-zinc", label: "Zinc", hsl: "hsl(240,5%,35%)" },
+  { key: "bg-brown", label: "Marron", hsl: "hsl(20,50%,35%)" },
 ];
 
 const AdminCategoriesManager = () => {
@@ -63,8 +71,8 @@ const AdminCategoriesManager = () => {
 
   const filteredIcons = useMemo(() => {
     const q = iconSearch.toLowerCase().trim();
-    if (!q) return ALL_ICONS.slice(0, 80);
-    return ALL_ICONS.filter((i) => i.kebab.includes(q) || i.name.toLowerCase().includes(q)).slice(0, 80);
+    if (!q) return ALL_ICONS.slice(0, 120);
+    return ALL_ICONS.filter((i) => i.kebab.includes(q) || i.name.toLowerCase().includes(q)).slice(0, 120);
   }, [iconSearch]);
 
   const renderIcon = (kebab: string, size = 20) => {

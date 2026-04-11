@@ -33,13 +33,17 @@ const DynIcon = ({ name, className }: { name: string; className?: string }) => {
 
 const categoryColorMap: Record<string, string> = {
   "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
-  "bg-blue": "hsl(205,65%,45%)", "bg-green": "hsl(142,55%,38%)",
+  "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
   "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
   "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
   "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
   "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
   "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
   "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
+  "bg-lime": "hsl(84,60%,45%)", "bg-fuchsia": "hsl(292,60%,50%)",
+  "bg-sky": "hsl(200,80%,50%)", "bg-yellow": "hsl(50,90%,50%)",
+  "bg-violet": "hsl(258,60%,55%)", "bg-stone": "hsl(30,10%,40%)",
+  "bg-zinc": "hsl(240,5%,35%)", "bg-brown": "hsl(20,50%,35%)",
 };
 
 const containerVariants = {
@@ -240,14 +244,14 @@ const Index = () => {
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-          <div className="relative h-64 sm:h-72">
+        <div className="group/card relative overflow-hidden rounded-2xl border-2 border-destructive/30 shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+          <div className="relative h-44 sm:h-52">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
-              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
+              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute left-2 top-2">
-              <Badge className="animate-pulse-live border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
                 🔴 LIVE
               </Badge>
             </div>
