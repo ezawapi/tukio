@@ -24,6 +24,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import Settings from "./pages/Settings.tsx";
 import Notifications from "./pages/Notifications.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
+import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => {
   const hideSplash = useCallback(() => setShowSplash(false), []);
 
   return (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
     <AuthProvider>
@@ -69,6 +71,7 @@ const App = () => {
     </AuthProvider>
     </I18nProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
   );
 };
 
