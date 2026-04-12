@@ -25,7 +25,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
     setLoading(true);
     Promise.all([
       supabase.from("profiles").select("*").eq("id", profileId).single(),
-      supabase.from("events").select("id, title, date, status, is_published").eq("organizer_id", profileId).order("created_at", { ascending: false }).limit(20),
+      supabase.from("events").select("id, title, date, status, is_published, contact_email").eq("organizer_id", profileId).order("created_at", { ascending: false }).limit(20),
       supabase.from("comments").select("id, content, created_at, event_id").eq("user_id", profileId).order("created_at", { ascending: false }).limit(20),
       supabase.from("favorites").select("id, event_id, created_at").eq("user_id", profileId).limit(20),
       supabase.from("user_roles").select("role").eq("user_id", profileId),
@@ -35,20 +35,27 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
       setComments(cRes.data || []);
       setFavorites(fRes.data || []);
       setRoles((rRes.data || []).map((r: any) => r.role));
+      // Try to get email from events contact_email as proxy
+      const contactEmail = (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
+      setUserEmail(contactEmail || null);
       setLoading(false);
     });
   }, [profileId, open]);
 
   if (!open) return null;
 
-  const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) => {
+  const InfoRow = ({ icon: Icon, label, value, isLink }: { icon: any; label: string; value?: string | null; isLink?: boolean }) => {
     if (!value) return null;
     return (
       <div className="flex items-start gap-2 text-sm">
         <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] text-muted-foreground">{label}</p>
-          <p className="font-medium text-foreground break-all text-xs">{value}</p>
+          {isLink ? (
+            <a href={value} target="_blank" rel="noopener noreferrer" className="font-medium text-primary text-xs break-all hover:underline">{value}</a>
+          ) : (
+            <p className="font-medium text-foreground break-all text-xs">{value}</p>
+          )}
         </div>
       </div>
     );
@@ -87,6 +94,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
             {/* Contact Info */}
             <div className="rounded-lg border border-border p-3 space-y-2">
               <p className="font-display text-xs font-semibold text-foreground mb-2">Coordonnées</p>
+              {userEmail && <InfoRow icon={Mail} label="Email" value={userEmail} />}
               <InfoRow icon={Phone} label="Téléphone principal" value={profile.phone_primary} />
               <InfoRow icon={Phone} label="Téléphone secondaire" value={profile.phone_secondary} />
               <InfoRow icon={MapPin} label="Adresse physique" value={profile.physical_address} />
@@ -94,21 +102,25 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               {profile.organization_role && (
                 <InfoRow icon={User} label="Fonction" value={profile.organization_role} />
               )}
-              <InfoRow icon={Video} label="Vidéo" value={profile.video_url} />
+              <InfoRow icon={Video} label="Vidéo" value={profile.video_url} isLink />
+              {!userEmail && !profile.phone_primary && !profile.physical_address && !profile.organization_name && !profile.video_url && (
+                <p className="text-xs text-muted-foreground italic">Aucune coordonnée renseignée</p>
+              )}
             </div>
 
             {/* Social */}
-            {(profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.tiktok_url || profile.linkedin_url || profile.website_url) && (
-              <div className="rounded-lg border border-border p-3 space-y-2">
-                <p className="font-display text-xs font-semibold text-foreground mb-2">Réseaux sociaux</p>
-                <InfoRow icon={Facebook} label="Facebook" value={profile.facebook_url} />
-                <InfoRow icon={Instagram} label="Instagram" value={profile.instagram_url} />
-                <InfoRow icon={Globe} label="Twitter / X" value={profile.twitter_url} />
-                <InfoRow icon={Globe} label="TikTok" value={profile.tiktok_url} />
-                <InfoRow icon={Linkedin} label="LinkedIn" value={profile.linkedin_url} />
-                <InfoRow icon={Globe} label="Site web" value={profile.website_url} />
-              </div>
-            )}
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <p className="font-display text-xs font-semibold text-foreground mb-2">Réseaux sociaux</p>
+              <InfoRow icon={Facebook} label="Facebook" value={profile.facebook_url} isLink />
+              <InfoRow icon={Instagram} label="Instagram" value={profile.instagram_url} isLink />
+              <InfoRow icon={Globe} label="Twitter / X" value={profile.twitter_url} isLink />
+              <InfoRow icon={Globe} label="TikTok" value={profile.tiktok_url} isLink />
+              <InfoRow icon={Linkedin} label="LinkedIn" value={profile.linkedin_url} isLink />
+              <InfoRow icon={Globe} label="Site web" value={profile.website_url} isLink />
+              {!profile.facebook_url && !profile.instagram_url && !profile.twitter_url && !profile.tiktok_url && !profile.linkedin_url && !profile.website_url && (
+                <p className="text-xs text-muted-foreground italic">Aucun réseau social renseigné</p>
+              )}
+            </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3 text-sm">
