@@ -244,24 +244,24 @@ const Index = () => {
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-2xl border-2 border-destructive/30 shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-          <div className="relative h-44 sm:h-52">
+        <div className="group/card relative overflow-hidden rounded-xl bg-gradient-to-br from-destructive/10 to-destructive/5 border border-destructive/20 transition-all hover:border-destructive/40 hover:-translate-y-1">
+          <div className="relative h-32 sm:h-36">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
-              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
+              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-4"}`}
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute left-2 top-2">
-              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground px-2 py-0.5 sm:text-[10px]">
                 🔴 LIVE
               </Badge>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
-              <div className="mt-1.5 flex items-center gap-2">
-                <span className="font-body text-[10px] text-white/80 sm:text-xs">{event.categories?.name || t("home.event")}</span>
-                <span className="text-white/50">·</span>
-                <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">{event.location}</span>
-              </div>
+          </div>
+          <div className="p-2.5 sm:p-3 space-y-1">
+            <h3 className="font-display text-xs font-bold leading-snug text-foreground line-clamp-2 sm:text-sm">{event.title}</h3>
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground sm:text-xs">
+              <span>{event.categories?.name || t("home.event")}</span>
+              <span className="text-border">·</span>
+              <span className="truncate">{event.location}</span>
             </div>
           </div>
         </div>
