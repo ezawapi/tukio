@@ -121,7 +121,7 @@ const HorizontalCarousel = ({ events, renderCard }: { events: any[]; renderCard:
         className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         {events.map((event) => (
-          <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[220px] sm:w-[260px]">
+          <motion.div key={event.id} variants={itemVariants} className="snap-start shrink-0 w-[200px] sm:w-[240px]">
             {renderCard(event)}
           </motion.div>
         ))}
