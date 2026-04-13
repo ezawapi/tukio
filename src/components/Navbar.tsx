@@ -54,13 +54,14 @@ const Navbar = () => {
           const data = await res.json();
           const addr = data.address || {};
           const neighbourhood = addr.suburb || addr.neighbourhood || addr.quarter || addr.hamlet || "";
-          const city = addr.city || addr.town || addr.village || addr.state || "";
-          if (neighbourhood && city && neighbourhood !== city) {
-            setCityName(`${neighbourhood}, ${city}`);
-          } else if (city) {
-            setCityName(city);
-          } else if (neighbourhood) {
-            setCityName(neighbourhood);
+          const city = addr.city || addr.town || addr.village || "";
+          const province = addr.state || addr.region || "";
+          const parts: string[] = [];
+          if (neighbourhood) parts.push(neighbourhood);
+          if (city && city !== neighbourhood) parts.push(city);
+          if (province && province !== city && province !== neighbourhood) parts.push(province);
+          if (parts.length > 0) {
+            setCityName(parts.join(", "));
           }
         } catch { /* silent */ }
       },

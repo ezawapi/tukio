@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin } from "lucide-react";
+import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   profileId: string | null;
@@ -12,6 +16,7 @@ interface Props {
 }
 
 const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
+  const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
@@ -19,10 +24,17 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [msgTitle, setMsgTitle] = useState("");
+  const [msgBody, setMsgBody] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!profileId || !open) return;
     setLoading(true);
+    setShowMessageForm(false);
+    setMsgTitle("");
+    setMsgBody("");
     Promise.all([
       supabase.from("profiles").select("*").eq("id", profileId).single(),
       supabase.from("events").select("id, title, date, status, is_published, contact_email").eq("organizer_id", profileId).order("created_at", { ascending: false }).limit(20),
@@ -35,12 +47,31 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
       setComments(cRes.data || []);
       setFavorites(fRes.data || []);
       setRoles((rRes.data || []).map((r: any) => r.role));
-      // Try to get email from events contact_email as proxy
       const contactEmail = (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
       setUserEmail(contactEmail || null);
       setLoading(false);
     });
   }, [profileId, open]);
+
+  const sendMessage = async () => {
+    if (!profileId || !msgTitle.trim()) return;
+    setSending(true);
+    const { error } = await supabase.from("user_notifications").insert({
+      user_id: profileId,
+      title: msgTitle.trim(),
+      body: msgBody.trim() || null,
+      type: "admin_message",
+    });
+    setSending(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Message envoyé", description: "La notification a été envoyée à l'utilisateur." });
+      setShowMessageForm(false);
+      setMsgTitle("");
+      setMsgBody("");
+    }
+  };
 
   if (!open) return null;
 
@@ -91,6 +122,21 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               </div>
             </div>
 
+            {/* Send message button */}
+            <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => setShowMessageForm(!showMessageForm)}>
+              <Send className="h-4 w-4" /> Envoyer un message à cet utilisateur
+            </Button>
+
+            {showMessageForm && (
+              <div className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
+                <Input placeholder="Titre du message *" value={msgTitle} onChange={(e) => setMsgTitle(e.target.value)} className="text-sm" />
+                <Textarea placeholder="Corps du message (optionnel)" value={msgBody} onChange={(e) => setMsgBody(e.target.value)} rows={3} className="text-sm" />
+                <Button size="sm" onClick={sendMessage} disabled={sending || !msgTitle.trim()} className="w-full gap-2">
+                  <Send className="h-3.5 w-3.5" /> {sending ? "Envoi..." : "Envoyer la notification"}
+                </Button>
+              </div>
+            )}
+
             {/* Contact Info */}
             <div className="rounded-lg border border-border p-3 space-y-2">
               <p className="font-display text-xs font-semibold text-foreground mb-2">Coordonnées</p>
@@ -99,9 +145,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               <InfoRow icon={Phone} label="Téléphone secondaire" value={profile.phone_secondary} />
               <InfoRow icon={MapPin} label="Adresse physique" value={profile.physical_address} />
               <InfoRow icon={Building2} label="Organisation" value={profile.organization_name} />
-              {profile.organization_role && (
-                <InfoRow icon={User} label="Fonction" value={profile.organization_role} />
-              )}
+              {profile.organization_role && <InfoRow icon={User} label="Fonction" value={profile.organization_role} />}
               <InfoRow icon={Video} label="Vidéo" value={profile.video_url} isLink />
               {!userEmail && !profile.phone_primary && !profile.physical_address && !profile.organization_name && !profile.video_url && (
                 <p className="text-xs text-muted-foreground italic">Aucune coordonnée renseignée</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MobileTabBar from "@/components/MobileTabBar";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -446,6 +447,7 @@ const CreateEvent = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

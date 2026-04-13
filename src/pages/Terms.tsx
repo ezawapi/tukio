@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 
 const Terms = () => (
   <div className="min-h-screen bg-background">
@@ -67,6 +68,7 @@ const Terms = () => (
       </div>
     </div>
     <Footer />
+    <MobileTabBar />
   </div>
 );
 
