@@ -259,6 +259,7 @@ const MapExplore = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

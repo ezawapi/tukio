@@ -301,6 +301,7 @@ const EditEvent = () => {
         </form>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };

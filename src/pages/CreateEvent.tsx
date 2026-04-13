@@ -446,6 +446,7 @@ const CreateEvent = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };
