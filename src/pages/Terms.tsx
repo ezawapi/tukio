@@ -68,6 +68,7 @@ const Terms = () => (
       </div>
     </div>
     <Footer />
+    <MobileTabBar />
   </div>
 );
 

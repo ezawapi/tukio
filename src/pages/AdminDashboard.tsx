@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MobileTabBar from "@/components/MobileTabBar";
 import AdminAdsManager from "@/components/admin/AdminAdsManager";
 import AdminPartnersManager from "@/components/admin/AdminPartnersManager";
 import AdminContentManager from "@/components/admin/AdminContentManager";
@@ -272,6 +273,7 @@ const AdminDashboard = () => {
         </div>
       </div>
       <Footer />
+      <MobileTabBar />
     </div>
   );
 };
