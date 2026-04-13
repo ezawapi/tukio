@@ -241,27 +241,43 @@ const Index = () => {
   };
 
   const renderLiveCard = (event: any) => {
+    const countdown = getCountdown(event.date, event.end_date);
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-xl bg-gradient-to-br from-destructive/10 to-destructive/5 border border-destructive/20 transition-all hover:border-destructive/40 hover:-translate-y-1">
-          <div className="relative h-32 sm:h-36">
+        <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+          <div className="relative h-64 sm:h-72">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
-              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-4"}`}
+              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute left-2 top-2">
-              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground px-2 py-0.5 sm:text-[10px]">
+              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
                 🔴 LIVE
               </Badge>
             </div>
-          </div>
-          <div className="p-2.5 sm:p-3 space-y-1">
-            <h3 className="font-display text-xs font-bold leading-snug text-foreground line-clamp-2 sm:text-sm">{event.title}</h3>
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground sm:text-xs">
-              <span>{event.categories?.name || t("home.event")}</span>
-              <span className="text-border">·</span>
-              <span className="truncate">{event.location}</span>
+            <div className="absolute right-2 top-2">
+              <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+                {formatEventPrice(event.price, event.currency)}
+              </Badge>
+            </div>
+            {countdown && (
+              <div className="absolute left-2 top-9">
+                <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
+                  {countdown}
+                </Badge>
+              </div>
+            )}
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
+              <div className="mt-1.5 flex items-center gap-2">
+                <span className="font-body text-[10px] text-white/80 sm:text-xs">{event.categories?.name || t("home.event")}</span>
+                <span className="text-white/50">·</span>
+                <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">{event.attendees_count || 0} {t("home.visits")}</span>
+              </div>
+              <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
+                {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
+              </p>
             </div>
           </div>
         </div>
@@ -295,13 +311,13 @@ const Index = () => {
                 return (
                   <motion.div key={cat.id} variants={itemVariants}>
                     <Link to={`/events?category=${cat.id}`}>
-                      <div className="group flex items-center gap-2.5 rounded-full border border-border bg-card pl-1.5 pr-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 sm:pl-2 sm:pr-4 sm:py-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-110 sm:h-9 sm:w-9"
+                      <div className="group flex items-center gap-2 rounded-full border border-border bg-card pl-1 pr-2.5 py-1 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 sm:pl-1.5 sm:pr-3 sm:py-1.5">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-110 sm:h-7 sm:w-7"
                           style={{ backgroundColor: color }}>
-                          <DynIcon name={cat.icon} className="h-4 w-4 text-white sm:h-[18px] sm:w-[18px]" />
+                          <DynIcon name={cat.icon} className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
                         </div>
-                        <span className="font-body text-xs font-medium text-card-foreground whitespace-nowrap sm:text-sm">{cat.name}</span>
-                        <Badge variant="secondary" className="ml-0.5 h-5 min-w-[20px] justify-center rounded-full px-1.5 text-[10px] font-bold sm:h-6 sm:text-xs">
+                        <span className="font-body text-[10px] font-medium text-card-foreground whitespace-nowrap sm:text-xs">{cat.name}</span>
+                        <Badge variant="secondary" className="ml-0.5 h-4 min-w-[16px] justify-center rounded-full px-1 text-[8px] font-bold sm:h-5 sm:text-[10px]">
                           {count}
                         </Badge>
                       </div>
