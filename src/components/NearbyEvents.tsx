@@ -85,7 +85,7 @@ const NearbyEvents = () => {
   if (status === "denied" || events.length === 0) return null;
 
   return (
-    <section className="bg-card py-10 sm:py-16">
+    <section className="bg-card py-6 sm:py-10">
       <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div className="flex items-center gap-3">
