@@ -245,39 +245,41 @@ const Index = () => {
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-          <div className="relative h-64 sm:h-72">
+        <div className="group/card overflow-hidden rounded-xl bg-[hsl(var(--card))] shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+          {/* Image section */}
+          <div className="relative h-36 sm:h-44 overflow-hidden">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
-              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
+              className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute left-2 top-2">
-              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
-                🔴 LIVE
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            {/* LIVE badge */}
+            <div className="absolute left-2 bottom-2 flex items-center gap-1.5">
+              <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-0.5 sm:text-[10px] flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping inline-block" />
+                LIVE
               </Badge>
+              {countdown && (
+                <Badge className="border-0 bg-black/60 text-[8px] font-semibold text-white backdrop-blur-sm px-1.5 py-0.5 sm:text-[10px]">
+                  {countdown}
+                </Badge>
+              )}
             </div>
+            {/* Price badge */}
             <div className="absolute right-2 top-2">
-              <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
+              <Badge className="border-0 bg-secondary/90 text-[8px] font-semibold text-secondary-foreground backdrop-blur-sm px-1.5 py-0.5 sm:text-[10px]">
                 {formatEventPrice(event.price, event.currency)}
               </Badge>
             </div>
-            {countdown && (
-              <div className="absolute left-2 top-9">
-                <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
-                  {countdown}
-                </Badge>
-              </div>
-            )}
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
-              <div className="mt-1.5 flex items-center gap-2">
-                <span className="font-body text-[10px] text-white/80 sm:text-xs">{event.categories?.name || t("home.event")}</span>
-                <span className="text-white/50">·</span>
-                <span className="font-body text-[10px] text-white/70 truncate sm:text-xs">{event.attendees_count || 0} {t("home.visits")}</span>
-              </div>
-              <p className="mt-0.5 font-body text-[9px] text-white/60 truncate sm:text-[11px]">
-                {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {event.city || event.location}
-              </p>
+          </div>
+          {/* Dark footer info */}
+          <div className="bg-[hsl(220,15%,16%)] px-3 py-2.5">
+            <h3 className="font-display text-xs font-bold leading-snug text-white line-clamp-2 sm:text-sm">{event.title}</h3>
+            <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/60 sm:text-xs">
+              <span className="font-body">{event.categories?.name || t("home.event")}</span>
+              <span>·</span>
+              <span className="font-body truncate">
+                {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
             </div>
           </div>
         </div>
@@ -357,7 +359,7 @@ const Index = () => {
 
       {/* Live Events — horizontal scroll carousel */}
       {liveEvents.length > 0 && (
-        <section className="bg-card py-10 sm:py-14">
+        <section className="bg-card py-6 sm:py-8">
           <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
             <div className="mb-5 flex items-end justify-between gap-4">
               <div className="flex items-center gap-3">
