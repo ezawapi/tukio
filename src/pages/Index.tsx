@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight } from "lucide-react";
+import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -244,15 +244,21 @@ const Index = () => {
     const countdown = getCountdown(event.date, event.end_date);
     const hasImage = !!event.image_url;
     return (
-      <Link to={`/events/${event.id}`}>
-        <div className="group/card overflow-hidden rounded-xl bg-[hsl(var(--card))] shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
-          {/* Image section */}
+      <Link to={event.live_url || `/events/${event.id}`} target={event.live_url ? "_blank" : undefined}>
+        <div className="group/card overflow-hidden rounded-2xl bg-[hsl(var(--card))] shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
           <div className="relative h-36 sm:h-44 overflow-hidden">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
               className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
               loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            {/* LIVE badge */}
+            {/* Play button when live_url exists */}
+            {event.live_url && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm transition-transform group-hover/card:scale-110 sm:h-12 sm:w-12">
+                  <Play className="h-5 w-5 fill-current sm:h-6 sm:w-6" />
+                </div>
+              </div>
+            )}
             <div className="absolute left-2 bottom-2 flex items-center gap-1.5">
               <Badge className="animate-pulse border-0 bg-destructive text-[9px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-0.5 sm:text-[10px] flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping inline-block" />
@@ -264,14 +270,12 @@ const Index = () => {
                 </Badge>
               )}
             </div>
-            {/* Price badge */}
             <div className="absolute right-2 top-2">
               <Badge className="border-0 bg-secondary/90 text-[8px] font-semibold text-secondary-foreground backdrop-blur-sm px-1.5 py-0.5 sm:text-[10px]">
                 {formatEventPrice(event.price, event.currency)}
               </Badge>
             </div>
           </div>
-          {/* Dark footer info */}
           <div className="bg-[hsl(220,15%,16%)] px-3 py-2.5">
             <h3 className="font-display text-xs font-bold leading-snug text-white line-clamp-2 sm:text-sm">{event.title}</h3>
             <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/60 sm:text-xs">

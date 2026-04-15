@@ -26,7 +26,7 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 pt-16">
+      <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl relative z-10 pt-16">
         <div className="max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary-foreground text-sm font-body font-medium mb-6 backdrop-blur-sm border border-primary-foreground/20">
@@ -89,9 +89,9 @@ const HeroSection = () => {
             className="flex flex-wrap gap-8 mt-8"
           >
             {[
-              { value: "2K+", label: "Événements" },
-              { value: "50K+", label: "Utilisateurs" },
-              { value: "120+", label: "Villes" },
+              { value: "64+", label: "Événements" },
+              { value: "3+", label: "Utilisateurs" },
+              { value: "26+", label: "Villes" },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="font-display font-bold text-2xl text-primary-foreground">{stat.value}</p>
