@@ -205,7 +205,7 @@ const Index = () => {
     const hasImage = !!event.image_url;
     return (
       <Link to={`/events/${event.id}`}>
-        <div className="group/card relative overflow-hidden rounded-2xl shadow-card transition-all hover:shadow-warm hover:-translate-y-1">
+        <div className="group/card relative overflow-hidden rounded-2xl shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
           <div className="relative h-64 sm:h-72">
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
               className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
