@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { getCountdown } from "@/lib/countdown";
+import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useTranslation } from "@/contexts/I18nContext";
 
 interface NearbyEvent {
@@ -48,11 +49,13 @@ const NearbyEvents = () => {
         .select("id, title, date, end_date, location, city, image_url, price, attendees_count, latitude, longitude, categories(name)")
         .eq("is_published", true)
         .eq("visibility", "public")
+        .gte("date", startOfTodayISO())
         .not("latitude", "is", null)
         .not("longitude", "is", null);
 
       if (data) {
         const withDist = (data as unknown as NearbyEvent[])
+          .filter((e) => isEventActive(e.date, e.end_date))
           .map((e) => ({ ...e, distance: getDistance(latitude, longitude, e.latitude, e.longitude) }))
           .sort((a, b) => a.distance! - b.distance!)
           .slice(0, 6);

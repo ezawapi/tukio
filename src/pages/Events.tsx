@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatEventPrice } from "@/lib/format-price";
+import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const DEFAULT_EVENT_IMAGE = "/placeholder.svg";
@@ -74,9 +75,10 @@ const Events = () => {
     setLoading(true);
     let query = supabase
       .from("events")
-      .select("id, title, date, location, city, image_url, price, currency, attendees_count, is_live, visibility, categories(name)")
+      .select("id, title, date, end_date, location, city, image_url, price, currency, attendees_count, is_live, visibility, categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
+      .gte("date", startOfTodayISO())
       .order("date", { ascending: true });
 
     const q = searchParams.get("q");
@@ -100,7 +102,10 @@ const Events = () => {
     }
 
     const { data } = await query;
-    setEvents((data as unknown as EventRow[]) || []);
+    const filtered = ((data as unknown as (EventRow & { end_date?: string | null })[]) || []).filter((e) =>
+      isEventActive(e.date, e.end_date)
+    );
+    setEvents(filtered as EventRow[]);
     setLoading(false);
   };
 

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { startOfTodayISO } from "@/lib/event-filters";
 import heroImage from "@/assets/hero-event.jpg";
 
 const HeroSection = () => {
@@ -10,6 +12,47 @@ const HeroSection = () => {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [date, setDate] = useState("");
+  const [stats, setStats] = useState({ events: 0, users: 0, cities: 0 });
+
+  const fetchStats = async () => {
+    const todayISO = startOfTodayISO();
+    const [eventsRes, usersRes, citiesRes] = await Promise.all([
+      supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("is_published", true)
+        .eq("visibility", "public")
+        .gte("date", todayISO),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase
+        .from("events")
+        .select("city")
+        .eq("is_published", true)
+        .eq("visibility", "public")
+        .gte("date", todayISO),
+    ]);
+    const uniqueCities = new Set(
+      (citiesRes.data || []).map((r: any) => (r.city || "").trim().toLowerCase()).filter(Boolean)
+    );
+    setStats({
+      events: eventsRes.count || 0,
+      users: usersRes.count || 0,
+      cities: uniqueCities.size,
+    });
+  };
+
+  useEffect(() => {
+    fetchStats();
+    // Realtime updates: refresh counters when events or profiles change
+    const channel = supabase
+      .channel("hero-stats")
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchStats())
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetchStats())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -18,6 +61,12 @@ const HeroSection = () => {
     if (date) params.set("date", date);
     navigate(`/events${params.toString() ? `?${params.toString()}` : ""}`);
   };
+
+  const statItems = [
+    { value: stats.events, label: "Événements" },
+    { value: stats.users, label: "Utilisateurs" },
+    { value: stats.cities, label: "Villes" },
+  ];
 
   return (
     <section className="relative min-h-[85vh] flex items-center overflow-hidden">
@@ -44,7 +93,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="bg-background/95 backdrop-blur-md rounded-2xl p-3 shadow-warm"
+            className="bg-background/95 backdrop-blur-md rounded-2xl p-3 shadow-lg"
           >
             <div className="flex flex-col md:flex-row gap-2">
               <div className="flex-1 flex items-center gap-2 px-4 py-2 rounded-xl bg-muted">
@@ -88,13 +137,9 @@ const HeroSection = () => {
             transition={{ duration: 0.7, delay: 0.6 }}
             className="flex flex-wrap gap-8 mt-8"
           >
-            {[
-              { value: "64+", label: "Événements" },
-              { value: "3+", label: "Utilisateurs" },
-              { value: "26+", label: "Villes" },
-            ].map((stat) => (
+            {statItems.map((stat) => (
               <div key={stat.label}>
-                <p className="font-display font-bold text-2xl text-primary-foreground">{stat.value}</p>
+                <p className="font-display font-bold text-2xl text-primary-foreground">{stat.value}+</p>
                 <p className="font-body text-sm text-primary-foreground/60">{stat.label}</p>
               </div>
             ))}
