@@ -52,16 +52,19 @@ const MapExplore = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
+      const { isEventActive, startOfTodayISO } = await import("@/lib/event-filters");
       const { data } = await supabase
         .from("events")
         .select("id, title, date, end_date, location, city, latitude, longitude, image_url, price, is_live, category_id, categories(name)")
         .eq("is_published", true)
         .eq("visibility", "public")
+        .gte("date", startOfTodayISO())
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .order("date", { ascending: true });
 
-      setEvents((data as unknown as MapEvent[]) || []);
+      const filtered = ((data as unknown as MapEvent[]) || []).filter((e) => isEventActive(e.date, e.end_date));
+      setEvents(filtered);
       setLoading(false);
     };
     const fetchCategories = async () => {

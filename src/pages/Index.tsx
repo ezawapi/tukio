@@ -16,6 +16,7 @@ import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
+import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/default-event.png";
@@ -157,24 +158,42 @@ const Index = () => {
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
-      fetchCategories(),
-      fetchLiveEvents(),
-      fetchUpcomingEvents(),
-      fetchRecentEvents(),
-    ]);
+  const refreshAll = useCallback(() => {
+    fetchCategories();
+    fetchLiveEvents();
+    fetchUpcomingEvents();
+    fetchRecentEvents();
   }, []);
+
+  useEffect(() => {
+    refreshAll();
+    // Realtime: keep homepage data in sync across all open clients
+    const channel = supabase
+      .channel("home-events-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => refreshAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => fetchCategories())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshAll]);
 
   const fetchCategories = async () => {
     setLoadingCats(true);
+    const todayISO = startOfTodayISO();
     const { data } = await supabase.from("categories").select("*").order("name");
     if (data) {
       setCategories(data);
       const counts: Record<string, number> = {};
       await Promise.all(
         data.map(async (cat) => {
-          const { count } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("category_id", cat.id).eq("is_published", true).eq("visibility", "public");
+          const { count } = await supabase
+            .from("events")
+            .select("*", { count: "exact", head: true })
+            .eq("category_id", cat.id)
+            .eq("is_published", true)
+            .eq("visibility", "public")
+            .gte("date", todayISO);
           counts[cat.id] = count || 0;
         }),
       );
@@ -184,19 +203,43 @@ const Index = () => {
   };
 
   const fetchLiveEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_live", true).eq("is_published", true).eq("visibility", "public").limit(8);
-    setLiveEvents(data || []);
+    const todayISO = startOfTodayISO();
+    const { data } = await supabase
+      .from("events")
+      .select("*, categories(name)")
+      .eq("is_live", true)
+      .eq("is_published", true)
+      .eq("visibility", "public")
+      .gte("date", todayISO)
+      .limit(8);
+    // Extra client-side guard for events whose end_date already passed
+    setLiveEvents((data || []).filter((e: any) => isEventActive(e.date, e.end_date)));
   };
 
   const fetchUpcomingEvents = async () => {
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").gte("date", new Date().toISOString()).order("date", { ascending: true }).limit(6);
+    const { data } = await supabase
+      .from("events")
+      .select("*, categories(name)")
+      .eq("is_published", true)
+      .eq("visibility", "public")
+      .gte("date", new Date().toISOString())
+      .order("date", { ascending: true })
+      .limit(6);
     setUpcomingEvents(data || []);
   };
 
   const fetchRecentEvents = async () => {
     setLoadingRecent(true);
-    const { data } = await supabase.from("events").select("*, categories(name)").eq("is_published", true).eq("visibility", "public").order("created_at", { ascending: false }).limit(8);
-    setRecentEvents(data || []);
+    const todayISO = startOfTodayISO();
+    const { data } = await supabase
+      .from("events")
+      .select("*, categories(name)")
+      .eq("is_published", true)
+      .eq("visibility", "public")
+      .gte("date", todayISO)
+      .order("created_at", { ascending: false })
+      .limit(8);
+    setRecentEvents((data || []).filter((e: any) => isEventActive(e.date, e.end_date)));
     setLoadingRecent(false);
   };
 
