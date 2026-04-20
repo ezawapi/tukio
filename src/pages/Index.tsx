@@ -14,6 +14,7 @@ import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
 import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
@@ -167,10 +168,27 @@ const Index = () => {
 
   useEffect(() => {
     refreshAll();
+    const mountedAt = Date.now();
     // Realtime: keep homepage data in sync across all open clients
     const channel = supabase
       .channel("home-events-sync")
-      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => refreshAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload: any) => {
+        refreshAll();
+        // Discreet toast when a brand-new public event appears
+        if (payload.eventType === "INSERT" && Date.now() - mountedAt > 1500) {
+          const ev = payload.new;
+          if (ev?.is_published && ev?.visibility === "public") {
+            toast(`✨ ${ev.title}`, {
+              description: "Nouvel événement publié",
+              duration: 4000,
+              action: {
+                label: "Voir",
+                onClick: () => { window.location.href = `/events/${ev.id}`; },
+              },
+            });
+          }
+        }
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => fetchCategories())
       .subscribe();
     return () => {
