@@ -15,7 +15,6 @@ import NearbyEvents from "@/components/NearbyEvents";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles as SparklesIcon } from "lucide-react";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
 import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
