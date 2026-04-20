@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -111,6 +111,11 @@ const Profile = () => {
                   <Link to="/create">
                     <Button className="w-full gradient-hero text-primary-foreground border-0 sm:w-auto">
                       <PlusCircle className="h-4 w-4" /> Nouvelle activité
+                    </Button>
+                  </Link>
+                  <Link to="/history">
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <Archive className="h-4 w-4" /> Historique
                     </Button>
                   </Link>
                   {isAdmin && (

@@ -23,6 +23,7 @@ import About from "./pages/About.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import Settings from "./pages/Settings.tsx";
 import Notifications from "./pages/Notifications.tsx";
+import History from "./pages/History.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -64,6 +65,7 @@ const App = () => {
             <Route path="/about" element={<About />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/history" element={<History />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
