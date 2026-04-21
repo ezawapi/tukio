@@ -95,17 +95,18 @@ const PromotionalBanner = () => {
   const sortedRowKeys = Object.keys(rows).map(Number).sort((a, b) => a - b);
 
   return (
-    <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl space-y-3">
+    <div className="container mx-auto w-full px-4 md:w-[78%] md:px-0 max-w-6xl space-y-3">
       {sortedRowKeys.map((key) => {
         const rowBanners = rows[key];
         if (rowBanners.length === 1) {
           return <div key={key}>{renderBanner(rowBanners[0], false)}</div>;
         }
-        const cols = rowBanners.length >= 4 ? "grid-cols-2 md:grid-cols-4" :
+        // 4+ banners: keep all on a single row from sm upwards (2 cols mobile, 4 cols sm+)
+        const cols = rowBanners.length >= 4 ? "grid-cols-2 sm:grid-cols-4" :
                      rowBanners.length === 3 ? "grid-cols-1 sm:grid-cols-3" :
                      "grid-cols-1 sm:grid-cols-2";
         return (
-          <div key={key} className={`grid gap-3 ${cols}`}>
+          <div key={key} className={`grid gap-2 sm:gap-3 ${cols}`}>
             {rowBanners.map((b) => renderBanner(b, true))}
           </div>
         );
