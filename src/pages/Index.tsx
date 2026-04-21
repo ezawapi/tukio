@@ -386,7 +386,7 @@ const Index = () => {
       <HeroSection />
 
       {/* Categories */}
-      <section className="bg-background py-8 sm:py-12">
+      <section className="bg-background pt-8 pb-4 sm:pt-12 sm:pb-6">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
             <div>
@@ -429,9 +429,9 @@ const Index = () => {
       <section className="pb-2"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
 
       {/* Recent — horizontal scroll carousel */}
-      <section className="bg-background py-10 sm:py-14">
+      <section className="bg-background py-5 sm:py-7">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
-          <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="mb-4 flex items-end justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-primary/10 p-2 text-primary"><Clock3 className="h-5 w-5" /></div>
               <div>
@@ -477,9 +477,9 @@ const Index = () => {
       </section>
 
       {/* Upcoming */}
-      <section className="bg-background py-10 sm:py-14">
+      <section className="bg-background py-5 sm:py-7">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
-          <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="mb-4 flex items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("home.upcoming")}</h2>
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.upcoming_sub")}</p>
