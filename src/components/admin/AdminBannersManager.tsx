@@ -134,6 +134,10 @@ const AdminBannersManager = () => {
   };
 
   const toggleActive = async (id: string, val: boolean) => {
+    if (val && activeCount >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières actives.`);
+      return;
+    }
     await supabase.from("promotional_banners").update({ is_active: val }).eq("id", id);
     fetchBanners();
   };
