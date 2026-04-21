@@ -76,9 +76,18 @@ const AdminBannersManager = () => {
 
   useEffect(() => { fetchBanners(); }, []);
 
+  const activeCount = banners.filter(b => b.is_active).length;
+  const MAX_ACTIVE = 4;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) { toast.error("Le titre est requis"); return; }
+
+    const currentActiveExcludingSelf = banners.filter(b => b.is_active && b.id !== editingId).length;
+    if (form.is_active && currentActiveExcludingSelf >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières actives. Désactivez-en une avant d'en ajouter une autre.`);
+      return;
+    }
 
     const payload = { ...form };
     let error;
