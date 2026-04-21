@@ -174,8 +174,9 @@ const Index = () => {
       .channel("home-events-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload: any) => {
         refreshAll();
+        if (Date.now() - mountedAt < 1500) return;
         // Discreet toast when a brand-new public event appears
-        if (payload.eventType === "INSERT" && Date.now() - mountedAt > 1500) {
+        if (payload.eventType === "INSERT") {
           const ev = payload.new;
           if (ev?.is_published && ev?.visibility === "public") {
             toast(`✨ ${ev.title}`, {
@@ -184,6 +185,21 @@ const Index = () => {
               action: {
                 label: "Voir",
                 onClick: () => { window.location.href = `/events/${ev.id}`; },
+              },
+            });
+          }
+        }
+        // Discreet toast when an event goes LIVE
+        if (payload.eventType === "UPDATE") {
+          const ev = payload.new;
+          const old = payload.old;
+          if (ev?.is_live && !old?.is_live && ev?.is_published && ev?.visibility === "public") {
+            toast(`🔴 ${ev.title}`, {
+              description: "Événement en direct maintenant",
+              duration: 5000,
+              action: {
+                label: "Regarder",
+                onClick: () => { window.location.href = ev.live_url || `/events/${ev.id}`; },
               },
             });
           }
