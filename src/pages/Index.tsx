@@ -20,7 +20,7 @@ import { getCountdown } from "@/lib/countdown";
 import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
-import defaultEventImg from "@/assets/default-event.png";
+import defaultEventImg from "@/assets/event-fallback.png";
 
 const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
@@ -158,6 +158,13 @@ const Index = () => {
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [nowTick, setNowTick] = useState(Date.now());
+
+  // Tick every 5 minutes so "Nouveau" (<24h) badges update without reload
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const refreshAll = useCallback(() => {
     fetchCategories();
@@ -279,7 +286,7 @@ const Index = () => {
 
   const isNewEvent = (createdAt: string | undefined) => {
     if (!createdAt) return false;
-    return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
+    return nowTick - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
   };
 
   const renderRecentCard = (event: any) => {
@@ -305,13 +312,27 @@ const Index = () => {
                 </Badge>
               )}
             </div>
-            {countdown && (
-              <div className="absolute left-2 top-2">
+            <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+              {countdown && (
                 <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
                   {countdown}
                 </Badge>
-              </div>
-            )}
+              )}
+              {event.is_live && (
+                <a
+                  href={event.live_url || `/events/${event.id}`}
+                  target={event.live_url ? "_blank" : undefined}
+                  rel={event.live_url ? "noopener noreferrer" : undefined}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex"
+                >
+                  <Badge className="border-0 bg-destructive text-[8px] font-bold text-destructive-foreground backdrop-blur-sm px-2 py-0.5 sm:text-[10px] flex items-center gap-1 animate-pulse hover:bg-destructive/90 transition-colors">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping inline-block" />
+                    LIVE
+                  </Badge>
+                </a>
+              )}
+            </div>
             <div className="absolute bottom-0 left-0 right-0 p-3">
               <h3 className="font-display text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">{event.title}</h3>
               <div className="mt-1.5 flex items-center gap-2">
@@ -472,7 +493,7 @@ const Index = () => {
       <NearbyEvents />
 
       {/* Promotional Banner */}
-      <section className="py-6 sm:py-10">
+      <section className="py-3 sm:py-5">
         <PromotionalBanner />
       </section>
 

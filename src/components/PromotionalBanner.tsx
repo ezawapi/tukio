@@ -30,30 +30,32 @@ const renderBanner = (banner: any, inRow: boolean) => {
   const hasBg = !!(banner.bg_color || banner.bg_gradient);
 
   const content = (
-    <div className="overflow-hidden rounded-2xl p-5 sm:p-6 relative h-full" style={style}>
+    <div className="overflow-hidden rounded-2xl p-4 sm:p-5 relative h-full flex flex-col" style={style}>
       {hasBg && (
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
       )}
-      <div className="relative z-10 flex items-center gap-3 sm:gap-4 h-full">
-        <div className="flex-1 space-y-1.5">
+      <div className="relative z-10 flex items-start gap-3 h-full">
+        <div className="flex-1 flex flex-col h-full space-y-1.5">
           {banner.subtitle && (
-            <p className={`font-body text-xs opacity-80 ${animClass}`}>{banner.subtitle}</p>
+            <p className={`font-body text-[11px] sm:text-xs opacity-80 ${animClass}`}>{banner.subtitle}</p>
           )}
-          <h2 className={`font-display font-bold text-${banner.title_font_size || "xl"} ${animClass}`}>
+          <h2 className={`font-display font-bold leading-tight text-${banner.title_font_size || "lg"} ${animClass}`}>
             {banner.title}
           </h2>
           {banner.body && (
-            <p className={`font-body text-${banner.subtitle_font_size || "sm"} opacity-90 max-w-lg ${animClass}`}>{banner.body}</p>
+            <p className={`font-body text-${banner.subtitle_font_size || "xs"} opacity-90 ${animClass}`}>{banner.body}</p>
           )}
           {banner.button_label && (
-            <span className="inline-block mt-2 px-4 py-2 rounded-xl font-body font-semibold text-xs border-2 transition-colors hover:bg-white/20"
-              style={{ borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.15)" }}>
-              {banner.button_label}
+            <span className="inline-block mt-auto pt-2">
+              <span className="inline-block px-3 py-1.5 rounded-lg font-body font-semibold text-[11px] sm:text-xs border-2 transition-colors hover:bg-white/20"
+                style={{ borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.15)" }}>
+                {banner.button_label}
+              </span>
             </span>
           )}
         </div>
         {banner.image_url && (
-          <img src={banner.image_url} alt="" className="h-20 w-20 sm:h-24 sm:w-24 rounded-xl object-cover shadow-lg flex-shrink-0" />
+          <img src={banner.image_url} alt="" loading="lazy" className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-cover shadow-lg flex-shrink-0" />
         )}
       </div>
     </div>
@@ -93,14 +95,17 @@ const PromotionalBanner = () => {
   const sortedRowKeys = Object.keys(rows).map(Number).sort((a, b) => a - b);
 
   return (
-    <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl space-y-4">
+    <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl space-y-3">
       {sortedRowKeys.map((key) => {
         const rowBanners = rows[key];
         if (rowBanners.length === 1) {
           return <div key={key}>{renderBanner(rowBanners[0], false)}</div>;
         }
+        const cols = rowBanners.length >= 4 ? "grid-cols-2 md:grid-cols-4" :
+                     rowBanners.length === 3 ? "grid-cols-1 sm:grid-cols-3" :
+                     "grid-cols-1 sm:grid-cols-2";
         return (
-          <div key={key} className={`grid gap-4 ${rowBanners.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+          <div key={key} className={`grid gap-3 ${cols}`}>
             {rowBanners.map((b) => renderBanner(b, true))}
           </div>
         );
