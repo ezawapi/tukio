@@ -277,9 +277,15 @@ const Index = () => {
     setLoadingRecent(false);
   };
 
+  const isNewEvent = (createdAt: string | undefined) => {
+    if (!createdAt) return false;
+    return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
+  };
+
   const renderRecentCard = (event: any) => {
     const countdown = getCountdown(event.date, event.end_date);
     const hasImage = !!event.image_url;
+    const isNew = isNewEvent(event.created_at);
     return (
       <Link to={`/events/${event.id}`}>
         <div className="group/card relative overflow-hidden rounded-2xl shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
@@ -288,10 +294,16 @@ const Index = () => {
               className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-8"}`}
               loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute right-2 top-2">
+            <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
               <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
                 {formatEventPrice(event.price, event.currency)}
               </Badge>
+              {isNew && (
+                <Badge className="border-0 bg-gradient-to-r from-secondary to-accent text-[8px] font-bold text-white px-2 py-0.5 shadow-md animate-pulse sm:text-[10px] flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  Nouveau
+                </Badge>
+              )}
             </div>
             {countdown && (
               <div className="absolute left-2 top-2">
