@@ -14,15 +14,11 @@ const getAnimationClass = (anim: string) => {
 };
 
 const renderBanner = (banner: any, inRow: boolean) => {
-  const widthPct = banner.width_percent ?? 100;
   const style: React.CSSProperties = {
     backgroundColor: banner.bg_gradient ? undefined : (banner.bg_color || "#f59e0b"),
     backgroundImage: banner.bg_gradient || undefined,
     color: banner.text_color || "#ffffff",
-    width: inRow ? "100%" : `${widthPct}%`,
-    height: banner.height_px ? `${banner.height_px}px` : undefined,
     border: banner.border_width ? `${banner.border_width}px solid ${banner.border_color || "#000"}` : undefined,
-    margin: !inRow && widthPct < 100 ? "0 auto" : undefined,
   };
 
   const animClass = getAnimationClass(banner.text_animation || "none");
@@ -30,38 +26,48 @@ const renderBanner = (banner: any, inRow: boolean) => {
   const hasBg = !!(banner.bg_color || banner.bg_gradient);
 
   const content = (
-    <div className="overflow-hidden rounded-2xl p-4 sm:p-5 relative h-full flex flex-col" style={style}>
+    <div
+      className="overflow-hidden rounded-2xl p-5 sm:p-6 relative h-full flex flex-col min-h-[260px] sm:min-h-[290px] transition-transform hover:-translate-y-0.5"
+      style={style}
+    >
       {hasBg && (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_70%)]" />
       )}
-      <div className="relative z-10 flex items-start gap-3 h-full">
-        <div className="flex-1 flex flex-col h-full space-y-1.5">
-          {banner.subtitle && (
-            <p className={`font-body text-[11px] sm:text-xs opacity-80 ${animClass}`}>{banner.subtitle}</p>
-          )}
-          <h2 className={`font-display font-bold leading-tight text-${banner.title_font_size || "lg"} ${animClass}`}>
-            {banner.title}
-          </h2>
-          {banner.body && (
-            <p className={`font-body text-${banner.subtitle_font_size || "xs"} opacity-90 ${animClass}`}>{banner.body}</p>
-          )}
-          {banner.button_label && (
-            <span className="inline-block mt-auto pt-2">
-              <span className="inline-block px-3 py-1.5 rounded-lg font-body font-semibold text-[11px] sm:text-xs border-2 transition-colors hover:bg-white/20"
-                style={{ borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.15)" }}>
-                {banner.button_label}
-              </span>
+      {banner.image_url && (
+        <img
+          src={banner.image_url}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-overlay"
+        />
+      )}
+      <div className="relative z-10 flex flex-col h-full">
+        {banner.subtitle && (
+          <p className={`font-body text-xs sm:text-sm opacity-80 mb-2 ${animClass}`}>{banner.subtitle}</p>
+        )}
+        <h2 className={`font-display font-bold leading-tight text-xl sm:text-2xl ${animClass}`}>
+          {banner.title}
+        </h2>
+        {banner.body && (
+          <p className={`font-body text-xs sm:text-sm opacity-90 mt-3 line-clamp-3 ${animClass}`}>
+            {banner.body}
+          </p>
+        )}
+        {banner.button_label && (
+          <div className="mt-auto pt-4">
+            <span
+              className="inline-block px-4 py-2 rounded-lg font-body font-medium text-xs sm:text-sm border transition-colors hover:bg-white/20"
+              style={{ borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.12)" }}
+            >
+              {banner.button_label}
             </span>
-          )}
-        </div>
-        {banner.image_url && (
-          <img src={banner.image_url} alt="" loading="lazy" className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-cover shadow-lg flex-shrink-0" />
+          </div>
         )}
       </div>
     </div>
   );
 
-  const wrapperClass = inRow ? "block h-full" : "block";
+  const wrapperClass = "block h-full";
 
   if (!banner.button_url) return <div key={banner.id} className={wrapperClass}>{content}</div>;
   if (isExternal) return <a key={banner.id} href={banner.button_url} target="_blank" rel="noopener noreferrer" className={wrapperClass}>{content}</a>;
@@ -77,7 +83,8 @@ const PromotionalBanner = () => {
         .from("promotional_banners")
         .select("*")
         .eq("is_active", true)
-        .order("display_order");
+        .order("display_order")
+        .limit(4);
       setBanners(data || []);
     };
     fetch();
@@ -85,32 +92,18 @@ const PromotionalBanner = () => {
 
   if (banners.length === 0) return null;
 
-  // Group banners by display_order — same order = same row
-  const rows: Record<number, any[]> = {};
-  banners.forEach((b) => {
-    const key = b.display_order ?? 0;
-    if (!rows[key]) rows[key] = [];
-    rows[key].push(b);
-  });
-  const sortedRowKeys = Object.keys(rows).map(Number).sort((a, b) => a - b);
+  // Always render as a single uniform grid: 2 cols on mobile, 4 cols on desktop
+  const cols =
+    banners.length === 1 ? "grid-cols-1" :
+    banners.length === 2 ? "grid-cols-1 sm:grid-cols-2" :
+    banners.length === 3 ? "grid-cols-2 md:grid-cols-3" :
+    "grid-cols-2 md:grid-cols-4";
 
   return (
-    <div className="container mx-auto w-full px-4 md:w-[78%] md:px-0 max-w-6xl space-y-3">
-      {sortedRowKeys.map((key) => {
-        const rowBanners = rows[key];
-        if (rowBanners.length === 1) {
-          return <div key={key}>{renderBanner(rowBanners[0], false)}</div>;
-        }
-        // 4+ banners: keep all on a single row from sm upwards (2 cols mobile, 4 cols sm+)
-        const cols = rowBanners.length >= 4 ? "grid-cols-2 sm:grid-cols-4" :
-                     rowBanners.length === 3 ? "grid-cols-1 sm:grid-cols-3" :
-                     "grid-cols-1 sm:grid-cols-2";
-        return (
-          <div key={key} className={`grid gap-2 sm:gap-3 ${cols}`}>
-            {rowBanners.map((b) => renderBanner(b, true))}
-          </div>
-        );
-      })}
+    <div className="container mx-auto w-full px-4 md:w-[88%] md:px-0 max-w-7xl">
+      <div className={`grid gap-3 sm:gap-4 ${cols}`}>
+        {banners.map((b) => renderBanner(b, true))}
+      </div>
     </div>
   );
 };

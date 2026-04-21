@@ -76,9 +76,18 @@ const AdminBannersManager = () => {
 
   useEffect(() => { fetchBanners(); }, []);
 
+  const activeCount = banners.filter(b => b.is_active).length;
+  const MAX_ACTIVE = 4;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) { toast.error("Le titre est requis"); return; }
+
+    const currentActiveExcludingSelf = banners.filter(b => b.is_active && b.id !== editingId).length;
+    if (form.is_active && currentActiveExcludingSelf >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières actives. Désactivez-en une avant d'en ajouter une autre.`);
+      return;
+    }
 
     const payload = { ...form };
     let error;
@@ -125,6 +134,10 @@ const AdminBannersManager = () => {
   };
 
   const toggleActive = async (id: string, val: boolean) => {
+    if (val && activeCount >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières actives.`);
+      return;
+    }
     await supabase.from("promotional_banners").update({ is_active: val }).eq("id", id);
     fetchBanners();
   };
@@ -141,7 +154,12 @@ const AdminBannersManager = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between font-display text-base sm:text-lg">
-          <span className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-primary" /> Bannières promotionnelles ({banners.length})</span>
+          <span className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-primary" /> Bannières promotionnelles
+            <Badge variant={activeCount >= MAX_ACTIVE ? "destructive" : "secondary"} className="text-[10px]">
+              {activeCount}/{MAX_ACTIVE} actives
+            </Badge>
+          </span>
           <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm({ ...defaultForm }); setEditingId(null); } }}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Ajouter</Button>
@@ -149,28 +167,31 @@ const AdminBannersManager = () => {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? "Modifier la bannière" : "Nouvelle bannière"}</DialogTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum 4 bannières actives. Textes limités pour un design uniforme.
+                </p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label>Titre principal *</Label>
-                    <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="Votre titre ici" />
+                    <Label>Titre principal * <span className="text-[10px] text-muted-foreground">({form.title.length}/40)</span></Label>
+                    <Input maxLength={40} value={form.title} onChange={e => set("title", e.target.value)} placeholder="Ex: Créez votre événement" />
                   </div>
                   <div>
-                    <Label>Sous-titre</Label>
-                    <Input value={form.subtitle} onChange={e => set("subtitle", e.target.value)} placeholder="Sous-titre optionnel" />
+                    <Label>Sous-titre <span className="text-[10px] text-muted-foreground">({form.subtitle.length}/25)</span></Label>
+                    <Input maxLength={25} value={form.subtitle} onChange={e => set("subtitle", e.target.value)} placeholder="Ex: Organisateurs" />
                   </div>
                 </div>
 
                 <div>
-                  <Label>Texte du corps</Label>
-                  <Textarea value={form.body} onChange={e => set("body", e.target.value)} rows={2} placeholder="Description ou texte promotionnel..." />
+                  <Label>Texte du corps <span className="text-[10px] text-muted-foreground">({form.body.length}/140)</span></Label>
+                  <Textarea maxLength={140} value={form.body} onChange={e => set("body", e.target.value)} rows={2} placeholder="Description courte (3 lignes max)..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label>Libellé du bouton</Label>
-                    <Input value={form.button_label} onChange={e => set("button_label", e.target.value)} placeholder="Ex: Découvrir" />
+                    <Label>Libellé du bouton <span className="text-[10px] text-muted-foreground">({form.button_label.length}/20)</span></Label>
+                    <Input maxLength={20} value={form.button_label} onChange={e => set("button_label", e.target.value)} placeholder="Ex: Commencer" />
                   </div>
                   <div>
                     <Label>Lien du bouton</Label>
