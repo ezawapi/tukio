@@ -160,6 +160,29 @@ const Index = () => {
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [userId, setUserId] = useState<string | undefined>();
+  const { isAdmin } = useUserRole(userId);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
+
+  // Simulate a brand-new public event toast (test mode, admin only)
+  const simulateInsertToast = () => {
+    toast(`✨ Événement test ${Math.floor(Math.random() * 1000)}`, {
+      description: "Nouvel événement publié (simulation)",
+      duration: 4000,
+      action: { label: "Voir", onClick: () => {} },
+    });
+  };
+  // Simulate an event going LIVE (test mode, admin only)
+  const simulateLiveToast = () => {
+    toast(`🔴 Concert test ${Math.floor(Math.random() * 1000)}`, {
+      description: "Événement en direct maintenant (simulation)",
+      duration: 5000,
+      action: { label: "Regarder", onClick: () => {} },
+    });
+  };
 
   // Tick every 5 minutes so "Nouveau" (<24h) badges update without reload
   useEffect(() => {
