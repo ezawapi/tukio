@@ -493,7 +493,7 @@ const Index = () => {
       <NearbyEvents />
 
       {/* Promotional Banner */}
-      <section className="py-6 sm:py-10">
+      <section className="py-3 sm:py-5">
         <PromotionalBanner />
       </section>
 
