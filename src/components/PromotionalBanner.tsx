@@ -83,7 +83,8 @@ const PromotionalBanner = () => {
         .from("promotional_banners")
         .select("*")
         .eq("is_active", true)
-        .order("display_order");
+        .order("display_order")
+        .limit(4);
       setBanners(data || []);
     };
     fetch();
@@ -91,32 +92,18 @@ const PromotionalBanner = () => {
 
   if (banners.length === 0) return null;
 
-  // Group banners by display_order — same order = same row
-  const rows: Record<number, any[]> = {};
-  banners.forEach((b) => {
-    const key = b.display_order ?? 0;
-    if (!rows[key]) rows[key] = [];
-    rows[key].push(b);
-  });
-  const sortedRowKeys = Object.keys(rows).map(Number).sort((a, b) => a - b);
+  // Always render as a single uniform grid: 2 cols on mobile, 4 cols on desktop
+  const cols =
+    banners.length === 1 ? "grid-cols-1" :
+    banners.length === 2 ? "grid-cols-1 sm:grid-cols-2" :
+    banners.length === 3 ? "grid-cols-2 md:grid-cols-3" :
+    "grid-cols-2 md:grid-cols-4";
 
   return (
-    <div className="container mx-auto w-full px-4 md:w-[78%] md:px-0 max-w-6xl space-y-3">
-      {sortedRowKeys.map((key) => {
-        const rowBanners = rows[key];
-        if (rowBanners.length === 1) {
-          return <div key={key}>{renderBanner(rowBanners[0], false)}</div>;
-        }
-        // 4+ banners: keep all on a single row from sm upwards (2 cols mobile, 4 cols sm+)
-        const cols = rowBanners.length >= 4 ? "grid-cols-2 sm:grid-cols-4" :
-                     rowBanners.length === 3 ? "grid-cols-1 sm:grid-cols-3" :
-                     "grid-cols-1 sm:grid-cols-2";
-        return (
-          <div key={key} className={`grid gap-2 sm:gap-3 ${cols}`}>
-            {rowBanners.map((b) => renderBanner(b, true))}
-          </div>
-        );
-      })}
+    <div className="container mx-auto w-full px-4 md:w-[88%] md:px-0 max-w-7xl">
+      <div className={`grid gap-3 sm:gap-4 ${cols}`}>
+        {banners.map((b) => renderBanner(b, true))}
+      </div>
     </div>
   );
 };
