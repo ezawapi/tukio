@@ -20,7 +20,7 @@ import { getCountdown } from "@/lib/countdown";
 import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
-import defaultEventImg from "@/assets/default-event.png";
+import defaultEventImg from "@/assets/event-fallback.png";
 
 const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
