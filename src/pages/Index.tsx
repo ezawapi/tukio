@@ -158,6 +158,13 @@ const Index = () => {
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [nowTick, setNowTick] = useState(Date.now());
+
+  // Tick every 5 minutes so "Nouveau" (<24h) badges update without reload
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const refreshAll = useCallback(() => {
     fetchCategories();
