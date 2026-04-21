@@ -286,7 +286,7 @@ const Index = () => {
 
   const isNewEvent = (createdAt: string | undefined) => {
     if (!createdAt) return false;
-    return Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
+    return nowTick - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000;
   };
 
   const renderRecentCard = (event: any) => {
