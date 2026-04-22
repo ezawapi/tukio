@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive } from "lucide-react";
@@ -241,7 +242,7 @@ const Profile = () => {
                         <Link key={favorite.id} to={`/events/${event.id}`} className="block rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:bg-muted">
                           <div className="flex items-center gap-4">
                             <div className="h-16 w-16 overflow-hidden rounded-xl bg-card shrink-0">
-                              <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="h-full w-full object-cover" />
+                              <img src={getEventImage(event.image_url)} alt={event.title} className="h-full w-full object-cover" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">

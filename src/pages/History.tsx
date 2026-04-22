@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Calendar, MapPin, ArrowLeft, Archive, Users } from "lucide-react";
@@ -102,7 +103,7 @@ const History = () => {
                   <Link key={event.id} to={`/events/${event.id}`} className="block rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:bg-muted">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 overflow-hidden rounded-xl bg-card shrink-0">
-                        <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="h-full w-full object-cover opacity-75" />
+                        <img src={getEventImage(event.image_url)} alt={event.title} className="h-full w-full object-cover opacity-75" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">

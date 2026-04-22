@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -67,7 +68,7 @@ const Favorites = () => {
                   <motion.div key={fav.id} whileHover={{ y: -4 }} className="group rounded-xl overflow-hidden bg-card shadow-card hover:shadow-warm transition-all">
                     <Link to={`/events/${event.id}`}>
                       <div className="relative h-48 overflow-hidden">
-                        <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={getEventImage(event.image_url)} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground border-0 text-xs">
                           {event.categories?.name || "Événement"}
                         </Badge>

@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Compass, MapPin, Calendar, Search, List, Map as MapIcon, SlidersHorizontal, Navigation } from "lucide-react";
@@ -173,7 +174,7 @@ const MapExplore = () => {
           return (
             <Link key={event.id} to={`/events/${event.id}`} className="flex gap-3 p-3 border-b border-border hover:bg-muted/50 transition-colors">
               <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg">
-                <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="h-full w-full object-cover" loading="lazy" />
+                <img src={getEventImage(event.image_url)} alt={event.title} className="h-full w-full object-cover" loading="lazy" />
                 {event.is_live && (
                   <div className="absolute top-1 left-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
                 )}
