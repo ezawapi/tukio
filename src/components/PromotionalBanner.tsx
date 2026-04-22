@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import bannerFallback from "@/assets/event-fallback-sm.png";
+
+const MAX_LEN = { title: 40, subtitle: 25, body: 140, button: 20 };
+
+const truncate = (s: string | null | undefined, max: number) => {
+  if (!s) return "";
+  return s.length > max ? s.slice(0, max - 1).trimEnd() + "…" : s;
+};
 
 const getAnimationClass = (anim: string) => {
   switch (anim) {
@@ -13,7 +21,7 @@ const getAnimationClass = (anim: string) => {
   }
 };
 
-const renderBanner = (banner: any, inRow: boolean) => {
+export const renderBannerCard = (banner: any) => {
   const style: React.CSSProperties = {
     backgroundColor: banner.bg_gradient ? undefined : (banner.bg_color || "#f59e0b"),
     backgroundImage: banner.bg_gradient || undefined,
@@ -22,56 +30,57 @@ const renderBanner = (banner: any, inRow: boolean) => {
   };
 
   const animClass = getAnimationClass(banner.text_animation || "none");
-  const isExternal = banner.button_url?.startsWith("http");
-  const hasBg = !!(banner.bg_color || banner.bg_gradient);
+  const imgSrc = banner.image_url || bannerFallback;
 
-  const content = (
+  return (
     <div
       className="overflow-hidden rounded-2xl p-5 sm:p-6 relative h-full flex flex-col min-h-[260px] sm:min-h-[290px] transition-transform hover:-translate-y-0.5"
       style={style}
     >
-      {hasBg && (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_70%)]" />
-      )}
-      {banner.image_url && (
-        <img
-          src={banner.image_url}
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-overlay"
-        />
-      )}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_70%)]" />
+      <img
+        src={imgSrc}
+        alt=""
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-overlay"
+      />
       <div className="relative z-10 flex flex-col h-full">
-        {banner.subtitle && (
-          <p className={`font-body text-xs sm:text-sm opacity-80 mb-2 ${animClass}`}>{banner.subtitle}</p>
-        )}
-        <h2 className={`font-display font-bold leading-tight text-xl sm:text-2xl ${animClass}`}>
-          {banner.title}
+        {/* Reserve subtitle slot to keep alignment uniform */}
+        <p className={`font-body text-xs sm:text-sm opacity-80 mb-2 min-h-[1.25rem] line-clamp-1 ${animClass}`}>
+          {truncate(banner.subtitle, MAX_LEN.subtitle) || "\u00A0"}
+        </p>
+        <h2 className={`font-display font-bold leading-tight text-xl sm:text-2xl line-clamp-2 ${animClass}`}>
+          {truncate(banner.title, MAX_LEN.title)}
         </h2>
-        {banner.body && (
-          <p className={`font-body text-xs sm:text-sm opacity-90 mt-3 line-clamp-3 ${animClass}`}>
-            {banner.body}
-          </p>
-        )}
-        {banner.button_label && (
-          <div className="mt-auto pt-4">
+        {/* Reserve body slot */}
+        <p className={`font-body text-xs sm:text-sm opacity-90 mt-3 line-clamp-3 min-h-[3rem] ${animClass}`}>
+          {truncate(banner.body, MAX_LEN.body) || "\u00A0"}
+        </p>
+        <div className="mt-auto pt-4">
+          {banner.button_label ? (
             <span
-              className="inline-block px-4 py-2 rounded-lg font-body font-medium text-xs sm:text-sm border transition-colors hover:bg-white/20"
+              className="inline-block px-4 py-2 rounded-lg font-body font-medium text-xs sm:text-sm border transition-colors hover:bg-white/20 truncate max-w-full"
               style={{ borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.12)" }}
             >
-              {banner.button_label}
+              {truncate(banner.button_label, MAX_LEN.button)}
             </span>
-          </div>
-        )}
+          ) : (
+            <span className="inline-block h-[34px]" aria-hidden />
+          )}
+        </div>
       </div>
     </div>
   );
+};
 
+const renderBanner = (banner: any) => {
+  const isExternal = banner.button_url?.startsWith("http");
   const wrapperClass = "block h-full";
+  const card = renderBannerCard(banner);
 
-  if (!banner.button_url) return <div key={banner.id} className={wrapperClass}>{content}</div>;
-  if (isExternal) return <a key={banner.id} href={banner.button_url} target="_blank" rel="noopener noreferrer" className={wrapperClass}>{content}</a>;
-  return <Link key={banner.id} to={banner.button_url} className={wrapperClass}>{content}</Link>;
+  if (!banner.button_url) return <div key={banner.id} className={wrapperClass}>{card}</div>;
+  if (isExternal) return <a key={banner.id} href={banner.button_url} target="_blank" rel="noopener noreferrer" className={wrapperClass}>{card}</a>;
+  return <Link key={banner.id} to={banner.button_url} className={wrapperClass}>{card}</Link>;
 };
 
 const PromotionalBanner = () => {
@@ -92,7 +101,6 @@ const PromotionalBanner = () => {
 
   if (banners.length === 0) return null;
 
-  // Always render as a single uniform grid: 2 cols on mobile, 4 cols on desktop
   const cols =
     banners.length === 1 ? "grid-cols-1" :
     banners.length === 2 ? "grid-cols-1 sm:grid-cols-2" :
@@ -101,8 +109,8 @@ const PromotionalBanner = () => {
 
   return (
     <div className="container mx-auto w-full px-4 md:w-[88%] md:px-0 max-w-7xl">
-      <div className={`grid gap-3 sm:gap-4 ${cols}`}>
-        {banners.map((b) => renderBanner(b, true))}
+      <div className={`grid gap-3 sm:gap-4 items-stretch ${cols}`}>
+        {banners.map((b) => renderBanner(b))}
       </div>
     </div>
   );

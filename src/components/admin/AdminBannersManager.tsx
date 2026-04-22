@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { renderBannerCard } from "@/components/PromotionalBanner";
 
 const TEXT_ANIMATIONS = [
   { value: "none", label: "Aucune" },
@@ -290,36 +291,29 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                {/* Preview */}
+                {/* Real-time preview — identique au rendu de la page d'accueil */}
                 <div>
-                  <Label className="mb-2 block">Aperçu</Label>
-                  <div className="flex justify-center">
-                    <div className="overflow-hidden rounded-2xl p-6 relative"
-                      style={{
-                        ...bannerStyle,
-                        width: `${form.width_percent}%`,
-                        height: form.height_px ? `${form.height_px}px` : undefined,
-                        border: form.border_width ? `${form.border_width}px solid ${form.border_color}` : undefined,
-                      }}>
-                      {form.bg_gradient && <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />}
-                      <div className="relative z-10 flex items-center gap-4">
-                        <div className="flex-1 space-y-2">
-                          {form.subtitle && <p className={`text-sm opacity-80 ${getAnimationClass(form.text_animation)}`}>{form.subtitle}</p>}
-                          <h3 className={`font-display font-bold text-${form.title_font_size} ${getAnimationClass(form.text_animation)}`}>{form.title || "Titre"}</h3>
-                          {form.body && <p className={`text-${form.subtitle_font_size} opacity-90 ${getAnimationClass(form.text_animation)}`}>{form.body}</p>}
-                          {form.button_label && (
-                            <span className="inline-block mt-2 px-5 py-2 rounded-lg font-semibold text-sm border-2 border-current/30" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
-                              {form.button_label}
-                            </span>
-                          )}
-                        </div>
-                        {form.image_url && (
-                          <img src={form.image_url} alt="" className="h-20 w-20 rounded-xl object-cover shadow-lg flex-shrink-0" />
-                        )}
+                  <Label className="mb-2 block">Aperçu temps réel (rendu accueil)</Label>
+                  <div className="rounded-lg bg-muted/40 p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-stretch">
+                      <div className="ring-2 ring-primary/40 rounded-2xl">
+                        {renderBannerCard(form)}
                       </div>
+                      {banners
+                        .filter(b => b.is_active && b.id !== editingId)
+                        .slice(0, 3)
+                        .map(b => (
+                          <div key={b.id} className="opacity-60">
+                            {renderBannerCard(b)}
+                          </div>
+                        ))}
                     </div>
+                    <p className="text-[11px] text-muted-foreground mt-2 text-center">
+                      Votre bannière (encadrée) à côté des autres actives. Hauteur uniforme garantie.
+                    </p>
                   </div>
                 </div>
+
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); setForm({ ...defaultForm }); setEditingId(null); }}>Annuler</Button>
