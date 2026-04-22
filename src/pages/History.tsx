@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Calendar, MapPin, ArrowLeft, Archive, Users } from "lucide-react";

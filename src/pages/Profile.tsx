@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive } from "lucide-react";

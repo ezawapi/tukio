@@ -1,3 +1,4 @@
+import { getEventImage } from "@/lib/event-image";
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Compass, MapPin, Calendar, Search, List, Map as MapIcon, SlidersHorizontal, Navigation } from "lucide-react";
