@@ -378,9 +378,26 @@ const AdminBannersManager = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Filtres : période stats + statut */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">Stats sur :</span>
+          {(["7","30","90","all"] as const).map(r => (
+            <Button key={r} size="sm" variant={statsRange === r ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setStatsRange(r)}>
+              {r === "all" ? "Tout" : `${r}j`}
+            </Button>
+          ))}
+          <span className="ml-3 text-[11px] text-muted-foreground">Statut :</span>
+          {(["all","published","draft"] as const).map(s => (
+            <Button key={s} size="sm" variant={statusFilter === s ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setStatusFilter(s)}>
+              {s === "all" ? "Tous" : s === "published" ? "Publiées" : "Brouillons"}
+            </Button>
+          ))}
+        </div>
         {banners.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Aucune bannière créée.</p>}
         <div className="space-y-3">
-          {banners.map(b => {
+          {banners
+            .filter(b => statusFilter === "all" ? true : statusFilter === "draft" ? b.is_draft : !b.is_draft)
+            .map(b => {
             const s = stats[b.id] || { impressions: 0, clicks: 0 };
             const ctr = s.impressions > 0 ? ((s.clicks / s.impressions) * 100).toFixed(1) : "0.0";
             return (
