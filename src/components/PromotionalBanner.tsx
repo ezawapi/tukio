@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import bannerFallback from "@/assets/event-fallback-wapi.jpg";
+import bannerFallback from "@/assets/banner-fallback-tukio.jpg";
 
 const MAX_LEN = { title: 40, subtitle: 25, body: 140, button: 20 };
 
