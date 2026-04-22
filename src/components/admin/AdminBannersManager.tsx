@@ -397,7 +397,7 @@ const AdminBannersManager = () => {
                     </div>
                   </div>
                   {b.is_draft ? (
-                    <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">Brouillon</Badge>
+                    <Badge variant="outline" className="text-[10px] border-secondary text-muted-foreground">Brouillon</Badge>
                   ) : (
                     <Badge variant={b.is_active ? "default" : "secondary"} className="text-[10px]">{b.is_active ? "Publiée" : "Inactive"}</Badge>
                   )}
