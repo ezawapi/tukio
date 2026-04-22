@@ -194,6 +194,73 @@ export type Database = {
           },
         ]
       }
+      banner_analytics: {
+        Row: {
+          banner_id: string
+          created_at: string
+          event_type: string
+          id: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_analytics_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "promotional_banners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banner_history: {
+        Row: {
+          banner_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          snapshot: Json
+        }
+        Insert: {
+          banner_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          snapshot: Json
+        }
+        Update: {
+          banner_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_history_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "promotional_banners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -592,6 +659,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_draft: boolean
           subtitle: string | null
           subtitle_font_size: string | null
           text_animation: string | null
@@ -616,6 +684,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_draft?: boolean
           subtitle?: string | null
           subtitle_font_size?: string | null
           text_animation?: string | null
@@ -640,6 +709,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_draft?: boolean
           subtitle?: string | null
           subtitle_font_size?: string | null
           text_animation?: string | null
