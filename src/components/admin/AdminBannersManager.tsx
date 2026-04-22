@@ -314,7 +314,6 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                </div>
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); setForm({ ...defaultForm }); setEditingId(null); }}>Annuler</Button>
