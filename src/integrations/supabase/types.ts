@@ -944,7 +944,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          facebook_url: string | null
+          id: string | null
+          instagram_url: string | null
+          linkedin_url: string | null
+          organization_name: string | null
+          organization_role: string | null
+          tiktok_url: string | null
+          twitter_url: string | null
+          website_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          facebook_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          organization_name?: string | null
+          organization_role?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          facebook_url?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          organization_name?: string | null
+          organization_role?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_view_event: { Args: { _event_id: string }; Returns: boolean }

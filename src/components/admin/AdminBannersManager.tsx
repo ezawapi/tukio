@@ -60,14 +60,21 @@ const AdminBannersManager = () => {
   const [form, setForm] = useState({ ...defaultForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statsRange, setStatsRange] = useState<"7" | "30" | "90" | "all">("30");
+  const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "published">("all");
 
   const fetchBanners = async () => {
     const { data } = await supabase.from("promotional_banners").select("*").order("display_order");
     setBanners(data || []);
   };
 
-  const fetchStats = async () => {
-    const { data } = await supabase.from("banner_analytics").select("banner_id, event_type");
+  const fetchStats = async (range: "7" | "30" | "90" | "all") => {
+    let query = supabase.from("banner_analytics").select("banner_id, event_type, created_at");
+    if (range !== "all") {
+      const since = new Date(Date.now() - Number(range) * 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("created_at", since);
+    }
+    const { data } = await query;
     const acc: Record<string, { impressions: number; clicks: number }> = {};
     (data || []).forEach((row: any) => {
       acc[row.banner_id] = acc[row.banner_id] || { impressions: 0, clicks: 0 };
@@ -79,9 +86,9 @@ const AdminBannersManager = () => {
 
   useEffect(() => {
     fetchBanners();
-    fetchStats();
+    fetchStats(statsRange);
 
-    // Realtime analytics
+    // Realtime analytics — only updates the visible aggregate (when range="all")
     const channel = supabase
       .channel("banner-analytics-admin")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "banner_analytics" }, (payload: any) => {
@@ -94,7 +101,7 @@ const AdminBannersManager = () => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [statsRange]);
 
   const activeCount = banners.filter(b => b.is_active && !b.is_draft).length;
   const MAX_ACTIVE = 4;
@@ -371,9 +378,26 @@ const AdminBannersManager = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Filtres : période stats + statut */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">Stats sur :</span>
+          {(["7","30","90","all"] as const).map(r => (
+            <Button key={r} size="sm" variant={statsRange === r ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setStatsRange(r)}>
+              {r === "all" ? "Tout" : `${r}j`}
+            </Button>
+          ))}
+          <span className="ml-3 text-[11px] text-muted-foreground">Statut :</span>
+          {(["all","published","draft"] as const).map(s => (
+            <Button key={s} size="sm" variant={statusFilter === s ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setStatusFilter(s)}>
+              {s === "all" ? "Tous" : s === "published" ? "Publiées" : "Brouillons"}
+            </Button>
+          ))}
+        </div>
         {banners.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Aucune bannière créée.</p>}
         <div className="space-y-3">
-          {banners.map(b => {
+          {banners
+            .filter(b => statusFilter === "all" ? true : statusFilter === "draft" ? b.is_draft : !b.is_draft)
+            .map(b => {
             const s = stats[b.id] || { impressions: 0, clicks: 0 };
             const ctr = s.impressions > 0 ? ((s.clicks / s.impressions) * 100).toFixed(1) : "0.0";
             return (

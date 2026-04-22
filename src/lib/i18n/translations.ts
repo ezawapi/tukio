@@ -13,7 +13,7 @@ const translations: Record<Lang, Record<string, string>> = {
   fr: {
     // Nav
     "nav.home": "Accueil",
-    "nav.events": "Événements",
+    "nav.events": "Activités",
     "nav.agenda": "Agenda",
     "nav.map": "Carte",
     "nav.about": "À propos",
@@ -173,7 +173,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   en: {
     "nav.home": "Home",
-    "nav.events": "Events",
+    "nav.events": "Activities",
     "nav.agenda": "Agenda",
     "nav.map": "Map",
     "nav.about": "About",
@@ -320,7 +320,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   pt: {
     "nav.home": "Início",
-    "nav.events": "Eventos",
+    "nav.events": "Atividades",
     "nav.agenda": "Agenda",
     "nav.map": "Mapa",
     "nav.about": "Sobre",
@@ -467,7 +467,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   de: {
     "nav.home": "Startseite",
-    "nav.events": "Veranstaltungen",
+    "nav.events": "Aktivitäten",
     "nav.agenda": "Kalender",
     "nav.map": "Karte",
     "nav.about": "Über uns",
@@ -614,7 +614,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   sw: {
     "nav.home": "Nyumbani",
-    "nav.events": "Matukio",
+    "nav.events": "Shughuli",
     "nav.agenda": "Ratiba",
     "nav.map": "Ramani",
     "nav.about": "Kuhusu",
