@@ -60,14 +60,21 @@ const AdminBannersManager = () => {
   const [form, setForm] = useState({ ...defaultForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statsRange, setStatsRange] = useState<"7" | "30" | "90" | "all">("30");
+  const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "published">("all");
 
   const fetchBanners = async () => {
     const { data } = await supabase.from("promotional_banners").select("*").order("display_order");
     setBanners(data || []);
   };
 
-  const fetchStats = async () => {
-    const { data } = await supabase.from("banner_analytics").select("banner_id, event_type");
+  const fetchStats = async (range: "7" | "30" | "90" | "all") => {
+    let query = supabase.from("banner_analytics").select("banner_id, event_type, created_at");
+    if (range !== "all") {
+      const since = new Date(Date.now() - Number(range) * 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("created_at", since);
+    }
+    const { data } = await query;
     const acc: Record<string, { impressions: number; clicks: number }> = {};
     (data || []).forEach((row: any) => {
       acc[row.banner_id] = acc[row.banner_id] || { impressions: 0, clicks: 0 };
@@ -79,9 +86,9 @@ const AdminBannersManager = () => {
 
   useEffect(() => {
     fetchBanners();
-    fetchStats();
+    fetchStats(statsRange);
 
-    // Realtime analytics
+    // Realtime analytics — only updates the visible aggregate (when range="all")
     const channel = supabase
       .channel("banner-analytics-admin")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "banner_analytics" }, (payload: any) => {
@@ -94,7 +101,7 @@ const AdminBannersManager = () => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [statsRange]);
 
   const activeCount = banners.filter(b => b.is_active && !b.is_draft).length;
   const MAX_ACTIVE = 4;
