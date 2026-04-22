@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getCountdown } from "@/lib/countdown";
-import defaultEventImg from "@/assets/default-event.png";
+import defaultEventImg from "@/assets/event-fallback-wapi.jpg";
 
 interface EventCardProps {
   title: string;
