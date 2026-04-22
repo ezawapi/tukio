@@ -41,6 +41,7 @@ export const renderBannerCard = (banner: any) => {
   };
 
   const animClass = getAnimationClass(banner.text_animation || "none");
+  const hasImage = !!banner.image_url;
   const imgSrc = banner.image_url || bannerFallback;
 
   return (
@@ -53,8 +54,9 @@ export const renderBannerCard = (banner: any) => {
         src={imgSrc}
         alt=""
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-overlay"
+        className={`absolute inset-0 h-full w-full object-cover ${hasImage ? "opacity-25 mix-blend-overlay" : "opacity-60"}`}
       />
+      {!hasImage && <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />}
       <div className="relative z-10 flex flex-col h-full">
         <p className={`font-body text-xs sm:text-sm opacity-80 mb-2 min-h-[1.25rem] line-clamp-1 ${animClass}`}>
           {truncate(banner.subtitle, MAX_LEN.subtitle) || "\u00A0"}
