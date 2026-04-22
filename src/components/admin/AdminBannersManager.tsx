@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, Eye, Megaphone, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Save, Megaphone, Eye, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { renderBannerCard } from "@/components/PromotionalBanner";
+import { validateBannerUrl } from "@/lib/url-validation";
+import BannerPreviewMultiSize from "@/components/admin/BannerPreviewMultiSize";
+import BannerHistoryDialog from "@/components/admin/BannerHistoryDialog";
 
 const TEXT_ANIMATIONS = [
   { value: "none", label: "Aucune" },
@@ -43,59 +45,95 @@ const FONT_SIZES = [
   { value: "4xl", label: "Extra grand" },
 ];
 
-const getAnimationClass = (anim: string) => {
-  switch (anim) {
-    case "fade-in": return "animate-[fade-in_1.5s_ease-out]";
-    case "slide-up": return "animate-[slideUp_1s_ease-out]";
-    case "slide-left": return "animate-[slideLeft_1s_ease-out]";
-    case "pulse": return "animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]";
-    case "bounce": return "animate-bounce";
-    default: return "";
-  }
-};
-
 const defaultForm = {
   title: "", subtitle: "", body: "", image_url: "", button_label: "", button_url: "",
   bg_color: "#f59e0b", bg_gradient: "", text_color: "#ffffff",
   title_font_size: "2xl", subtitle_font_size: "base", text_animation: "none",
-  display_order: 0, is_active: true,
+  display_order: 0, is_active: true, is_draft: false,
   width_percent: 100, height_px: null as number | null,
   border_width: 0, border_color: "#000000",
 };
 
 const AdminBannersManager = () => {
   const [banners, setBanners] = useState<any[]>([]);
+  const [stats, setStats] = useState<Record<string, { impressions: number; clicks: number }>>({});
   const [form, setForm] = useState({ ...defaultForm });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   const fetchBanners = async () => {
     const { data } = await supabase.from("promotional_banners").select("*").order("display_order");
     setBanners(data || []);
   };
 
-  useEffect(() => { fetchBanners(); }, []);
+  const fetchStats = async () => {
+    const { data } = await supabase.from("banner_analytics").select("banner_id, event_type");
+    const acc: Record<string, { impressions: number; clicks: number }> = {};
+    (data || []).forEach((row: any) => {
+      acc[row.banner_id] = acc[row.banner_id] || { impressions: 0, clicks: 0 };
+      if (row.event_type === "click") acc[row.banner_id].clicks++;
+      else acc[row.banner_id].impressions++;
+    });
+    setStats(acc);
+  };
 
-  const activeCount = banners.filter(b => b.is_active).length;
+  useEffect(() => {
+    fetchBanners();
+    fetchStats();
+
+    // Realtime analytics
+    const channel = supabase
+      .channel("banner-analytics-admin")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "banner_analytics" }, (payload: any) => {
+        const bid = payload.new.banner_id;
+        const type = payload.new.event_type;
+        setStats((prev) => {
+          const cur = prev[bid] || { impressions: 0, clicks: 0 };
+          return { ...prev, [bid]: { impressions: cur.impressions + (type === "click" ? 0 : 1), clicks: cur.clicks + (type === "click" ? 1 : 0) } };
+        });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const activeCount = banners.filter(b => b.is_active && !b.is_draft).length;
   const MAX_ACTIVE = 4;
+
+  const saveSnapshot = async (bannerId: string, snapshot: any) => {
+    const { data: u } = await supabase.auth.getUser();
+    await supabase.from("banner_history").insert({
+      banner_id: bannerId,
+      snapshot,
+      changed_by: u?.user?.id || null,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim()) { toast.error("Le titre est requis"); return; }
 
-    const currentActiveExcludingSelf = banners.filter(b => b.is_active && b.id !== editingId).length;
-    if (form.is_active && currentActiveExcludingSelf >= MAX_ACTIVE) {
-      toast.error(`Maximum ${MAX_ACTIVE} bannières actives. Désactivez-en une avant d'en ajouter une autre.`);
+    const urlCheck = validateBannerUrl(form.button_url);
+    if (!urlCheck.valid) { toast.error(urlCheck.error || "URL du bouton invalide"); return; }
+
+    const willBeVisible = form.is_active && !form.is_draft;
+    const currentVisibleExcludingSelf = banners.filter(b => b.is_active && !b.is_draft && b.id !== editingId).length;
+    if (willBeVisible && currentVisibleExcludingSelf >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières publiées. Désactivez-en une ou passez en brouillon.`);
       return;
     }
 
     const payload = { ...form };
     let error;
+    let savedId = editingId;
     if (editingId) {
+      // snapshot previous version before update
+      const prev = banners.find(b => b.id === editingId);
+      if (prev) await saveSnapshot(editingId, prev);
       ({ error } = await supabase.from("promotional_banners").update(payload).eq("id", editingId));
     } else {
-      ({ error } = await supabase.from("promotional_banners").insert(payload));
+      const { data, error: insErr } = await supabase.from("promotional_banners").insert(payload).select().single();
+      error = insErr;
+      if (data) savedId = data.id;
     }
     if (error) { toast.error(error.message); return; }
     toast.success(editingId ? "Bannière modifiée" : "Bannière créée");
@@ -111,7 +149,8 @@ const AdminBannersManager = () => {
       image_url: b.image_url || "", button_label: b.button_label || "", button_url: b.button_url || "",
       bg_color: b.bg_color || "#f59e0b", bg_gradient: b.bg_gradient || "", text_color: b.text_color || "#ffffff",
       title_font_size: b.title_font_size || "2xl", subtitle_font_size: b.subtitle_font_size || "base",
-      text_animation: b.text_animation || "none", display_order: b.display_order || 0, is_active: b.is_active,
+      text_animation: b.text_animation || "none", display_order: b.display_order || 0,
+      is_active: b.is_active, is_draft: b.is_draft || false,
       width_percent: b.width_percent ?? 100, height_px: b.height_px ?? null,
       border_width: b.border_width ?? 0, border_color: b.border_color || "#000000",
     });
@@ -121,9 +160,9 @@ const AdminBannersManager = () => {
 
   const duplicateBanner = async (b: any) => {
     const { id, created_at, updated_at, ...rest } = b;
-    const { error } = await supabase.from("promotional_banners").insert({ ...rest, title: `${rest.title} (copie)`, is_active: false });
+    const { error } = await supabase.from("promotional_banners").insert({ ...rest, title: `${rest.title} (copie)`, is_active: false, is_draft: true });
     if (error) { toast.error(error.message); return; }
-    toast.success("Bannière dupliquée");
+    toast.success("Bannière dupliquée (en brouillon)");
     fetchBanners();
   };
 
@@ -135,21 +174,32 @@ const AdminBannersManager = () => {
   };
 
   const toggleActive = async (id: string, val: boolean) => {
-    if (val && activeCount >= MAX_ACTIVE) {
-      toast.error(`Maximum ${MAX_ACTIVE} bannières actives.`);
+    const banner = banners.find(b => b.id === id);
+    if (val && !banner?.is_draft && activeCount >= MAX_ACTIVE) {
+      toast.error(`Maximum ${MAX_ACTIVE} bannières publiées.`);
       return;
     }
     await supabase.from("promotional_banners").update({ is_active: val }).eq("id", id);
     fetchBanners();
   };
 
-  const bannerStyle: React.CSSProperties = {
-    backgroundColor: form.bg_gradient ? undefined : (form.bg_color || "#f59e0b"),
-    backgroundImage: form.bg_gradient || undefined,
-    color: form.text_color || "#ffffff",
+  const toggleDraft = async (id: string, isDraft: boolean) => {
+    if (!isDraft) {
+      // publishing a draft → check active count
+      const banner = banners.find(b => b.id === id);
+      if (banner?.is_active && activeCount >= MAX_ACTIVE) {
+        toast.error(`Maximum ${MAX_ACTIVE} bannières publiées. Désactivez-en une d'abord.`);
+        return;
+      }
+    }
+    await supabase.from("promotional_banners").update({ is_draft: isDraft }).eq("id", id);
+    toast.success(isDraft ? "Passée en brouillon" : "Bannière publiée");
+    fetchBanners();
   };
 
   const set = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const otherActiveBanners = banners.filter(b => b.is_active && !b.is_draft && b.id !== editingId).slice(0, 3);
 
   return (
     <Card>
@@ -158,18 +208,18 @@ const AdminBannersManager = () => {
           <span className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" /> Bannières promotionnelles
             <Badge variant={activeCount >= MAX_ACTIVE ? "destructive" : "secondary"} className="text-[10px]">
-              {activeCount}/{MAX_ACTIVE} actives
+              {activeCount}/{MAX_ACTIVE} publiées
             </Badge>
           </span>
           <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm({ ...defaultForm }); setEditingId(null); } }}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Ajouter</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? "Modifier la bannière" : "Nouvelle bannière"}</DialogTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Maximum 4 bannières actives. Textes limités pour un design uniforme.
+                  Maximum 4 bannières publiées. Les brouillons ne s'affichent pas sur l'accueil.
                 </p>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -197,6 +247,9 @@ const AdminBannersManager = () => {
                   <div>
                     <Label>Lien du bouton</Label>
                     <Input value={form.button_url} onChange={e => set("button_url", e.target.value)} placeholder="/events ou https://..." />
+                    {form.button_url && !validateBannerUrl(form.button_url).valid && (
+                      <p className="text-[11px] text-destructive mt-1">{validateBannerUrl(form.button_url).error}</p>
+                    )}
                   </div>
                 </div>
 
@@ -269,7 +322,6 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                {/* Layout: width, height, border */}
                 <div className="grid grid-cols-4 gap-3">
                   <div>
                     <Label>Largeur (%)</Label>
@@ -291,29 +343,23 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                {/* Real-time preview — identique au rendu de la page d'accueil */}
-                <div>
-                  <Label className="mb-2 block">Aperçu temps réel (rendu accueil)</Label>
-                  <div className="rounded-lg bg-muted/40 p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-stretch">
-                      <div className="ring-2 ring-primary/40 rounded-2xl">
-                        {renderBannerCard(form)}
-                      </div>
-                      {banners
-                        .filter(b => b.is_active && b.id !== editingId)
-                        .slice(0, 3)
-                        .map(b => (
-                          <div key={b.id} className="opacity-60">
-                            {renderBannerCard(b)}
-                          </div>
-                        ))}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-2 text-center">
-                      Votre bannière (encadrée) à côté des autres actives. Hauteur uniforme garantie.
-                    </p>
-                  </div>
+                {/* Active + draft switches */}
+                <div className="flex items-center gap-6 rounded-lg bg-muted/30 p-3">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Switch checked={form.is_active} onCheckedChange={(v) => set("is_active", v)} />
+                    Active
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Switch checked={form.is_draft} onCheckedChange={(v) => set("is_draft", v)} />
+                    Brouillon (non visible sur l'accueil)
+                  </label>
                 </div>
 
+                {/* Multi-size preview */}
+                <div>
+                  <Label className="mb-2 block">Aperçu temps réel — multi-écrans</Label>
+                  <BannerPreviewMultiSize current={form} others={otherActiveBanners} />
+                </div>
 
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); setForm({ ...defaultForm }); setEditingId(null); }}>Annuler</Button>
@@ -327,41 +373,63 @@ const AdminBannersManager = () => {
       <CardContent>
         {banners.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Aucune bannière créée.</p>}
         <div className="space-y-3">
-          {banners.map(b => (
-            <div key={b.id} className="flex items-center justify-between rounded-lg bg-muted/30 p-3 gap-3">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="h-10 w-16 rounded-lg overflow-hidden flex-shrink-0"
-                  style={{ backgroundColor: b.bg_gradient ? undefined : (b.bg_color || "#f59e0b"), backgroundImage: b.bg_gradient || undefined }}>
-                  {b.image_url && <img src={b.image_url} alt="" className="h-full w-full object-cover" />}
+          {banners.map(b => {
+            const s = stats[b.id] || { impressions: 0, clicks: 0 };
+            const ctr = s.impressions > 0 ? ((s.clicks / s.impressions) * 100).toFixed(1) : "0.0";
+            return (
+              <div key={b.id} className="flex items-center justify-between rounded-lg bg-muted/30 p-3 gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="h-10 w-16 rounded-lg overflow-hidden flex-shrink-0"
+                    style={{ backgroundColor: b.bg_gradient ? undefined : (b.bg_color || "#f59e0b"), backgroundImage: b.bg_gradient || undefined }}>
+                    {b.image_url && <img src={b.image_url} alt="" className="h-full w-full object-cover" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-body text-sm font-medium text-foreground truncate">{b.title}</p>
+                    <p className="font-body text-[10px] text-muted-foreground truncate">{b.button_url || "Pas de lien"}</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+                        <Eye className="h-3 w-3" /> {s.impressions}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+                        <MousePointerClick className="h-3 w-3" /> {s.clicks}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">CTR {ctr}%</span>
+                    </div>
+                  </div>
+                  {b.is_draft ? (
+                    <Badge variant="outline" className="text-[10px] border-secondary text-muted-foreground">Brouillon</Badge>
+                  ) : (
+                    <Badge variant={b.is_active ? "default" : "secondary"} className="text-[10px]">{b.is_active ? "Publiée" : "Inactive"}</Badge>
+                  )}
                 </div>
-                <div className="min-w-0">
-                  <p className="font-body text-sm font-medium text-foreground truncate">{b.title}</p>
-                  <p className="font-body text-[10px] text-muted-foreground truncate">{b.button_url || "Pas de lien"}</p>
+                <div className="flex items-center gap-1">
+                  <label className="flex items-center gap-1 text-[10px] text-muted-foreground mr-1">
+                    <Switch checked={!b.is_draft} onCheckedChange={(v) => toggleDraft(b.id, !v)} />
+                    Publié
+                  </label>
+                  <Switch checked={b.is_active} onCheckedChange={(v) => toggleActive(b.id, v)} />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(b)} title="Modifier"><Edit2 className="h-4 w-4" /></Button>
+                  <BannerHistoryDialog bannerId={b.id} onRestored={fetchBanners} />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => duplicateBanner(b)} title="Dupliquer"><Plus className="h-4 w-4 text-primary" /></Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer cette bannière ?</AlertDialogTitle>
+                        <AlertDialogDescription>La bannière « {b.title} » sera supprimée définitivement.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteBanner(b.id)} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-                <Badge variant={b.is_active ? "default" : "secondary"} className="text-[10px]">{b.is_active ? "Actif" : "Inactif"}</Badge>
               </div>
-              <div className="flex items-center gap-1">
-                <Switch checked={b.is_active} onCheckedChange={(v) => toggleActive(b.id, v)} />
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(b)} title="Modifier"><Edit2 className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => duplicateBanner(b)} title="Dupliquer"><Plus className="h-4 w-4 text-primary" /></Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer cette bannière ?</AlertDialogTitle>
-                      <AlertDialogDescription>La bannière « {b.title} » sera supprimée définitivement.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => deleteBanner(b.id)} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
