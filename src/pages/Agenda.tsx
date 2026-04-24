@@ -12,6 +12,7 @@ import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventPrice } from "@/lib/format-price";
+import { getEventImage } from "@/lib/event-image";
 
 interface AgendaEvent {
   id: string;
