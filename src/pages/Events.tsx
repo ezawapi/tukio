@@ -18,8 +18,8 @@ import { fr } from "date-fns/locale";
 import { formatEventPrice } from "@/lib/format-price";
 import { isEventActive, startOfTodayISO } from "@/lib/event-filters";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getEventImage } from "@/lib/event-image";
 
-const DEFAULT_EVENT_IMAGE = "/placeholder.svg";
 const ITEMS_PER_PAGE = 15;
 
 interface EventRow {
@@ -255,7 +255,7 @@ const Events = () => {
                     >
                       <div className={`relative overflow-hidden ${effectiveViewMode === "list" ? "w-full sm:w-48 h-48 sm:h-32" : "h-48"}`}>
                         <img
-                          src={event.image_url || DEFAULT_EVENT_IMAGE}
+                          src={getEventImage(event.image_url)}
                           alt={event.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

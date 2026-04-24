@@ -138,7 +138,7 @@ const Agenda = () => {
                             className="flex gap-4 bg-card rounded-xl p-4 shadow-card hover:shadow-warm transition-shadow cursor-pointer"
                           >
                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
-                              <img src={event.image_url || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
+                              <img src={getEventImage(event.image_url)} alt={event.title} className="w-full h-full object-cover" loading="lazy" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
