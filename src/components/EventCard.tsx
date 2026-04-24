@@ -29,7 +29,13 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
       className="group overflow-hidden rounded-xl bg-card shadow-card transition-shadow duration-300 hover:shadow-warm"
     >
       <div className={cn("relative overflow-hidden", compact ? "h-28 sm:h-36" : "h-40 sm:h-48")}>
-        <img src={getEventImage(image)} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <img
+          src={getEventImage(image)}
+          alt={title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = getEventImage(null); }}
+        />
         <div className="absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
           <Badge className="border-0 bg-primary text-[10px] text-primary-foreground sm:text-xs">{category}</Badge>
           {isLive && (

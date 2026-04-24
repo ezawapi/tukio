@@ -21,6 +21,7 @@ import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import AdminCategoriesManager from "@/components/admin/AdminCategoriesManager";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
 import AdminBannersManager from "@/components/admin/AdminBannersManager";
+import AdminRolesManager from "@/components/admin/AdminRolesManager";
 import PaginationControls from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-10">
+            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-11">
               <TabsTrigger value="pending" className="text-xs sm:text-sm">{t("admin.pending")}</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">{t("admin.all")}</TabsTrigger>
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">{t("admin.notifs")}</TabsTrigger>
@@ -172,6 +173,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="content" className="text-xs sm:text-sm">{t("admin.content")}</TabsTrigger>
               <TabsTrigger value="categories" className="text-xs sm:text-sm">{t("admin.categories")}</TabsTrigger>
               <TabsTrigger value="users" className="text-xs sm:text-sm">{t("admin.users")}</TabsTrigger>
+              <TabsTrigger value="roles" className="text-xs sm:text-sm">Rôles</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending">
@@ -269,6 +271,7 @@ const AdminDashboard = () => {
             <TabsContent value="content"><AdminContentManager /></TabsContent>
             <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>
             <TabsContent value="users"><AdminUsersManager /></TabsContent>
+            <TabsContent value="roles"><AdminRolesManager /></TabsContent>
           </Tabs>
         </div>
       </div>
