@@ -39,7 +39,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { role, can, loading: permLoading } = usePermissions();
+  const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [pendingEvents, setPendingEvents] = useState<any[]>([]);
@@ -55,17 +56,18 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
-    checkAdminRole();
-  }, [user, navigate]);
-
-  const checkAdminRole = async () => {
-    if (!user) return;
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!data) { toast({ title: "Accès refusé", variant: "destructive" }); navigate("/"); return; }
-    setIsAdmin(true);
+    if (permLoading) return;
+    if (role === "user") {
+      toast({ title: "Accès refusé", variant: "destructive" });
+      navigate("/");
+      return;
+    }
+    setHasAccess(true);
     setLoading(false);
     fetchAll();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, navigate, permLoading, role]);
+
 
   const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchNotifications(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); };
   const fetchCategories = async () => { const { data } = await supabase.from("categories").select("id, name").order("name"); setCategories(data || []); };
