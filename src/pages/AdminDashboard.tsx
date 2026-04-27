@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/contexts/I18nContext";
+import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
