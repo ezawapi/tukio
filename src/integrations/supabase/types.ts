@@ -722,6 +722,27 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           id: string
@@ -1006,6 +1027,10 @@ export type Database = {
       is_invited_to_event: {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_safe_url: {
+        Args: { _field: string; _url: string }
+        Returns: undefined
       }
     }
     Enums: {
