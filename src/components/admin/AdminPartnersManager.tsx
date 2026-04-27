@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useState, useCallback } from "react";
 import { Plus, Trash2, ExternalLink, Upload, Pencil, X, Save, ArrowUpDown, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,12 @@ interface FormErrors {
   order?: string;
 }
 
+const SORT_COLUMN: Record<SortKey, { col: string; asc: boolean }> = {
+  order: { col: "display_order", asc: true },
+  name: { col: "name", asc: true },
+  recent: { col: "created_at", asc: false },
+};
+
 const validatePartnerForm = (data: {
   name?: string;
   logo_url?: string;
@@ -43,6 +49,10 @@ const validatePartnerForm = (data: {
   else if (data.name.length > 80) errs.name = "Maximum 80 caractères.";
 
   if (!data.logo_url || !data.logo_url.trim()) errs.logo = "Le logo est requis.";
+  else {
+    const v = validateBannerUrl(data.logo_url);
+    if (!v.valid) errs.logo = v.error;
+  }
 
   if (data.website_url && data.website_url.trim()) {
     const v = validateBannerUrl(data.website_url);
@@ -61,8 +71,26 @@ const validatePartnerForm = (data: {
 const FieldError = ({ msg }: { msg?: string }) =>
   msg ? <p className="text-[11px] text-destructive mt-1">{msg}</p> : null;
 
+/**
+ * Map a server-side validation error from the partners trigger to a per-field
+ * FormErrors object. Falls back to a generic toast.
+ */
+const mapServerError = (error: { message?: string } | null | undefined): FormErrors | null => {
+  if (!error?.message) return null;
+  const msg = error.message;
+  const m = msg.match(/Champ\s+(\w+)\s+invalide\s*:\s*([^]+)$/i);
+  if (!m) return null;
+  const field = m[1];
+  const reason = m[2].trim();
+  if (field === "logo_url") return { logo: reason };
+  if (field === "website_url") return { website: reason };
+  return null;
+};
+
 const AdminPartnersManager = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [activeCount, setActiveCount] = useState(0);
 
   // Create form
   const [name, setName] = useState("");
@@ -78,17 +106,47 @@ const AdminPartnersManager = () => {
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [editUploading, setEditUploading] = useState(false);
 
-  // Filters & sort
+  // Filters & sort & pagination (server-side)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("order");
   const [page, setPage] = useState(1);
+  const [fetching, setFetching] = useState(false);
 
-  const fetchPartners = async () => {
-    const { data } = await supabase.from("partners").select("*").order("display_order");
+  const fetchPartners = useCallback(async () => {
+    setFetching(true);
+    const from = (page - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+    const { col, asc } = SORT_COLUMN[sortKey];
+
+    let query = supabase
+      .from("partners")
+      .select("*", { count: "exact" })
+      .order(col, { ascending: asc })
+      .range(from, to);
+
+    if (statusFilter === "active") query = query.eq("is_active", true);
+    else if (statusFilter === "inactive") query = query.eq("is_active", false);
+
+    const { data, count, error } = await query;
+    if (error) toast.error(error.message);
     setPartners((data as Partner[]) || []);
-  };
+    setTotalCount(count || 0);
+    setFetching(false);
+  }, [page, sortKey, statusFilter]);
 
-  useEffect(() => { fetchPartners(); }, []);
+  const fetchCounts = useCallback(async () => {
+    const [{ count: total }, { count: active }] = await Promise.all([
+      supabase.from("partners").select("*", { count: "exact", head: true }),
+      supabase.from("partners").select("*", { count: "exact", head: true }).eq("is_active", true),
+    ]);
+    setTotalCount(total || 0);
+    setActiveCount(active || 0);
+  }, []);
+
+  useEffect(() => { fetchPartners(); }, [fetchPartners]);
+  useEffect(() => { fetchCounts(); }, [fetchCounts]);
+
+  const refreshAll = () => { fetchPartners(); fetchCounts(); };
 
   const uploadLogo = async (file: File): Promise<string | null> => {
     if (!file.type.startsWith("image/")) { toast.error("Sélectionnez une image"); return null; }
@@ -128,7 +186,7 @@ const AdminPartnersManager = () => {
   };
 
   const addPartner = async () => {
-    const errs = validatePartnerForm({ name, logo_url: logoUrl, website_url: websiteUrl, display_order: partners.length });
+    const errs = validatePartnerForm({ name, logo_url: logoUrl, website_url: websiteUrl, display_order: totalCount });
     setCreateErrors(errs);
     if (Object.keys(errs).length > 0) {
       toast.error("Corrigez les erreurs du formulaire.");
@@ -139,13 +197,20 @@ const AdminPartnersManager = () => {
       name: name.trim(),
       logo_url: logoUrl.trim(),
       website_url: websiteUrl.trim() || null,
-      display_order: partners.length,
+      display_order: totalCount,
     });
-    if (error) toast.error(error.message);
-    else {
+    if (error) {
+      const mapped = mapServerError(error);
+      if (mapped) {
+        setCreateErrors((prev) => ({ ...prev, ...mapped }));
+        toast.error("URL rejetée par la validation serveur");
+      } else {
+        toast.error(error.message);
+      }
+    } else {
       toast.success("Partenaire ajouté");
       setName(""); setLogoUrl(""); setWebsiteUrl(""); setCreateErrors({});
-      fetchPartners();
+      refreshAll();
     }
     setLoading(false);
   };
@@ -177,35 +242,33 @@ const AdminPartnersManager = () => {
       website_url: (editForm.website_url || "").trim() || null,
       display_order: editForm.display_order ?? 0,
     }).eq("id", editId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      const mapped = mapServerError(error);
+      if (mapped) {
+        setEditErrors((prev) => ({ ...prev, ...mapped }));
+        toast.error("URL rejetée par la validation serveur");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
     toast.success("Partenaire mis à jour");
     cancelEdit();
-    fetchPartners();
+    refreshAll();
   };
 
   const toggleActive = async (id: string, current: boolean) => {
     await supabase.from("partners").update({ is_active: !current }).eq("id", id);
-    fetchPartners();
+    refreshAll();
   };
 
   const deletePartner = async (id: string) => {
     await supabase.from("partners").delete().eq("id", id);
     toast.success("Partenaire supprimé");
-    fetchPartners();
+    refreshAll();
   };
 
-  const filteredSorted = useMemo(() => {
-    let list = [...partners];
-    if (statusFilter === "active") list = list.filter((p) => p.is_active);
-    else if (statusFilter === "inactive") list = list.filter((p) => !p.is_active);
-    if (sortKey === "name") list.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortKey === "recent") list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-    else list.sort((a, b) => a.display_order - b.display_order);
-    return list;
-  }, [partners, statusFilter, sortKey]);
-
-  const totalPages = Math.ceil(filteredSorted.length / ITEMS_PER_PAGE);
-  const paginated = filteredSorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
   return (
     <div className="space-y-6">
@@ -220,7 +283,12 @@ const AdminPartnersManager = () => {
             </div>
             <div>
               <Label>Logo (URL) *</Label>
-              <Input value={logoUrl} onChange={(e) => { setLogoUrl(e.target.value); setCreateErrors((er) => ({ ...er, logo: undefined })); }} placeholder="https://..." />
+              <Input
+                value={logoUrl}
+                onChange={(e) => { setLogoUrl(e.target.value); setCreateErrors((er) => ({ ...er, logo: undefined })); }}
+                placeholder="https://..."
+                aria-invalid={Boolean(createErrors.logo)}
+              />
               <FieldError msg={createErrors.logo} />
             </div>
             <div>
@@ -249,7 +317,7 @@ const AdminPartnersManager = () => {
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="font-display text-lg">
-              Partenaires ({filteredSorted.length}/{partners.length})
+              Partenaires ({totalCount} total · {activeCount} actifs)
             </CardTitle>
             <div className="flex flex-wrap gap-2">
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilter); setPage(1); }}>
@@ -272,11 +340,13 @@ const AdminPartnersManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {paginated.length === 0 ? (
+          {fetching && partners.length === 0 ? (
+            <p className="font-body text-sm text-muted-foreground">Chargement...</p>
+          ) : partners.length === 0 ? (
             <p className="font-body text-sm text-muted-foreground">Aucun partenaire à afficher.</p>
           ) : (
             <div className="space-y-3">
-              {paginated.map((p) => {
+              {partners.map((p) => {
                 const isEditing = editId === p.id;
                 return (
                   <div key={p.id} className="rounded-xl border border-border p-3">
@@ -290,7 +360,11 @@ const AdminPartnersManager = () => {
                           </div>
                           <div>
                             <Label className="text-xs">Logo (URL) *</Label>
-                            <Input value={editForm.logo_url || ""} onChange={(e) => { setEditForm((f) => ({ ...f, logo_url: e.target.value })); setEditErrors((er) => ({ ...er, logo: undefined })); }} />
+                            <Input
+                              value={editForm.logo_url || ""}
+                              onChange={(e) => { setEditForm((f) => ({ ...f, logo_url: e.target.value })); setEditErrors((er) => ({ ...er, logo: undefined })); }}
+                              aria-invalid={Boolean(editErrors.logo)}
+                            />
                             <FieldError msg={editErrors.logo} />
                           </div>
                           <div>
@@ -365,7 +439,7 @@ const AdminPartnersManager = () => {
           <PaginationControls
             currentPage={page}
             totalPages={totalPages}
-            totalItems={filteredSorted.length}
+            totalItems={totalCount}
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={setPage}
             label="partenaires"
