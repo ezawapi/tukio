@@ -198,119 +198,122 @@ const AdminDashboard = () => {
             ))}
           </div>
 
-          <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted p-1 md:w-auto md:grid-cols-11">
-              <TabsTrigger value="pending" className="text-xs sm:text-sm">{t("admin.pending")}</TabsTrigger>
-              <TabsTrigger value="all" className="text-xs sm:text-sm">{t("admin.all")}</TabsTrigger>
-              <TabsTrigger value="notifications" className="text-xs sm:text-sm">{t("admin.notifs")}</TabsTrigger>
-              <TabsTrigger value="ads" className="text-xs sm:text-sm">{t("admin.ads")}</TabsTrigger>
-              <TabsTrigger value="banners" className="text-xs sm:text-sm">Bannières</TabsTrigger>
-              <TabsTrigger value="analytics" className="text-xs sm:text-sm">{t("admin.analytics")}</TabsTrigger>
-              <TabsTrigger value="partners" className="text-xs sm:text-sm">{t("admin.partners")}</TabsTrigger>
-              <TabsTrigger value="content" className="text-xs sm:text-sm">{t("admin.content")}</TabsTrigger>
-              <TabsTrigger value="categories" className="text-xs sm:text-sm">{t("admin.categories")}</TabsTrigger>
-              <TabsTrigger value="users" className="text-xs sm:text-sm">{t("admin.users")}</TabsTrigger>
-              <TabsTrigger value="roles" className="text-xs sm:text-sm">Rôles</TabsTrigger>
+          <Tabs defaultValue={defaultTab} className="space-y-4 sm:space-y-6">
+            <TabsList className="flex h-auto w-full flex-wrap gap-1 bg-muted p-1">
+              {visibleTabs.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className="text-xs sm:text-sm">{tab.label}</TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="pending">
-              <Card><CardHeader><CardTitle className="font-display text-base sm:text-lg">{t("admin.pending")} ({filteredPendingEvents.length})</CardTitle></CardHeader>
-                <CardContent>
-                  <FilterBar />
-                  {paginatedPending.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement en attente.</p> : (
+            {isVisible("pending") && (
+              <TabsContent value="pending">
+                <Card><CardHeader><CardTitle className="font-display text-base sm:text-lg">{t("admin.pending")} ({filteredPendingEvents.length})</CardTitle></CardHeader>
+                  <CardContent>
+                    <FilterBar />
+                    {paginatedPending.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement en attente.</p> : (
+                      <div className="space-y-2 sm:space-y-3">
+                        {paginatedPending.map(event => (
+                          <EventRow key={event.id} event={event} actions={
+                            <div className="flex flex-wrap items-center gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => navigate(`/events/${event.id}`)} className="h-8 w-8 p-0"><Eye className="h-4 w-4" /></Button>
+                              {can("events.moderate") && <AdminEventEditDialog event={event} onSaved={fetchAll} />}
+                              {can("events.moderate") && <Button variant="ghost" size="sm" onClick={() => approveEvent(event.id)} className="h-8 w-8 p-0" title="Approuver"><CheckCircle className="h-4 w-4 text-primary" /></Button>}
+                              {can("events.moderate") && <Button variant="ghost" size="sm" onClick={() => rejectEvent(event.id)} className="h-8 w-8 p-0" title="Rejeter"><XCircle className="h-4 w-4 text-destructive" /></Button>}
+                            </div>
+                          } />
+                        ))}
+                      </div>
+                    )}
+                    <PaginationControls currentPage={pendingPage} totalPages={pendingTotalPages} totalItems={filteredPendingEvents.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setPendingPage} label="activités" />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {isVisible("all") && (
+              <TabsContent value="all">
+                <Card><CardHeader><CardTitle className="font-display text-base sm:text-lg">{t("admin.all")} ({filteredAllEvents.length})</CardTitle></CardHeader>
+                  <CardContent>
+                    <FilterBar />
                     <div className="space-y-2 sm:space-y-3">
-                      {paginatedPending.map(event => (
+                      {paginatedAll.map(event => (
                         <EventRow key={event.id} event={event} actions={
                           <div className="flex flex-wrap items-center gap-1">
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/events/${event.id}`)} className="h-8 w-8 p-0"><Eye className="h-4 w-4" /></Button>
-                            <AdminEventEditDialog event={event} onSaved={fetchAll} />
-                            <Button variant="ghost" size="sm" onClick={() => approveEvent(event.id)} className="h-8 w-8 p-0"><CheckCircle className="h-4 w-4 text-primary" /></Button>
-                            <Button variant="ghost" size="sm" onClick={() => rejectEvent(event.id)} className="h-8 w-8 p-0"><XCircle className="h-4 w-4 text-destructive" /></Button>
+                            {can("events.moderate") && <AdminEventEditDialog event={event} onSaved={fetchAll} />}
+                            {can("events.publish") && <Button variant="ghost" size="sm" onClick={() => togglePublish(event.id, event.is_published)} className="h-8 w-8 p-0" title={event.is_published ? "Dépublier" : "Republier"}><AlertTriangle className="h-4 w-4 text-primary" /></Button>}
+                            {can("events.publish") && <Button variant="ghost" size="sm" onClick={() => toggleLive(event.id, event.is_live)} className="h-8 w-8 p-0" title="Live"><Video className={`h-4 w-4 ${event.is_live ? "text-destructive" : "text-muted-foreground"}`} /></Button>}
+                            {can("events.delete") && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle><AlertDialogDescription>« {event.title} » sera supprimé.</AlertDialogDescription></AlertDialogHeader>
+                                  <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => deleteEvent(event.id)} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction></AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
                           </div>
                         } />
                       ))}
+                      {filteredAllEvents.length === 0 && <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement trouvé.</p>}
                     </div>
-                  )}
-                  <PaginationControls currentPage={pendingPage} totalPages={pendingTotalPages} totalItems={filteredPendingEvents.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setPendingPage} label="activités" />
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    <PaginationControls currentPage={allEventsPage} totalPages={allTotalPages} totalItems={filteredAllEvents.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setAllEventsPage} label="activités" />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="all">
-              <Card><CardHeader><CardTitle className="font-display text-base sm:text-lg">{t("admin.all")} ({filteredAllEvents.length})</CardTitle></CardHeader>
-                <CardContent>
-                  <FilterBar />
-                  <div className="space-y-2 sm:space-y-3">
-                    {paginatedAll.map(event => (
-                      <EventRow key={event.id} event={event} actions={
-                        <div className="flex flex-wrap items-center gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => navigate(`/events/${event.id}`)} className="h-8 w-8 p-0"><Eye className="h-4 w-4" /></Button>
-                          <AdminEventEditDialog event={event} onSaved={fetchAll} />
-                          <Button variant="ghost" size="sm" onClick={() => togglePublish(event.id, event.is_published)} className="h-8 w-8 p-0"><AlertTriangle className="h-4 w-4 text-primary" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => toggleLive(event.id, event.is_live)} className="h-8 w-8 p-0"><Video className={`h-4 w-4 ${event.is_live ? "text-destructive" : "text-muted-foreground"}`} /></Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Supprimer ?</AlertDialogTitle><AlertDialogDescription>« {event.title} » sera supprimé.</AlertDialogDescription></AlertDialogHeader>
-                              <AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={() => deleteEvent(event.id)} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction></AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      } />
-                    ))}
-                    {filteredAllEvents.length === 0 && <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucun événement trouvé.</p>}
-                  </div>
-                  <PaginationControls currentPage={allEventsPage} totalPages={allTotalPages} totalItems={filteredAllEvents.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setAllEventsPage} label="activités" />
-                </CardContent>
-              </Card>
-            </TabsContent>
+            {isVisible("notifications") && (
+              <TabsContent value="notifications">
+                <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
+                  <CardContent>
+                    {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
+                      <div className="space-y-2 sm:space-y-3">
+                        {paginatedNotifs.map(notif => (
+                          <div key={notif.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+                            <div><p className="font-body text-sm text-foreground"><span className="font-semibold">{notif.type === "event_modified" ? "Modifié :" : "Nouveau :"}</span> {notif.events?.title || "Supprimé"}</p>
+                              <p className="font-body text-xs text-muted-foreground">{notif.events?.organizer_name || "Inconnu"} • {format(new Date(notif.created_at), "d MMM yyyy HH:mm", { locale: fr })}</p></div>
+                            <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)} className="h-8 w-8 p-0"><BellOff className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <PaginationControls currentPage={notifPage} totalPages={notifTotalPages} totalItems={notifications.length} itemsPerPage={NOTIF_PER_PAGE} onPageChange={setNotifPage} label="notifications" />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="notifications">
-              <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
-                <CardContent>
-                  {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
-                    <div className="space-y-2 sm:space-y-3">
-                      {paginatedNotifs.map(notif => (
-                        <div key={notif.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                          <div><p className="font-body text-sm text-foreground"><span className="font-semibold">{notif.type === "event_modified" ? "Modifié :" : "Nouveau :"}</span> {notif.events?.title || "Supprimé"}</p>
-                            <p className="font-body text-xs text-muted-foreground">{notif.events?.organizer_name || "Inconnu"} • {format(new Date(notif.created_at), "d MMM yyyy HH:mm", { locale: fr })}</p></div>
-                          <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)} className="h-8 w-8 p-0"><BellOff className="h-4 w-4" /></Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <PaginationControls currentPage={notifPage} totalPages={notifTotalPages} totalItems={notifications.length} itemsPerPage={NOTIF_PER_PAGE} onPageChange={setNotifPage} label="notifications" />
-                </CardContent>
-              </Card>
-            </TabsContent>
+            {isVisible("ads") && <TabsContent value="ads"><AdminAdsManager userId={user?.id} /></TabsContent>}
 
-            <TabsContent value="ads"><AdminAdsManager userId={user?.id} /></TabsContent>
+            {isVisible("analytics") && (
+              <TabsContent value="analytics">
+                <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><MousePointerClick className="h-5 w-5 text-primary" /> {t("admin.analytics")}</CardTitle></CardHeader>
+                  <CardContent>
+                    {adAnalytics.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucune donnée.</p> : (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-4 gap-2 border-b border-border pb-2 font-body text-xs font-semibold text-muted-foreground"><span>Publicité</span><span className="text-center">Impressions</span><span className="text-center">Clics</span><span className="text-center">CTR</span></div>
+                        {adAnalytics.map(row => (
+                          <div key={row.id} className="grid grid-cols-4 gap-2 rounded-lg bg-muted/30 p-3 font-body text-sm">
+                            <span className="truncate text-foreground">{row.title}</span><span className="text-center text-muted-foreground">{row.impressions}</span><span className="text-center text-muted-foreground">{row.clicks}</span>
+                            <span className="text-center font-semibold text-primary">{row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(1) : "0.0"}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
-            <TabsContent value="analytics">
-              <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><MousePointerClick className="h-5 w-5 text-primary" /> {t("admin.analytics")}</CardTitle></CardHeader>
-                <CardContent>
-                  {adAnalytics.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucune donnée.</p> : (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-4 gap-2 border-b border-border pb-2 font-body text-xs font-semibold text-muted-foreground"><span>Publicité</span><span className="text-center">Impressions</span><span className="text-center">Clics</span><span className="text-center">CTR</span></div>
-                      {adAnalytics.map(row => (
-                        <div key={row.id} className="grid grid-cols-4 gap-2 rounded-lg bg-muted/30 p-3 font-body text-sm">
-                          <span className="truncate text-foreground">{row.title}</span><span className="text-center text-muted-foreground">{row.impressions}</span><span className="text-center text-muted-foreground">{row.clicks}</span>
-                          <span className="text-center font-semibold text-primary">{row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(1) : "0.0"}%</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="banners"><AdminBannersManager /></TabsContent>
-            <TabsContent value="partners"><AdminPartnersManager /></TabsContent>
-            <TabsContent value="content"><AdminContentManager /></TabsContent>
-            <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>
-            <TabsContent value="users"><AdminUsersManager /></TabsContent>
-            <TabsContent value="roles"><AdminRolesManager /></TabsContent>
+            {isVisible("banners") && <TabsContent value="banners"><AdminBannersManager /></TabsContent>}
+            {isVisible("partners") && <TabsContent value="partners"><AdminPartnersManager /></TabsContent>}
+            {isVisible("content") && <TabsContent value="content"><AdminContentManager /></TabsContent>}
+            {isVisible("categories") && <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>}
+            {isVisible("users") && <TabsContent value="users"><AdminUsersManager /></TabsContent>}
+            {isVisible("roles") && <TabsContent value="roles"><AdminRolesManager /></TabsContent>}
           </Tabs>
         </div>
+
       </div>
       <Footer />
       <MobileTabBar />
