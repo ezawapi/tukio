@@ -120,7 +120,41 @@ const AdminDashboard = () => {
   if (loading) return (
     <div className="min-h-screen bg-background"><Navbar /><div className="container mx-auto px-4 pt-20"><div className="animate-pulse space-y-4"><div className="h-8 w-1/3 rounded bg-card" /><div className="h-64 rounded-xl bg-card" /></div></div></div>
   );
-  if (!isAdmin) return null;
+  if (!hasAccess) return null;
+
+  // Build the visible tabs list based on permissions
+  const tabConfig: { value: string; label: string; show: boolean }[] = [
+    { value: "pending", label: t("admin.pending"), show: can("events.moderate") },
+    { value: "all", label: t("admin.all"), show: can("events.moderate") || can("events.delete") },
+    { value: "notifications", label: t("admin.notifs"), show: can("notifications.view") },
+    { value: "ads", label: t("admin.ads"), show: can("ads.manage") },
+    { value: "banners", label: "Bannières", show: can("banners.manage") },
+    { value: "analytics", label: t("admin.analytics"), show: can("analytics.view") },
+    { value: "partners", label: t("admin.partners"), show: can("partners.manage") },
+    { value: "content", label: t("admin.content"), show: can("content.manage") },
+    { value: "categories", label: t("admin.categories"), show: can("categories.manage") },
+    { value: "users", label: t("admin.users"), show: can("users.manage") },
+    { value: "roles", label: "Rôles", show: can("roles.manage") },
+  ];
+  const visibleTabs = tabConfig.filter((tab) => tab.show);
+  const defaultTab = visibleTabs[0]?.value || "pending";
+  const isVisible = (v: string) => visibleTabs.some((tab) => tab.value === v);
+
+  if (visibleTabs.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 pt-24">
+          <Card><CardContent className="p-6 text-center font-body text-sm text-muted-foreground">
+            Votre rôle ({role === "moderator" ? "Modérateur" : "Utilisateur"}) ne dispose d'aucune permission active.
+            Contactez un administrateur.
+          </CardContent></Card>
+        </div>
+        <Footer />
+        <MobileTabBar />
+      </div>
+    );
+  }
 
   const FilterBar = () => (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center mb-4">
