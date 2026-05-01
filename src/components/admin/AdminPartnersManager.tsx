@@ -329,6 +329,15 @@ const AdminPartnersManager = () => {
               Partenaires ({totalCount} total · {activeCount} actifs)
             </CardTitle>
             <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 px-2.5 rounded-md bg-muted h-9 min-w-[180px]">
+                <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher par nom..."
+                  className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto p-0 text-xs"
+                />
+              </div>
               <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilter); setPage(1); }}>
                 <SelectTrigger className="h-9 w-36 text-xs"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
                 <SelectContent>
