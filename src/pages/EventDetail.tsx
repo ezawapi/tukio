@@ -250,6 +250,73 @@ const EventDetail = () => {
                 </p>
               </div>
 
+              {/* Mobile-only summary card (price/date/location/organizer) — shown right after description, before Map */}
+              <div className="lg:hidden space-y-4 rounded-xl bg-card p-4">
+                <div className="text-center">
+                  <p className="font-display text-xl font-bold text-foreground">{priceDisplay}</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="h-5 w-5 flex-shrink-0 text-primary" />
+                    <div>
+                      <p className="font-body font-medium text-foreground">
+                        {format(new Date(event.date), "EEEE d MMMM yyyy", { locale: fr })}
+                      </p>
+                      <p className="font-body text-muted-foreground">
+                        {format(new Date(event.date), "HH:mm", { locale: fr })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <MapPin className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                    <div>
+                      {event.venue_name && <p className="font-body font-bold text-foreground">{event.venue_name}</p>}
+                      <p className="font-body text-foreground">{event.location}</p>
+                      <p className="font-body text-muted-foreground">{event.city}</p>
+                    </div>
+                  </div>
+                  {(event.attendees_count ?? 0) > 0 && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Users className="h-5 w-5 flex-shrink-0 text-primary" />
+                      <p className="font-body text-foreground">{event.attendees_count} participants</p>
+                    </div>
+                  )}
+                  {event.organizer_name && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                      {event.organizer_id ? (
+                        <Link to={`/u/${event.organizer_id}`} className="font-body text-foreground hover:text-primary underline-offset-2 hover:underline">
+                          {event.organizer_name}
+                        </Link>
+                      ) : (
+                        <p className="font-body text-foreground">{event.organizer_name}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={toggleFavorite} variant={isFavorite ? "default" : "outline"} className="flex-1">
+                    <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                    {isFavorite ? "Favori" : "Ajouter"}
+                  </Button>
+                  <ShareDialog title={event.title}>
+                    <Button variant="outline" size="icon">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </ShareDialog>
+                </div>
+                {bookingEnabled ? (
+                  <a href={event.external_ticket_url} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
+                      <Ticket className="mr-2 h-4 w-4" /> {event.reservation_cta_label || "Réserver"}
+                    </Button>
+                  </a>
+                ) : (
+                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
+                    Participer
+                  </Button>
+                )}
+
               {/* QR Invitation notification */}
               {qrToken && (
                 <div className="rounded-xl border-2 border-primary bg-primary/5 p-4 text-center">
