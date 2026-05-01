@@ -24,6 +24,8 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import Settings from "./pages/Settings.tsx";
 import Notifications from "./pages/Notifications.tsx";
 import History from "./pages/History.tsx";
+import PublicProfile from "./pages/PublicProfile.tsx";
+import AdminRoles from "./pages/AdminRoles.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -62,6 +64,8 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/roles" element={<AdminRoles />} />
+            <Route path="/u/:userId" element={<PublicProfile />} />
             <Route path="/about" element={<About />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
