@@ -454,8 +454,8 @@ const EventDetail = () => {
               </div>
             </div>
 
-            {/* Sidebar — on mobile, push below main content */}
-            <div className="space-y-4 sm:space-y-6 order-2">
+            {/* Sidebar — desktop only (mobile shows the same block above, before the Map) */}
+            <div className="hidden lg:block space-y-4 sm:space-y-6 order-2">
               <div className="space-y-4 rounded-xl bg-card p-4 sm:p-6 lg:sticky lg:top-24">
                 <div className="text-center">
                   <p className="font-display text-xl font-bold text-foreground sm:text-2xl">{priceDisplay}</p>
@@ -492,7 +492,13 @@ const EventDetail = () => {
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
                       <User className="h-5 w-5 flex-shrink-0 text-primary" />
-                      <p className="font-body text-foreground">{event.organizer_name}</p>
+                      {event.organizer_id ? (
+                        <Link to={`/u/${event.organizer_id}`} className="font-body text-foreground hover:text-primary underline-offset-2 hover:underline">
+                          {event.organizer_name}
+                        </Link>
+                      ) : (
+                        <p className="font-body text-foreground">{event.organizer_name}</p>
+                      )}
                     </div>
                   )}
                 </div>
