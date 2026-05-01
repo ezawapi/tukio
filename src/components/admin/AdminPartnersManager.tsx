@@ -1,5 +1,5 @@
 import { type ChangeEvent, useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, ExternalLink, Upload, Pencil, X, Save, ArrowUpDown, Filter } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Upload, Pencil, X, Save, ArrowUpDown, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -109,8 +109,16 @@ const AdminPartnersManager = () => {
   // Filters & sort & pagination (server-side)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("order");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [fetching, setFetching] = useState(false);
+
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchTerm.trim()); setPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   const fetchPartners = useCallback(async () => {
     setFetching(true);
@@ -126,13 +134,14 @@ const AdminPartnersManager = () => {
 
     if (statusFilter === "active") query = query.eq("is_active", true);
     else if (statusFilter === "inactive") query = query.eq("is_active", false);
+    if (debouncedSearch) query = query.ilike("name", `%${debouncedSearch}%`);
 
     const { data, count, error } = await query;
     if (error) toast.error(error.message);
     setPartners((data as Partner[]) || []);
     setTotalCount(count || 0);
     setFetching(false);
-  }, [page, sortKey, statusFilter]);
+  }, [page, sortKey, statusFilter, debouncedSearch]);
 
   const fetchCounts = useCallback(async () => {
     const [{ count: total }, { count: active }] = await Promise.all([
