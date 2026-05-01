@@ -316,6 +316,7 @@ const EventDetail = () => {
                     Participer
                   </Button>
                 )}
+              </div>
 
               {/* QR Invitation notification */}
               {qrToken && (
