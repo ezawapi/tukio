@@ -33,7 +33,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const fetchProfile = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url, video_url, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
+      .select("display_name, avatar_url, video_url, bio, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
       .eq("id", userId)
       .maybeSingle();
     if (data) {
