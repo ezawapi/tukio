@@ -173,6 +173,18 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
 
   const isExpired = (inv: any) => inv.expires_at && new Date(inv.expires_at) <= new Date();
   const isUsedUp = (inv: any) => inv.max_uses != null && (inv.uses_count || 0) >= inv.max_uses;
+  const remainingUses = (inv: any) => inv.max_uses != null ? Math.max(0, inv.max_uses - (inv.uses_count || 0)) : null;
+
+  const resendByEmail = async (inv: any) => {
+    if (!inv.invited_email) {
+      toast({ title: "Aucun email enregistré", description: "Ajoutez un email à l'invitation pour la renvoyer.", variant: "destructive" });
+      return;
+    }
+    shareViaMail(inv);
+    await supabase.from("event_invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", inv.id);
+    toast({ title: "Email préparé", description: `Renvoi à ${inv.invited_email}` });
+    fetchInvitations();
+  };
 
   const presentCount = invitations.filter((i) => i.attendance_status === "scanned").length;
 
