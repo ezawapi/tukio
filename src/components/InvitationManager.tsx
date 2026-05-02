@@ -313,7 +313,13 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                       </DialogContent>
                     </Dialog>
 
-                    <Button variant="ghost" size="sm" onClick={() => regenerateToken(inv.id)} className="h-8 text-xs gap-1" title="Régénérer le lien">
+                    {inv.invited_email && (
+                      <Button variant="outline" size="sm" onClick={() => resendByEmail(inv)} className="h-8 text-xs gap-1" title="Renvoyer par email" disabled={expired || usedUp}>
+                        <Mail className="h-3.5 w-3.5" /> Renvoyer
+                      </Button>
+                    )}
+
+                    <Button variant="ghost" size="sm" onClick={() => regenerateToken(inv.id)} className="h-8 text-xs gap-1" title="Régénérer le lien (invalide l'ancien)">
                       <RefreshCw className="h-3.5 w-3.5" />
                     </Button>
 
