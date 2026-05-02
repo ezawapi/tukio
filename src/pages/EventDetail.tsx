@@ -51,12 +51,28 @@ const EventDetail = () => {
     }
   }, [id, user]);
 
-  // Log QR scan
+  // Redeem QR token if present (?qr=TOKEN). If not signed-in, redirect to /invite/:token
   useEffect(() => {
-    if (qrToken && id) {
-      toast({ title: "🎫 Invitation QR détectée", description: "Présentez ce code à l'organisateur pour validation." });
+    if (!qrToken || !id) return;
+    if (!user) {
+      window.location.replace(`/invite/${qrToken}`);
+      return;
     }
-  }, [qrToken]);
+    (async () => {
+      const { data, error } = await supabase.rpc("redeem_invitation", { _token: qrToken });
+      if (error) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.success) {
+        toast({ title: "🎫 Invitation acceptée", description: "Vous avez accès à cet événement privé." });
+        fetchEvent();
+      } else if (row?.message === "expired") {
+        toast({ title: "Invitation expirée", variant: "destructive" });
+      } else if (row?.message === "used_up") {
+        toast({ title: "Invitation épuisée", description: "Nombre maximum d'utilisations atteint.", variant: "destructive" });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrToken, user?.id, id]);
 
   const fetchEvent = async () => {
     const { data } = await supabase
