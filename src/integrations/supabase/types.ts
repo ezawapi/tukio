@@ -320,48 +320,60 @@ export type Database = {
       event_invitations: {
         Row: {
           attendance_status: string
+          claimed_at: string | null
           created_at: string
           event_id: string
+          expires_at: string | null
           id: string
           invited_by: string
           invited_email: string | null
           invited_name: string | null
           invited_user_id: string | null
+          max_uses: number | null
           qr_code_token: string
           scanned_at: string | null
           scanned_by: string | null
           status: string
           updated_at: string
+          uses_count: number
         }
         Insert: {
           attendance_status?: string
+          claimed_at?: string | null
           created_at?: string
           event_id: string
+          expires_at?: string | null
           id?: string
           invited_by: string
           invited_email?: string | null
           invited_name?: string | null
           invited_user_id?: string | null
+          max_uses?: number | null
           qr_code_token: string
           scanned_at?: string | null
           scanned_by?: string | null
           status?: string
           updated_at?: string
+          uses_count?: number
         }
         Update: {
           attendance_status?: string
+          claimed_at?: string | null
           created_at?: string
           event_id?: string
+          expires_at?: string | null
           id?: string
           invited_by?: string
           invited_email?: string | null
           invited_name?: string | null
           invited_user_id?: string | null
+          max_uses?: number | null
           qr_code_token?: string
           scanned_at?: string | null
           scanned_by?: string | null
           status?: string
           updated_at?: string
+          uses_count?: number
         }
         Relationships: [
           {
@@ -1040,6 +1052,24 @@ export type Database = {
     }
     Functions: {
       can_view_event: { Args: { _event_id: string }; Returns: boolean }
+      get_invitation_preview: {
+        Args: { _token: string }
+        Returns: {
+          event_city: string
+          event_date: string
+          event_end_date: string
+          event_id: string
+          event_image_url: string
+          event_location: string
+          event_title: string
+          expires_at: string
+          invited_email: string
+          invited_name: string
+          is_expired: boolean
+          is_used_up: boolean
+          organizer_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1047,6 +1077,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      invitation_token_is_valid: { Args: { _token: string }; Returns: boolean }
       is_event_organizer: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
@@ -1054,6 +1085,14 @@ export type Database = {
       is_invited_to_event: {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      redeem_invitation: {
+        Args: { _token: string }
+        Returns: {
+          event_id: string
+          message: string
+          success: boolean
+        }[]
       }
       slugify: { Args: { _input: string }; Returns: string }
       validate_safe_url: {
