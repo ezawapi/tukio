@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    display_name: "", avatar_url: "", video_url: "",
+    display_name: "", avatar_url: "", video_url: "", bio: "",
     phone_primary: "", phone_secondary: "", physical_address: "",
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
@@ -32,7 +33,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const fetchProfile = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url, video_url, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
+      .select("display_name, avatar_url, video_url, bio, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
       .eq("id", userId)
       .maybeSingle();
     if (data) {
@@ -40,6 +41,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         display_name: data.display_name || "",
         avatar_url: data.avatar_url || "",
         video_url: (data as any).video_url || "",
+        bio: (data as any).bio || "",
         phone_primary: (data as any).phone_primary || "",
         phone_secondary: (data as any).phone_secondary || "",
         physical_address: (data as any).physical_address || "",
@@ -80,6 +82,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       display_name: form.display_name.trim() || null,
       avatar_url: form.avatar_url || null,
       video_url: form.video_url || null,
+      bio: form.bio || null,
       phone_primary: form.phone_primary || null,
       phone_secondary: form.phone_secondary || null,
       physical_address: form.physical_address || null,
@@ -182,6 +185,18 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
           <div>
             <Label className="text-xs flex items-center gap-1"><MapPin className="h-3 w-3" /> Adresse physique</Label>
             <Input value={form.physical_address} onChange={e => set("physical_address", e.target.value)} placeholder="123 Avenue..." />
+          </div>
+
+          <div>
+            <Label className="text-xs">À propos / Biographie</Label>
+            <Textarea
+              value={form.bio}
+              onChange={e => set("bio", e.target.value)}
+              placeholder="Présentez-vous ou votre organisation en quelques lignes..."
+              rows={4}
+              maxLength={1000}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">{form.bio.length}/1000 — visible sur votre profil public.</p>
           </div>
 
           {/* Organization */}

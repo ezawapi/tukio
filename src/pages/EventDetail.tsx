@@ -27,6 +27,7 @@ const EventDetail = () => {
   const { isAdmin } = useUserRole(user?.id);
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
+  const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
@@ -65,6 +66,14 @@ const EventDetail = () => {
       .maybeSingle();
     setEvent(data);
     setLoading(false);
+    if (data?.organizer_id) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("slug, avatar_url, display_name")
+        .eq("id", data.organizer_id)
+        .maybeSingle();
+      setOrganizerProfile(prof as any);
+    }
   };
 
   const fetchComments = async () => {
@@ -170,6 +179,10 @@ const EventDetail = () => {
 
   const itineraryUrl = event.latitude && event.longitude
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
+    : null;
+
+  const organizerHref = event.organizer_id
+    ? `/u/${organizerProfile?.slug || event.organizer_id}`
     : null;
 
 
@@ -283,13 +296,22 @@ const EventDetail = () => {
                   )}
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
-                      <User className="h-5 w-5 flex-shrink-0 text-primary" />
-                      {event.organizer_id ? (
-                        <Link to={`/u/${event.organizer_id}`} className="font-body text-foreground hover:text-primary underline-offset-2 hover:underline">
-                          {event.organizer_name}
+                      {organizerHref ? (
+                        <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
+                          {organizerProfile?.avatar_url ? (
+                            <img src={organizerProfile.avatar_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                          ) : (
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                              <User className="h-4 w-4 text-primary" />
+                            </span>
+                          )}
+                          <span className="font-body text-foreground underline-offset-2 hover:underline">{event.organizer_name}</span>
                         </Link>
                       ) : (
-                        <p className="font-body text-foreground">{event.organizer_name}</p>
+                        <>
+                          <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          <p className="font-body text-foreground">{event.organizer_name}</p>
+                        </>
                       )}
                     </div>
                   )}
@@ -491,13 +513,22 @@ const EventDetail = () => {
                   )}
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
-                      <User className="h-5 w-5 flex-shrink-0 text-primary" />
-                      {event.organizer_id ? (
-                        <Link to={`/u/${event.organizer_id}`} className="font-body text-foreground hover:text-primary underline-offset-2 hover:underline">
-                          {event.organizer_name}
+                      {organizerHref ? (
+                        <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
+                          {organizerProfile?.avatar_url ? (
+                            <img src={organizerProfile.avatar_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                          ) : (
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                              <User className="h-4 w-4 text-primary" />
+                            </span>
+                          )}
+                          <span className="font-body text-foreground underline-offset-2 hover:underline">{event.organizer_name}</span>
                         </Link>
                       ) : (
-                        <p className="font-body text-foreground">{event.organizer_name}</p>
+                        <>
+                          <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          <p className="font-body text-foreground">{event.organizer_name}</p>
+                        </>
                       )}
                     </div>
                   )}

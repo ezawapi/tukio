@@ -1,6 +1,7 @@
-import { Calendar, MapPin, Users, Heart, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { getCountdown } from "@/lib/countdown";
 import { getEventImage } from "@/lib/event-image";
@@ -17,9 +18,13 @@ interface EventCardProps {
   compact?: boolean;
   eventDate?: string;
   endDate?: string | null;
+  organizerId?: string | null;
+  organizerName?: string | null;
+  organizerAvatarUrl?: string | null;
+  organizerSlug?: string | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
   const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
 
   return (
@@ -89,6 +94,34 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
               <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <span>{attendees} participants</span>
             </div>
+          </div>
+        )}
+        {organizerName && organizerId && (
+          <div
+            role="link"
+            tabIndex={0}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = `/u/${organizerSlug || organizerId}`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/u/${organizerSlug || organizerId}`;
+              }
+            }}
+            className="mt-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-primary sm:text-xs"
+          >
+            {organizerAvatarUrl ? (
+              <img src={organizerAvatarUrl} alt={organizerName} className="h-4 w-4 shrink-0 rounded-full object-cover sm:h-5 sm:w-5" />
+            ) : (
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-muted sm:h-5 sm:w-5">
+                <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              </span>
+            )}
+            <span className="truncate">par <span className="font-medium underline-offset-2 hover:underline">{organizerName}</span></span>
           </div>
         )}
       </div>

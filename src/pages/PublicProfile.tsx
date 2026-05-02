@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin, Building2, Mail, Phone, User as UserIcon } from "lucide-react";
+import {
+  ArrowLeft, Calendar, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin,
+  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -9,14 +12,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface ProfileData {
   id: string;
+  slug: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  bio: string | null;
   organization_name: string | null;
   organization_role: string | null;
   physical_address: string | null;
@@ -30,49 +38,206 @@ interface ProfileData {
 }
 
 const PublicProfile = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const params = useParams<{ userId?: string; slug?: string }>();
+  const identifier = params.slug || params.userId || "";
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [past, setPast] = useState<any[]>([]);
-  const [followers, setFollowers] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const isUuid = useMemo(
+    () => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier),
+    [identifier]
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (!userId) return;
+    if (!identifier) return;
     const load = async () => {
+      setLoading(true);
+
+      // Resolve profile by slug OR by uuid
+      const profileQuery = supabase
+        .from("profiles")
+        .select("id, slug, display_name, avatar_url, bio, organization_name, organization_role, physical_address, website_url, facebook_url, instagram_url, twitter_url, linkedin_url, video_url, created_at");
+
+      const { data: prof } = isUuid
+        ? await profileQuery.eq("id", identifier).maybeSingle()
+        : await profileQuery.eq("slug", identifier).maybeSingle();
+
+      if (!prof) {
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      const profileData = prof as ProfileData;
+      setProfile(profileData);
+
       const nowIso = new Date().toISOString();
-      const [{ data: prof }, { data: upc }, { data: pst }, { count: favCount }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      const [{ data: upc }, { data: pst }, { count: followCount }, followingResp] = await Promise.all([
         supabase
           .from("events")
           .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name), attendees_count")
-          .eq("organizer_id", userId)
+          .eq("organizer_id", profileData.id)
           .eq("is_published", true)
           .gte("date", nowIso)
           .order("date", { ascending: true })
-          .limit(24),
+          .limit(50),
         supabase
           .from("events")
           .select("id, title, date, end_date, location, city, image_url, price, currency, categories(name), attendees_count")
-          .eq("organizer_id", userId)
+          .eq("organizer_id", profileData.id)
           .eq("is_published", true)
           .lt("date", nowIso)
           .order("date", { ascending: false })
-          .limit(24),
+          .limit(50),
         supabase
-          .from("favorites")
-          .select("id, events!inner(organizer_id)", { count: "exact", head: true })
-          .eq("events.organizer_id", userId),
+          .from("follows")
+          .select("id", { count: "exact", head: true })
+          .eq("organizer_id", profileData.id),
+        user
+          ? supabase
+              .from("follows")
+              .select("id")
+              .eq("organizer_id", profileData.id)
+              .eq("follower_id", user.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null } as any),
       ]);
-      setProfile(prof as ProfileData | null);
+
       setUpcoming(upc || []);
       setPast(pst || []);
-      setFollowers(favCount || 0);
+      setFollowersCount(followCount || 0);
+      setIsFollowing(!!followingResp?.data);
       setLoading(false);
     };
     load();
-  }, [userId]);
+  }, [identifier, isUuid, user]);
+
+  const toggleFollow = async () => {
+    if (!user || !profile) {
+      toast({ title: "Connectez-vous pour suivre cet organisateur", variant: "destructive" });
+      return;
+    }
+    if (user.id === profile.id) return;
+    setFollowLoading(true);
+    if (isFollowing) {
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("organizer_id", profile.id)
+        .eq("follower_id", user.id);
+      if (!error) {
+        setIsFollowing(false);
+        setFollowersCount((c) => Math.max(0, c - 1));
+        toast({ title: "Vous ne suivez plus cet organisateur" });
+      } else {
+        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      }
+    } else {
+      const { error } = await supabase
+        .from("follows")
+        .insert({ organizer_id: profile.id, follower_id: user.id });
+      if (!error) {
+        setIsFollowing(true);
+        setFollowersCount((c) => c + 1);
+        toast({ title: "Vous suivez maintenant cet organisateur ✨", description: "Vous recevrez ses futurs événements." });
+      } else {
+        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      }
+    }
+    setFollowLoading(false);
+  };
+
+  const allEvents = useMemo(() => [...upcoming, ...past], [upcoming, past]);
+
+  const exportCsv = () => {
+    if (!profile || allEvents.length === 0) {
+      toast({ title: "Aucun événement à exporter" });
+      return;
+    }
+    const headers = ["Titre", "Date", "Fin", "Lieu", "Ville", "Prix", "Devise", "Catégorie", "Participants", "Lien"];
+    const escape = (v: any) => {
+      const s = (v ?? "").toString().replace(/"/g, '""');
+      return `"${s}"`;
+    };
+    const rows = allEvents.map((e) => [
+      e.title,
+      format(new Date(e.date), "yyyy-MM-dd HH:mm"),
+      e.end_date ? format(new Date(e.end_date), "yyyy-MM-dd HH:mm") : "",
+      e.location || "",
+      e.city || "",
+      e.price || "",
+      e.currency || "",
+      e.categories?.name || "",
+      e.attendees_count || 0,
+      `${window.location.origin}/events/${e.id}`,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map(escape).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `evenements-${profile.slug || profile.id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Export CSV téléchargé" });
+  };
+
+  const exportPdf = async () => {
+    if (!profile || allEvents.length === 0) {
+      toast({ title: "Aucun événement à exporter" });
+      return;
+    }
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    const margin = 14;
+    let y = margin;
+
+    doc.setFontSize(16);
+    doc.text(`Événements de ${profile.display_name || "Organisateur"}`, margin, y);
+    y += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Total : ${allEvents.length} • Exporté le ${format(new Date(), "d MMM yyyy", { locale: fr })}`, margin, y);
+    y += 8;
+    doc.setTextColor(0);
+
+    allEvents.forEach((e, idx) => {
+      if (y > 270) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      const title = doc.splitTextToSize(`${idx + 1}. ${e.title}`, 180);
+      doc.text(title, margin, y);
+      y += title.length * 5;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(80);
+      const dateStr = format(new Date(e.date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr });
+      doc.text(`📅 ${dateStr}`, margin, y);
+      y += 5;
+      const loc = `📍 ${[e.location, e.city].filter(Boolean).join(", ")}`;
+      doc.text(loc, margin, y);
+      y += 5;
+      const meta = `${e.categories?.name || "Activité"} • ${e.price || "Gratuit"} ${e.currency || ""}`.trim();
+      doc.text(meta, margin, y);
+      y += 7;
+      doc.setTextColor(0);
+    });
+
+    doc.save(`evenements-${profile.slug || profile.id}.pdf`);
+    toast({ title: "Export PDF téléchargé" });
+  };
 
   if (loading) {
     return (
@@ -102,6 +267,8 @@ const PublicProfile = () => {
 
   const totalEvents = upcoming.length + past.length;
   const memberSince = format(new Date(profile.created_at), "MMMM yyyy", { locale: fr });
+  const isSelf = user?.id === profile.id;
+
   const renderCard = (e: any) => (
     <Link key={e.id} to={`/events/${e.id}`} className="block">
       <EventCard
@@ -155,11 +322,49 @@ const PublicProfile = () => {
                       <span className="truncate">{profile.organization_name}</span>
                     </div>
                   )}
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Membre depuis {memberSince}</span>
                     <Badge variant="outline" className="text-[10px]">{totalEvents} activités</Badge>
-                    <Badge variant="outline" className="text-[10px]">{followers} favoris</Badge>
+                    <Badge variant="outline" className="text-[10px]">{followersCount} abonnés</Badge>
                   </div>
+                </div>
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+                  {!isSelf && (
+                    <Button
+                      onClick={toggleFollow}
+                      disabled={followLoading}
+                      variant={isFollowing ? "outline" : "default"}
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      {followLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : isFollowing ? (
+                        <HeartOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Heart className="h-3.5 w-3.5" />
+                      )}
+                      {isFollowing ? "Suivi" : "Suivre"}
+                    </Button>
+                  )}
+                  {totalEvents > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Download className="h-3.5 w-3.5" /> Exporter
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={exportCsv} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={exportPdf} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
 
@@ -202,6 +407,20 @@ const PublicProfile = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* About section */}
+          {profile.bio && (
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-foreground">
+                  <Info className="h-5 w-5 text-primary" /> À propos
+                </h2>
+                <p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {profile.bio}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Events tabs */}
           <Tabs defaultValue="upcoming" className="space-y-4">
