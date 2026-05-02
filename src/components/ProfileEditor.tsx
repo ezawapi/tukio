@@ -82,6 +82,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       display_name: form.display_name.trim() || null,
       avatar_url: form.avatar_url || null,
       video_url: form.video_url || null,
+      bio: form.bio || null,
       phone_primary: form.phone_primary || null,
       phone_secondary: form.phone_secondary || null,
       physical_address: form.physical_address || null,
