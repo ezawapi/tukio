@@ -69,6 +69,8 @@ const EventDetail = () => {
         toast({ title: "Invitation expirée", variant: "destructive" });
       } else if (row?.message === "used_up") {
         toast({ title: "Invitation épuisée", description: "Nombre maximum d'utilisations atteint.", variant: "destructive" });
+      } else if (row?.message === "email_mismatch") {
+        toast({ title: "Email non autorisé", description: "Cette invitation est nominative. Connectez-vous avec l'email auquel elle a été envoyée.", variant: "destructive" });
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
