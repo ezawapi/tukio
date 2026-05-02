@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,23 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
+  const getPostAuthTarget = () => {
+    const fromUrl = searchParams.get("redirect");
+    const fromStorage = typeof window !== "undefined" ? sessionStorage.getItem("post_auth_redirect") : null;
+    const target = fromUrl || fromStorage;
+    if (target && target.startsWith("/")) return target;
+    return "/";
+  };
+
   useEffect(() => {
-    if (user) navigate("/");
+    if (user) {
+      const target = getPostAuthTarget();
+      sessionStorage.removeItem("post_auth_redirect");
+      navigate(target, { replace: true });
+    }
   }, [user, navigate]);
 
   const [forgotMode, setForgotMode] = useState(false);
@@ -61,7 +74,7 @@ const Auth = () => {
           throw error;
         }
         toast({ title: "Connexion réussie !" });
-        navigate("/");
+        navigate(getPostAuthTarget(), { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
