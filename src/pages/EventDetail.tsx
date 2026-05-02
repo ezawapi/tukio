@@ -296,13 +296,22 @@ const EventDetail = () => {
                   )}
                   {event.organizer_name && (
                     <div className="flex items-center gap-3 text-sm">
-                      <User className="h-5 w-5 flex-shrink-0 text-primary" />
-                      {event.organizer_id ? (
-                        <Link to={`/u/${event.organizer_id}`} className="font-body text-foreground hover:text-primary underline-offset-2 hover:underline">
-                          {event.organizer_name}
+                      {organizerHref ? (
+                        <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
+                          {organizerProfile?.avatar_url ? (
+                            <img src={organizerProfile.avatar_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                          ) : (
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                              <User className="h-4 w-4 text-primary" />
+                            </span>
+                          )}
+                          <span className="font-body text-foreground underline-offset-2 hover:underline">{event.organizer_name}</span>
                         </Link>
                       ) : (
-                        <p className="font-body text-foreground">{event.organizer_name}</p>
+                        <>
+                          <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          <p className="font-body text-foreground">{event.organizer_name}</p>
+                        </>
                       )}
                     </div>
                   )}
