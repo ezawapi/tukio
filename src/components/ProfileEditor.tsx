@@ -17,7 +17,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    display_name: "", avatar_url: "", video_url: "",
+    display_name: "", avatar_url: "", video_url: "", bio: "",
     phone_primary: "", phone_secondary: "", physical_address: "",
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
