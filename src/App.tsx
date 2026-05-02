@@ -73,6 +73,7 @@ const App = () => {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/history" element={<History />} />
             <Route path="/my-events" element={<MyEvents />} />
+            <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
