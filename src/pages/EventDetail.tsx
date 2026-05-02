@@ -73,6 +73,11 @@ const EventDetail = () => {
         .eq("id", data.organizer_id)
         .maybeSingle();
       setOrganizerProfile(prof as any);
+      // Prefetch full public profile into cache for fast nav
+      const ident = (prof as any)?.slug || data.organizer_id;
+      if (ident) {
+        import("@/lib/profile-cache").then((m) => m.prefetchPublicProfile(ident));
+      }
     }
   };
 

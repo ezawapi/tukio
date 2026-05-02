@@ -112,6 +112,11 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
                 window.location.href = `/u/${organizerSlug || organizerId}`;
               }
             }}
+            onMouseEnter={() => {
+              import("@/lib/profile-cache").then((m) =>
+                m.prefetchPublicProfile(organizerSlug || organizerId)
+              );
+            }}
             className="mt-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-primary sm:text-xs"
           >
             {organizerAvatarUrl ? (

@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft, Calendar, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin,
-  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info,
+  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info, Settings as SettingsIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import EventCard from "@/components/EventCard";
+import PaginationControls from "@/components/PaginationControls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,107 +19,147 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  resolvePublicProfile,
+  getCachedProfile,
+  prefetchPublicProfile,
+  type CachedProfile,
+} from "@/lib/profile-cache";
 
-interface ProfileData {
-  id: string;
-  slug: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  organization_name: string | null;
-  organization_role: string | null;
-  physical_address: string | null;
-  website_url: string | null;
-  facebook_url: string | null;
-  instagram_url: string | null;
-  twitter_url: string | null;
-  linkedin_url: string | null;
-  video_url: string | null;
-  created_at: string;
-}
+type Tab = "upcoming" | "ongoing" | "past";
+const PAGE_SIZE = 9;
 
 const PublicProfile = () => {
   const params = useParams<{ userId?: string; slug?: string }>();
   const identifier = params.slug || params.userId || "";
   const { user } = useAuth();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [upcoming, setUpcoming] = useState<any[]>([]);
-  const [past, setPast] = useState<any[]>([]);
+
+  // Hydrate from cache for instant paint on mobile
+  const [profile, setProfile] = useState<CachedProfile | null>(() => getCachedProfile(identifier));
+  const [loading, setLoading] = useState(!getCachedProfile(identifier));
+  const [notFound, setNotFound] = useState(false);
+
+  const [tab, setTab] = useState<Tab>("upcoming");
+  const [page, setPage] = useState(1);
+  const [events, setEvents] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [eventsLoading, setEventsLoading] = useState(false);
+
   const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const isUuid = useMemo(
-    () => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier),
-    [identifier]
-  );
-
+  // Resolve profile (with cache)
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!identifier) return;
-    const load = async () => {
+    let cancelled = false;
+    const cached = getCachedProfile(identifier);
+    if (cached) {
+      setProfile(cached);
+      setLoading(false);
+    } else {
       setLoading(true);
-
-      // Resolve profile by slug OR by uuid
-      const profileQuery = supabase
-        .from("profiles")
-        .select("id, slug, display_name, avatar_url, bio, organization_name, organization_role, physical_address, website_url, facebook_url, instagram_url, twitter_url, linkedin_url, video_url, created_at");
-
-      const { data: prof } = isUuid
-        ? await profileQuery.eq("id", identifier).maybeSingle()
-        : await profileQuery.eq("slug", identifier).maybeSingle();
-
-      if (!prof) {
+    }
+    resolvePublicProfile(identifier).then((p) => {
+      if (cancelled) return;
+      if (!p) {
+        setNotFound(true);
         setProfile(null);
-        setLoading(false);
-        return;
+      } else {
+        setProfile(p);
+        setNotFound(false);
+        // Prefetch by both id and slug aliases for fast back-nav
+        if (p.slug) prefetchPublicProfile(p.slug);
+        if (p.id) prefetchPublicProfile(p.id);
+      }
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [identifier]);
+
+  // Reset pagination when tab changes
+  useEffect(() => setPage(1), [tab, profile?.id]);
+
+  // Fetch follower/following counts and follow state
+  const refreshFollows = async (profileId: string) => {
+    const [{ count: fCount }, { count: fingCount }, followingResp] = await Promise.all([
+      supabase.from("follows").select("id", { count: "exact", head: true }).eq("organizer_id", profileId),
+      supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", profileId),
+      user
+        ? supabase.from("follows").select("id").eq("organizer_id", profileId).eq("follower_id", user.id).maybeSingle()
+        : Promise.resolve({ data: null } as any),
+    ]);
+    setFollowersCount(fCount || 0);
+    setFollowingCount(fingCount || 0);
+    setIsFollowing(!!followingResp?.data);
+  };
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    refreshFollows(profile.id);
+
+    // Realtime updates on follows table
+    const channel = supabase
+      .channel(`follows:${profile.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "follows", filter: `organizer_id=eq.${profile.id}` },
+        () => refreshFollows(profile.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "follows", filter: `follower_id=eq.${profile.id}` },
+        () => refreshFollows(profile.id),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, user?.id]);
+
+  // Fetch paginated events for the active tab
+  useEffect(() => {
+    if (!profile?.id) return;
+    const load = async () => {
+      setEventsLoading(true);
+      const nowIso = new Date().toISOString();
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      let q = supabase
+        .from("events")
+        .select(
+          "id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name), attendees_count",
+          { count: "exact" },
+        )
+        .eq("organizer_id", profile.id)
+        .eq("is_published", true)
+        .eq("visibility", "public");
+
+      if (tab === "upcoming") {
+        q = q.gt("date", nowIso).order("date", { ascending: true });
+      } else if (tab === "ongoing") {
+        q = q.lte("date", nowIso).or(`end_date.gte.${nowIso},end_date.is.null`).order("date", { ascending: false });
+      } else {
+        q = q.lt("end_date", nowIso).order("date", { ascending: false });
       }
 
-      const profileData = prof as ProfileData;
-      setProfile(profileData);
-
-      const nowIso = new Date().toISOString();
-      const [{ data: upc }, { data: pst }, { count: followCount }, followingResp] = await Promise.all([
-        supabase
-          .from("events")
-          .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name), attendees_count")
-          .eq("organizer_id", profileData.id)
-          .eq("is_published", true)
-          .gte("date", nowIso)
-          .order("date", { ascending: true })
-          .limit(50),
-        supabase
-          .from("events")
-          .select("id, title, date, end_date, location, city, image_url, price, currency, categories(name), attendees_count")
-          .eq("organizer_id", profileData.id)
-          .eq("is_published", true)
-          .lt("date", nowIso)
-          .order("date", { ascending: false })
-          .limit(50),
-        supabase
-          .from("follows")
-          .select("id", { count: "exact", head: true })
-          .eq("organizer_id", profileData.id),
-        user
-          ? supabase
-              .from("follows")
-              .select("id")
-              .eq("organizer_id", profileData.id)
-              .eq("follower_id", user.id)
-              .maybeSingle()
-          : Promise.resolve({ data: null } as any),
-      ]);
-
-      setUpcoming(upc || []);
-      setPast(pst || []);
-      setFollowersCount(followCount || 0);
-      setIsFollowing(!!followingResp?.data);
-      setLoading(false);
+      const { data, count } = await q.range(from, to);
+      setEvents(data || []);
+      setTotal(count || 0);
+      setEventsLoading(false);
     };
     load();
-  }, [identifier, isUuid, user]);
+  }, [profile?.id, tab, page]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const toggleFollow = async () => {
     if (!user || !profile) {
@@ -155,19 +196,30 @@ const PublicProfile = () => {
     setFollowLoading(false);
   };
 
-  const allEvents = useMemo(() => [...upcoming, ...past], [upcoming, past]);
+  // Fetch ALL public events of organizer for export (RLS enforces public+published only)
+  const fetchPublicEventsForExport = async () => {
+    if (!profile) return [];
+    const { data } = await supabase
+      .from("events")
+      .select("id, title, date, end_date, location, city, price, currency, categories(name), attendees_count")
+      .eq("organizer_id", profile.id)
+      .eq("is_published", true)
+      .eq("visibility", "public")
+      .order("date", { ascending: false })
+      .limit(500);
+    return data || [];
+  };
 
-  const exportCsv = () => {
-    if (!profile || allEvents.length === 0) {
-      toast({ title: "Aucun événement à exporter" });
+  const exportCsv = async () => {
+    if (!profile) return;
+    const all = await fetchPublicEventsForExport();
+    if (all.length === 0) {
+      toast({ title: "Aucun événement public à exporter" });
       return;
     }
     const headers = ["Titre", "Date", "Fin", "Lieu", "Ville", "Prix", "Devise", "Catégorie", "Participants", "Lien"];
-    const escape = (v: any) => {
-      const s = (v ?? "").toString().replace(/"/g, '""');
-      return `"${s}"`;
-    };
-    const rows = allEvents.map((e) => [
+    const escape = (v: any) => `"${(v ?? "").toString().replace(/"/g, '""')}"`;
+    const rows = all.map((e: any) => [
       e.title,
       format(new Date(e.date), "yyyy-MM-dd HH:mm"),
       e.end_date ? format(new Date(e.end_date), "yyyy-MM-dd HH:mm") : "",
@@ -191,8 +243,10 @@ const PublicProfile = () => {
   };
 
   const exportPdf = async () => {
-    if (!profile || allEvents.length === 0) {
-      toast({ title: "Aucun événement à exporter" });
+    if (!profile) return;
+    const all = await fetchPublicEventsForExport();
+    if (all.length === 0) {
+      toast({ title: "Aucun événement public à exporter" });
       return;
     }
     const { jsPDF } = await import("jspdf");
@@ -205,11 +259,11 @@ const PublicProfile = () => {
     y += 8;
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Total : ${allEvents.length} • Exporté le ${format(new Date(), "d MMM yyyy", { locale: fr })}`, margin, y);
+    doc.text(`Total : ${all.length} • Exporté le ${format(new Date(), "d MMM yyyy", { locale: fr })}`, margin, y);
     y += 8;
     doc.setTextColor(0);
 
-    allEvents.forEach((e, idx) => {
+    all.forEach((e: any, idx: number) => {
       if (y > 270) {
         doc.addPage();
         y = margin;
@@ -223,11 +277,9 @@ const PublicProfile = () => {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(80);
-      const dateStr = format(new Date(e.date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr });
-      doc.text(`📅 ${dateStr}`, margin, y);
+      doc.text(`Date: ${format(new Date(e.date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}`, margin, y);
       y += 5;
-      const loc = `📍 ${[e.location, e.city].filter(Boolean).join(", ")}`;
-      doc.text(loc, margin, y);
+      doc.text(`Lieu: ${[e.location, e.city].filter(Boolean).join(", ")}`, margin, y);
       y += 5;
       const meta = `${e.categories?.name || "Activité"} • ${e.price || "Gratuit"} ${e.currency || ""}`.trim();
       doc.text(meta, margin, y);
@@ -239,7 +291,7 @@ const PublicProfile = () => {
     toast({ title: "Export PDF téléchargé" });
   };
 
-  if (loading) {
+  if (loading && !profile) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -253,7 +305,7 @@ const PublicProfile = () => {
     );
   }
 
-  if (!profile) {
+  if (notFound || !profile) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -265,7 +317,6 @@ const PublicProfile = () => {
     );
   }
 
-  const totalEvents = upcoming.length + past.length;
   const memberSince = format(new Date(profile.created_at), "MMMM yyyy", { locale: fr });
   const isSelf = user?.id === profile.id;
 
@@ -324,13 +375,24 @@ const PublicProfile = () => {
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Membre depuis {memberSince}</span>
-                    <Badge variant="outline" className="text-[10px]">{totalEvents} activités</Badge>
-                    <Badge variant="outline" className="text-[10px]">{followersCount} abonnés</Badge>
+                    <Badge variant="outline" className="text-[10px]">{total} activités</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      <span className="font-semibold text-foreground mr-1">{followersCount}</span> abonnés
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      <span className="font-semibold text-foreground mr-1">{followingCount}</span> abonnements
+                    </Badge>
                   </div>
                 </div>
                 {/* Actions */}
                 <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-                  {!isSelf && (
+                  {isSelf ? (
+                    <Button asChild size="sm" className="gap-1.5">
+                      <Link to="/my-events">
+                        <SettingsIcon className="h-3.5 w-3.5" /> Mes événements
+                      </Link>
+                    </Button>
+                  ) : (
                     <Button
                       onClick={toggleFollow}
                       disabled={followLoading}
@@ -348,23 +410,21 @@ const PublicProfile = () => {
                       {isFollowing ? "Suivi" : "Suivre"}
                     </Button>
                   )}
-                  {totalEvents > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Download className="h-3.5 w-3.5" /> Exporter
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={exportCsv} className="gap-2">
-                          <FileText className="h-4 w-4" /> Télécharger CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={exportPdf} className="gap-2">
-                          <FileText className="h-4 w-4" /> Télécharger PDF
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        <Download className="h-3.5 w-3.5" /> Exporter
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={exportCsv} className="gap-2">
+                        <FileText className="h-4 w-4" /> Télécharger CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={exportPdf} className="gap-2">
+                        <FileText className="h-4 w-4" /> Télécharger PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -422,29 +482,39 @@ const PublicProfile = () => {
             </Card>
           )}
 
-          {/* Events tabs */}
-          <Tabs defaultValue="upcoming" className="space-y-4">
+          {/* Events tabs with pagination */}
+          <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="space-y-4">
             <TabsList>
-              <TabsTrigger value="upcoming">Prochaines ({upcoming.length})</TabsTrigger>
-              <TabsTrigger value="past">Passées ({past.length})</TabsTrigger>
+              <TabsTrigger value="upcoming">À venir</TabsTrigger>
+              <TabsTrigger value="ongoing">En cours</TabsTrigger>
+              <TabsTrigger value="past">Terminés</TabsTrigger>
             </TabsList>
-            <TabsContent value="upcoming">
-              {upcoming.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Aucune activité à venir.</p>
+            <TabsContent value={tab}>
+              {eventsLoading ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-56 animate-pulse rounded-lg bg-card" />
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {tab === "upcoming" && "Aucune activité à venir."}
+                  {tab === "ongoing" && "Aucune activité en cours."}
+                  {tab === "past" && "Aucune activité terminée."}
+                </p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {upcoming.map(renderCard)}
+                  {events.map(renderCard)}
                 </div>
               )}
-            </TabsContent>
-            <TabsContent value="past">
-              {past.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Aucune activité passée.</p>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {past.map(renderCard)}
-                </div>
-              )}
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={total}
+                itemsPerPage={PAGE_SIZE}
+                onPageChange={setPage}
+                label="événements"
+              />
             </TabsContent>
           </Tabs>
         </div>

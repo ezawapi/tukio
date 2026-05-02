@@ -25,6 +25,7 @@ import Settings from "./pages/Settings.tsx";
 import Notifications from "./pages/Notifications.tsx";
 import History from "./pages/History.tsx";
 import PublicProfile from "./pages/PublicProfile.tsx";
+import MyEvents from "./pages/MyEvents.tsx";
 import AdminRoles from "./pages/AdminRoles.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
@@ -71,6 +72,7 @@ const App = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/history" element={<History />} />
+            <Route path="/my-events" element={<MyEvents />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
