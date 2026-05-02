@@ -1,6 +1,7 @@
-import { Calendar, MapPin, Users, Heart, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { getCountdown } from "@/lib/countdown";
 import { getEventImage } from "@/lib/event-image";
@@ -17,9 +18,13 @@ interface EventCardProps {
   compact?: boolean;
   eventDate?: string;
   endDate?: string | null;
+  organizerId?: string | null;
+  organizerName?: string | null;
+  organizerAvatarUrl?: string | null;
+  organizerSlug?: string | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
   const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
 
   return (
