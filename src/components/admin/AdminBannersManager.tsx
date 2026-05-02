@@ -222,71 +222,71 @@ const AdminBannersManager = () => {
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Ajouter</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
               <DialogHeader>
                 <DialogTitle>{editingId ? "Modifier la bannière" : "Nouvelle bannière"}</DialogTitle>
                 <p className="text-xs text-muted-foreground mt-1">
                   Maximum 4 bannières publiées. Les brouillons ne s'affichent pas sur l'accueil.
                 </p>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
+              <form onSubmit={handleSubmit} className="space-y-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="min-w-0">
                     <Label>Titre principal * <span className="text-[10px] text-muted-foreground">({form.title.length}/40)</span></Label>
-                    <Input maxLength={40} value={form.title} onChange={e => set("title", e.target.value)} placeholder="Ex: Créez votre événement" />
+                    <Input maxLength={40} value={form.title} onChange={e => set("title", e.target.value)} placeholder="Ex: Créez votre événement" className="w-full" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Sous-titre <span className="text-[10px] text-muted-foreground">({form.subtitle.length}/25)</span></Label>
-                    <Input maxLength={25} value={form.subtitle} onChange={e => set("subtitle", e.target.value)} placeholder="Ex: Organisateurs" />
+                    <Input maxLength={25} value={form.subtitle} onChange={e => set("subtitle", e.target.value)} placeholder="Ex: Organisateurs" className="w-full" />
                   </div>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <Label>Texte du corps <span className="text-[10px] text-muted-foreground">({form.body.length}/140)</span></Label>
-                  <Textarea maxLength={140} value={form.body} onChange={e => set("body", e.target.value)} rows={2} placeholder="Description courte (3 lignes max)..." />
+                  <Textarea maxLength={140} value={form.body} onChange={e => set("body", e.target.value)} rows={3} placeholder="Description courte (3 lignes max)..." className="w-full resize-y break-words" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="min-w-0">
                     <Label>Libellé du bouton <span className="text-[10px] text-muted-foreground">({form.button_label.length}/20)</span></Label>
-                    <Input maxLength={20} value={form.button_label} onChange={e => set("button_label", e.target.value)} placeholder="Ex: Commencer" />
+                    <Input maxLength={20} value={form.button_label} onChange={e => set("button_label", e.target.value)} placeholder="Ex: Commencer" className="w-full" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Lien du bouton</Label>
-                    <Input value={form.button_url} onChange={e => set("button_url", e.target.value)} placeholder="/events ou https://..." />
+                    <Input value={form.button_url} onChange={e => set("button_url", e.target.value)} placeholder="/events ou https://..." className="w-full" />
                     {form.button_url && !validateBannerUrl(form.button_url).valid && (
-                      <p className="text-[11px] text-destructive mt-1">{validateBannerUrl(form.button_url).error}</p>
+                      <p className="text-[11px] text-destructive mt-1 break-words">{validateBannerUrl(form.button_url).error}</p>
                     )}
                   </div>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <Label>Image (optionnelle)</Label>
-                  <Input value={form.image_url} onChange={e => set("image_url", e.target.value)} placeholder="URL de l'image" />
+                  <Input value={form.image_url} onChange={e => set("image_url", e.target.value)} placeholder="URL de l'image" className="w-full" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="min-w-0">
                     <Label>Couleur de fond</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <input type="color" value={form.bg_color} onChange={e => set("bg_color", e.target.value)} className="h-8 w-10 rounded cursor-pointer" />
-                      <Input value={form.bg_color} onChange={e => set("bg_color", e.target.value)} className="flex-1" />
+                      <input type="color" value={form.bg_color} onChange={e => set("bg_color", e.target.value)} className="h-9 w-10 rounded cursor-pointer flex-shrink-0" />
+                      <Input value={form.bg_color} onChange={e => set("bg_color", e.target.value)} className="flex-1 min-w-0" />
                     </div>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Couleur du texte</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <input type="color" value={form.text_color} onChange={e => set("text_color", e.target.value)} className="h-8 w-10 rounded cursor-pointer" />
-                      <Input value={form.text_color} onChange={e => set("text_color", e.target.value)} className="flex-1" />
+                      <input type="color" value={form.text_color} onChange={e => set("text_color", e.target.value)} className="h-9 w-10 rounded cursor-pointer flex-shrink-0" />
+                      <Input value={form.text_color} onChange={e => set("text_color", e.target.value)} className="flex-1 min-w-0" />
                     </div>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Ordre</Label>
-                    <Input type="number" value={form.display_order} onChange={e => set("display_order", Number(e.target.value))} className="mt-1" />
+                    <Input type="number" value={form.display_order} onChange={e => set("display_order", Number(e.target.value))} className="mt-1 w-full" />
                   </div>
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <Label>Dégradé de fond</Label>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {GRADIENT_PRESETS.map(g => (
@@ -299,29 +299,29 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="min-w-0">
                     <Label>Taille du titre</Label>
                     <Select value={form.title_font_size} onValueChange={v => set("title_font_size", v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {FONT_SIZES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Taille sous-titre</Label>
                     <Select value={form.subtitle_font_size} onValueChange={v => set("subtitle_font_size", v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {FONT_SIZES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Animation texte</Label>
                     <Select value={form.text_animation} onValueChange={v => set("text_animation", v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {TEXT_ANIMATIONS.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
                       </SelectContent>
@@ -329,27 +329,26 @@ const AdminBannersManager = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-3">
-                  <div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="min-w-0">
                     <Label>Largeur (%)</Label>
-                    <Input type="number" min={20} max={100} value={form.width_percent} onChange={e => set("width_percent", Number(e.target.value))} />
+                    <Input type="number" min={20} max={100} value={form.width_percent} onChange={e => set("width_percent", Number(e.target.value))} className="w-full" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Hauteur (px)</Label>
-                    <Input type="number" min={0} value={form.height_px ?? ""} onChange={e => set("height_px", e.target.value ? Number(e.target.value) : null)} placeholder="Auto" />
+                    <Input type="number" min={0} value={form.height_px ?? ""} onChange={e => set("height_px", e.target.value ? Number(e.target.value) : null)} placeholder="Auto" className="w-full" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Bordure (px)</Label>
-                    <Input type="number" min={0} max={10} value={form.border_width} onChange={e => set("border_width", Number(e.target.value))} />
+                    <Input type="number" min={0} max={10} value={form.border_width} onChange={e => set("border_width", Number(e.target.value))} className="w-full" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label>Couleur bordure</Label>
                     <div className="flex items-center gap-1 mt-1">
-                      <input type="color" value={form.border_color} onChange={e => set("border_color", e.target.value)} className="h-8 w-8 rounded cursor-pointer" />
+                      <input type="color" value={form.border_color} onChange={e => set("border_color", e.target.value)} className="h-9 w-full rounded cursor-pointer" />
                     </div>
                   </div>
                 </div>
-
                 {/* Active + draft switches */}
                 <div className="flex items-center gap-6 rounded-lg bg-muted/30 p-3">
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
