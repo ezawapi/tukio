@@ -1,24 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Lock, Sparkles, Percent, Tag, Gift, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import bannerFallback from "@/assets/banner-fallback-tukio.jpg";
 
 const MAX_LEN = { title: 40, subtitle: 25, body: 140, button: 20 };
 
 const truncate = (s: string | null | undefined, max: number) => {
   if (!s) return "";
   return s.length > max ? s.slice(0, max - 1).trimEnd() + "…" : s;
-};
-
-const getAnimationClass = (anim: string) => {
-  switch (anim) {
-    case "fade-in": return "animate-[fade-in_1.5s_ease-out]";
-    case "slide-up": return "animate-[slideUp_1s_ease-out]";
-    case "slide-left": return "animate-[slideLeft_1s_ease-out]";
-    case "pulse": return "animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]";
-    case "bounce": return "animate-bounce";
-    default: return "";
-  }
 };
 
 const trackBannerEvent = async (bannerId: string, eventType: "impression" | "click") => {
@@ -32,67 +21,86 @@ const trackBannerEvent = async (bannerId: string, eventType: "impression" | "cli
   } catch {/* silent */}
 };
 
-export const renderBannerCard = (banner: any) => {
+const ICONS = [Sparkles, Percent, Tag, Gift];
+
+const FeaturedCard = ({ banner }: { banner: any }) => {
   const style: React.CSSProperties = {
-    backgroundColor: banner.bg_gradient ? undefined : (banner.bg_color || "#f59e0b"),
+    backgroundColor: banner.bg_gradient ? undefined : (banner.bg_color || "hsl(var(--primary))"),
     backgroundImage: banner.bg_gradient || undefined,
     color: banner.text_color || "#ffffff",
-    border: banner.border_width ? `${banner.border_width}px solid ${banner.border_color || "#000"}` : undefined,
   };
-
-  const animClass = getAnimationClass(banner.text_animation || "none");
-  const hasImage = !!banner.image_url;
-  const imgSrc = banner.image_url || bannerFallback;
-
   return (
     <div
-      className="overflow-hidden rounded-2xl p-5 sm:p-6 relative h-full flex flex-col min-h-[260px] sm:min-h-[290px] transition-transform hover:-translate-y-0.5"
+      className="rounded-2xl p-5 sm:p-6 flex flex-col justify-between min-h-[150px] h-full shadow-sm"
       style={style}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_70%)]" />
-      <img
-        src={imgSrc}
-        alt=""
-        loading="lazy"
-        className={`absolute inset-0 h-full w-full object-cover ${hasImage ? "opacity-25 mix-blend-overlay" : "opacity-60"}`}
-      />
-      {!hasImage && <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />}
-      <div className="relative z-10 flex flex-col h-full">
-        <p className={`font-body text-xs sm:text-sm opacity-80 mb-2 min-h-[1.25rem] line-clamp-1 ${animClass}`}>
-          {truncate(banner.subtitle, MAX_LEN.subtitle) || "\u00A0"}
-        </p>
-        <h2 className={`font-display font-bold leading-tight text-xl sm:text-2xl line-clamp-2 ${animClass}`}>
+      <div>
+        {banner.subtitle && (
+          <p className="font-display text-2xl sm:text-3xl font-bold leading-tight">
+            {truncate(banner.subtitle, MAX_LEN.subtitle)}
+          </p>
+        )}
+        <h3 className="font-display text-base sm:text-lg font-semibold mt-1.5">
           {truncate(banner.title, MAX_LEN.title)}
-        </h2>
-        <p className={`font-body text-xs sm:text-sm opacity-90 mt-3 line-clamp-3 min-h-[3rem] ${animClass}`}>
-          {truncate(banner.body, MAX_LEN.body) || "\u00A0"}
-        </p>
-        <div className="mt-auto pt-4">
-          {banner.button_label ? (
-            <span
-              className="inline-block px-4 py-2 rounded-lg font-body font-medium text-xs sm:text-sm border transition-colors hover:bg-white/20 truncate max-w-full"
-              style={{ borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.12)" }}
-            >
-              {truncate(banner.button_label, MAX_LEN.button)}
-            </span>
-          ) : (
-            <span className="inline-block h-[34px]" aria-hidden />
-          )}
-        </div>
+        </h3>
       </div>
+      {banner.body && (
+        <p className="font-body text-xs sm:text-sm opacity-90 mt-2 line-clamp-3">
+          {truncate(banner.body, MAX_LEN.body)}
+        </p>
+      )}
     </div>
   );
 };
 
-const renderBanner = (banner: any, onClick: (id: string) => void) => {
-  const isExternal = banner.button_url?.startsWith("http");
-  const wrapperClass = "block h-full";
-  const card = renderBannerCard(banner);
-  const handleClick = () => onClick(banner.id);
+const SecondaryCard = ({ banner, idx, locked }: { banner: any; idx: number; locked?: boolean }) => {
+  const Icon = ICONS[idx % ICONS.length];
+  return (
+    <div
+      className={`relative rounded-2xl p-4 sm:p-5 border bg-card flex flex-col min-h-[150px] h-full transition-colors ${
+        locked ? "opacity-70" : "hover:border-primary/30"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <h4 className="font-display text-sm sm:text-base font-semibold text-foreground line-clamp-2 leading-snug">
+          {truncate(banner.title, MAX_LEN.title)}
+        </h4>
+        {locked ? (
+          <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        ) : (
+          <Icon className="h-4 w-4 text-primary flex-shrink-0" />
+        )}
+      </div>
+      <p className="font-body text-xs sm:text-[13px] text-muted-foreground mt-2 line-clamp-3 flex-1">
+        {truncate(banner.body, MAX_LEN.body) || truncate(banner.subtitle, MAX_LEN.subtitle)}
+      </p>
+      {banner.button_label && !locked && (
+        <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+          {truncate(banner.button_label, MAX_LEN.button)}
+          <ChevronRight className="h-3 w-3" />
+        </span>
+      )}
+    </div>
+  );
+};
 
-  if (!banner.button_url) return <div key={banner.id} className={wrapperClass}>{card}</div>;
-  if (isExternal) return <a key={banner.id} href={banner.button_url} target="_blank" rel="noopener noreferrer" className={wrapperClass} onClick={handleClick}>{card}</a>;
-  return <Link key={banner.id} to={banner.button_url} className={wrapperClass} onClick={handleClick}>{card}</Link>;
+export const renderBannerCard = (banner: any) => <FeaturedCard banner={banner} />;
+
+const wrapWithLink = (banner: any, child: React.ReactNode, onClick: (id: string) => void) => {
+  const handleClick = () => onClick(banner.id);
+  if (!banner.button_url) return <div key={banner.id} className="block h-full">{child}</div>;
+  const isExternal = banner.button_url?.startsWith("http");
+  if (isExternal)
+    return (
+      <a key={banner.id} href={banner.button_url} target="_blank" rel="noopener noreferrer" className="block h-full" onClick={handleClick}>
+        {child}
+      </a>
+    );
+  return (
+    <Link key={banner.id} to={banner.button_url} className="block h-full" onClick={handleClick}>
+      {child}
+    </Link>
+  );
 };
 
 const PromotionalBanner = () => {
@@ -113,7 +121,6 @@ const PromotionalBanner = () => {
     fetch();
   }, []);
 
-  // Track impressions once per banner per session
   useEffect(() => {
     banners.forEach((b) => {
       if (!trackedRef.current.has(b.id)) {
@@ -125,16 +132,21 @@ const PromotionalBanner = () => {
 
   if (banners.length === 0) return null;
 
-  const cols =
-    banners.length === 1 ? "grid-cols-1" :
-    banners.length === 2 ? "grid-cols-1 sm:grid-cols-2" :
-    banners.length === 3 ? "grid-cols-2 md:grid-cols-3" :
-    "grid-cols-2 md:grid-cols-4";
+  const featured = banners[0];
+  const others = banners.slice(1);
+  const onClick = (id: string) => trackBannerEvent(id, "click");
 
   return (
-    <div className="container mx-auto w-full px-4 md:w-[88%] md:px-0 max-w-7xl">
-      <div className={`grid gap-3 sm:gap-4 items-stretch ${cols}`}>
-        {banners.map((b) => renderBanner(b, (id) => trackBannerEvent(id, "click")))}
+    <div className="container mx-auto px-4 max-w-6xl">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+        {wrapWithLink(featured, <FeaturedCard banner={featured} />, onClick)}
+        {others.map((b, i) =>
+          wrapWithLink(
+            b,
+            <SecondaryCard banner={b} idx={i} locked={i === others.length - 1 && others.length >= 3} />,
+            onClick
+          )
+        )}
       </div>
     </div>
   );
