@@ -250,22 +250,33 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                     <p className="font-body text-sm font-semibold text-foreground truncate">{inv.invited_name}</p>
                     {inv.invited_email && <p className="font-body text-xs text-muted-foreground truncate">{inv.invited_email}</p>}
                     <div className="mt-1 flex flex-wrap gap-1">
-                      <Badge variant={inv.attendance_status === "scanned" ? "default" : "secondary"} className="text-[10px]">
-                        {inv.attendance_status === "scanned" ? "✅ Présent" : inv.invited_user_id ? "Compte lié" : "En attente"}
-                      </Badge>
-                      {expired ? (
+                      {usedUp ? (
+                        <Badge variant="destructive" className="text-[10px]">Utilisé</Badge>
+                      ) : expired ? (
                         <Badge variant="destructive" className="text-[10px] gap-1"><Clock className="h-3 w-3" />Expiré</Badge>
-                      ) : inv.expires_at ? (
+                      ) : (
+                        <Badge variant={inv.attendance_status === "scanned" ? "default" : "secondary"} className="text-[10px]">
+                          {inv.attendance_status === "scanned" ? "✅ Présent" : inv.invited_user_id ? "Compte lié" : "En attente"}
+                        </Badge>
+                      )}
+                      {!expired && !usedUp && inv.expires_at && (
                         <Badge variant="outline" className="text-[10px] gap-1">
                           <Clock className="h-3 w-3" />Exp. {new Date(inv.expires_at).toLocaleDateString("fr-FR")}
                         </Badge>
-                      ) : (
+                      )}
+                      {!inv.expires_at && (
                         <Badge variant="outline" className="text-[10px] gap-1"><InfinityIcon className="h-3 w-3" />Lien ouvert</Badge>
                       )}
                       {inv.max_uses != null && (
                         <Badge variant={usedUp ? "destructive" : "outline"} className="text-[10px]">
-                          {inv.uses_count || 0}/{inv.max_uses} util.
+                          {remainingUses(inv)} restant(s) · {inv.uses_count || 0}/{inv.max_uses}
                         </Badge>
+                      )}
+                      {inv.invited_email && (
+                        <Badge variant="outline" className="text-[10px]">Email vérifié requis</Badge>
+                      )}
+                      {inv.last_sent_at && (
+                        <Badge variant="outline" className="text-[10px]">Envoyé {new Date(inv.last_sent_at).toLocaleDateString("fr-FR")}</Badge>
                       )}
                     </div>
                   </div>
