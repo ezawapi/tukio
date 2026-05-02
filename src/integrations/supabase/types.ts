@@ -329,6 +329,7 @@ export type Database = {
           invited_email: string | null
           invited_name: string | null
           invited_user_id: string | null
+          last_sent_at: string | null
           max_uses: number | null
           qr_code_token: string
           scanned_at: string | null
@@ -348,6 +349,7 @@ export type Database = {
           invited_email?: string | null
           invited_name?: string | null
           invited_user_id?: string | null
+          last_sent_at?: string | null
           max_uses?: number | null
           qr_code_token: string
           scanned_at?: string | null
@@ -367,6 +369,7 @@ export type Database = {
           invited_email?: string | null
           invited_name?: string | null
           invited_user_id?: string | null
+          last_sent_at?: string | null
           max_uses?: number | null
           qr_code_token?: string
           scanned_at?: string | null
