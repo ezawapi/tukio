@@ -548,6 +548,27 @@ export type Database = {
           },
         ]
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          organizer_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          organizer_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          organizer_id?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           created_at: string
@@ -584,6 +605,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           facebook_url: string | null
@@ -596,6 +618,7 @@ export type Database = {
           phone_primary: string | null
           phone_secondary: string | null
           physical_address: string | null
+          slug: string | null
           tiktok_url: string | null
           twitter_url: string | null
           updated_at: string
@@ -604,6 +627,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           facebook_url?: string | null
@@ -616,6 +640,7 @@ export type Database = {
           phone_primary?: string | null
           phone_secondary?: string | null
           physical_address?: string | null
+          slug?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
@@ -624,6 +649,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           facebook_url?: string | null
@@ -636,6 +662,7 @@ export type Database = {
           phone_primary?: string | null
           phone_secondary?: string | null
           physical_address?: string | null
+          slug?: string | null
           tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
@@ -1028,6 +1055,7 @@ export type Database = {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      slugify: { Args: { _input: string }; Returns: string }
       validate_safe_url: {
         Args: { _field: string; _url: string }
         Returns: undefined
