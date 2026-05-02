@@ -187,6 +187,18 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
             <Input value={form.physical_address} onChange={e => set("physical_address", e.target.value)} placeholder="123 Avenue..." />
           </div>
 
+          <div>
+            <Label className="text-xs">À propos / Biographie</Label>
+            <Textarea
+              value={form.bio}
+              onChange={e => set("bio", e.target.value)}
+              placeholder="Présentez-vous ou votre organisation en quelques lignes..."
+              rows={4}
+              maxLength={1000}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">{form.bio.length}/1000 — visible sur votre profil public.</p>
+          </div>
+
           {/* Organization */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
