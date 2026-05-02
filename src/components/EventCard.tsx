@@ -96,6 +96,22 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
             </div>
           </div>
         )}
+        {organizerName && organizerId && (
+          <Link
+            to={`/u/${organizerSlug || organizerId}`}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-primary sm:text-xs"
+          >
+            {organizerAvatarUrl ? (
+              <img src={organizerAvatarUrl} alt={organizerName} className="h-4 w-4 shrink-0 rounded-full object-cover sm:h-5 sm:w-5" />
+            ) : (
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-muted sm:h-5 sm:w-5">
+                <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              </span>
+            )}
+            <span className="truncate">par <span className="font-medium underline-offset-2 hover:underline">{organizerName}</span></span>
+          </Link>
+        )}
       </div>
     </motion.div>
   );
