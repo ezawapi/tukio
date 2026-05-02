@@ -181,6 +181,10 @@ const EventDetail = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
     : null;
 
+  const organizerHref = event.organizer_id
+    ? `/u/${organizerProfile?.slug || event.organizer_id}`
+    : null;
+
 
   return (
     <div className="min-h-screen bg-background">
