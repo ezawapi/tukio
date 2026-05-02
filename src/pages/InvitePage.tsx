@@ -80,6 +80,7 @@ const InvitePage = () => {
           expired: "Cette invitation a expiré.",
           used_up: "Cette invitation a atteint son nombre maximum d'utilisations.",
           already_claimed: "Cette invitation a déjà été utilisée par un autre compte.",
+          email_mismatch: "Cette invitation est nominative : connectez-vous avec l'email auquel elle a été envoyée.",
           not_found: "Invitation introuvable.",
           auth_required: "Connexion requise.",
         };
