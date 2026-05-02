@@ -66,6 +66,14 @@ const EventDetail = () => {
       .maybeSingle();
     setEvent(data);
     setLoading(false);
+    if (data?.organizer_id) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("slug, avatar_url, display_name")
+        .eq("id", data.organizer_id)
+        .maybeSingle();
+      setOrganizerProfile(prof as any);
+    }
   };
 
   const fetchComments = async () => {
