@@ -41,6 +41,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         display_name: data.display_name || "",
         avatar_url: data.avatar_url || "",
         video_url: (data as any).video_url || "",
+        bio: (data as any).bio || "",
         phone_primary: (data as any).phone_primary || "",
         phone_secondary: (data as any).phone_secondary || "",
         physical_address: (data as any).physical_address || "",
