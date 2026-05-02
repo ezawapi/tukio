@@ -27,6 +27,7 @@ const EventDetail = () => {
   const { isAdmin } = useUserRole(user?.id);
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
+  const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
