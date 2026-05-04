@@ -48,11 +48,9 @@ const InvitePage = () => {
   const [preview, setPreview] = useState<InvitePreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [redeeming, setRedeeming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -60,10 +58,13 @@ const InvitePage = () => {
       setLoading(true);
       const { data, error } = await supabase.rpc("get_invitation_preview", { _token: token });
       if (error || !data || (Array.isArray(data) && data.length === 0)) {
-        setError("Cette invitation est introuvable ou a été supprimée.");
+        setErrorCode("not_found");
       } else {
         const row = Array.isArray(data) ? data[0] : data;
         setPreview(row as InvitePreview);
+        if ((row as any).is_revoked) setErrorCode("revoked");
+        else if ((row as any).is_expired) setErrorCode("expired");
+        else if ((row as any).is_used_up) setErrorCode("used_up");
       }
       setLoading(false);
     };
@@ -74,7 +75,7 @@ const InvitePage = () => {
   useEffect(() => {
     const tryRedeem = async () => {
       if (authLoading || !user || !token || !preview) return;
-      if (preview.is_expired || preview.is_used_up) return;
+      if (preview.is_expired || preview.is_used_up || preview.is_revoked) return;
       setRedeeming(true);
       const { data, error } = await supabase.rpc("redeem_invitation", { _token: token });
       setRedeeming(false);
@@ -87,25 +88,51 @@ const InvitePage = () => {
         toast({ title: "Invitation acceptée 🎉", description: "Vous avez accès à l'événement." });
         navigate(`/events/${row.event_id}`, { replace: true });
       } else {
-        const msg: Record<string, string> = {
-          expired: "Cette invitation a expiré.",
-          used_up: "Cette invitation a atteint son nombre maximum d'utilisations.",
-          already_claimed: "Cette invitation a déjà été utilisée par un autre compte.",
-          email_mismatch: "Cette invitation est nominative : connectez-vous avec l'email auquel elle a été envoyée.",
-          not_found: "Invitation introuvable.",
-          auth_required: "Connexion requise.",
-        };
-        setError(msg[row?.message || ""] || "Impossible d'accepter cette invitation.");
+        setErrorCode(row?.message || "not_found");
       }
     };
     tryRedeem();
   }, [user, authLoading, token, preview]);
 
   const goToAuth = () => {
-    // Preserve invite link to redirect back after sign-in
     const target = `/invite/${token}`;
     sessionStorage.setItem("post_auth_redirect", target);
     navigate(`/auth?redirect=${encodeURIComponent(target)}`);
+  };
+
+  const switchAccount = async () => {
+    await supabase.auth.signOut();
+    setErrorCode(null);
+    goToAuth();
+  };
+
+  const requestNewInvitation = () => {
+    const subject = `Nouvelle invitation : ${preview?.event_title || ""}`;
+    const body = `Bonjour,\n\nMon invitation pour "${preview?.event_title || ""}" n'est plus valable. Pourriez-vous m'envoyer une nouvelle invitation ?\n\nMerci !`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const renderAccessDenied = () => {
+    if (!errorCode) return null;
+    const meta = ERROR_LABELS[errorCode] || { title: "Accès refusé", desc: "Impossible d'accepter cette invitation." };
+    return (
+      <div className="rounded-lg bg-destructive/10 p-5 text-center space-y-3">
+        <AlertTriangle className="mx-auto h-8 w-8 text-destructive" />
+        <div>
+          <p className="font-display text-base font-semibold text-foreground">{meta.title}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{meta.desc}</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-2">
+          {errorCode === "email_mismatch" || errorCode === "already_claimed" ? (
+            <Button onClick={switchAccount} size="sm" className="gap-2"><LogIn className="h-4 w-4" /> Changer de compte</Button>
+          ) : !user ? (
+            <Button onClick={goToAuth} size="sm" className="gap-2"><LogIn className="h-4 w-4" /> Se connecter</Button>
+          ) : null}
+          <Button onClick={requestNewInvitation} size="sm" variant="outline">Demander une nouvelle invitation</Button>
+          <Link to="/"><Button size="sm" variant="ghost">Accueil</Button></Link>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -116,17 +143,9 @@ const InvitePage = () => {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center space-y-3">
-              <AlertTriangle className="mx-auto h-10 w-10 text-destructive" />
-              <p className="font-body text-sm text-muted-foreground">{error}</p>
-              <Link to="/">
-                <Button variant="outline" size="sm">Retour à l'accueil</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : preview ? (
+        ) : !preview ? (
+          <Card><CardContent className="py-12">{renderAccessDenied()}</CardContent></Card>
+        ) : (
           <Card className="overflow-hidden">
             {preview.event_image_url && (
               <div className="aspect-[16/9] w-full overflow-hidden bg-muted">
@@ -134,7 +153,7 @@ const InvitePage = () => {
               </div>
             )}
             <CardContent className="p-5 space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="secondary" className="gap-1"><Lock className="h-3 w-3" /> Événement privé</Badge>
                 {preview.expires_at && !preview.is_expired && (
                   <Badge variant="outline" className="text-[10px]">
@@ -169,17 +188,7 @@ const InvitePage = () => {
                 </p>
               )}
 
-              {preview.is_expired ? (
-                <div className="rounded-lg bg-destructive/10 p-4 text-center">
-                  <AlertTriangle className="mx-auto h-6 w-6 text-destructive mb-2" />
-                  <p className="font-body text-sm text-destructive">Cette invitation a expiré.</p>
-                </div>
-              ) : preview.is_used_up ? (
-                <div className="rounded-lg bg-destructive/10 p-4 text-center">
-                  <AlertTriangle className="mx-auto h-6 w-6 text-destructive mb-2" />
-                  <p className="font-body text-sm text-destructive">Cette invitation a atteint son nombre maximum d'utilisations.</p>
-                </div>
-              ) : !user ? (
+              {errorCode ? renderAccessDenied() : !user ? (
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
                     Pour accéder à cet événement privé, créez un compte ou connectez-vous. Votre invitation sera automatiquement liée à votre compte.
@@ -200,7 +209,7 @@ const InvitePage = () => {
               )}
             </CardContent>
           </Card>
-        ) : null}
+        )}
       </main>
       <Footer />
     </div>
