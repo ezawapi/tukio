@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { QrCode, Trash2, UserPlus, Copy, Check, MessageCircle, Mail, Clock, Infinity as InfinityIcon, RefreshCw } from "lucide-react";
+import { QrCode, Trash2, UserPlus, Copy, Check, MessageCircle, Mail, Clock, Infinity as InfinityIcon, RefreshCw, Ban } from "lucide-react";
 import QrScanner from "@/components/QrScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
