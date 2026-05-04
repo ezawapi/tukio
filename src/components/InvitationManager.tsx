@@ -173,17 +173,39 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
 
   const isExpired = (inv: any) => inv.expires_at && new Date(inv.expires_at) <= new Date();
   const isUsedUp = (inv: any) => inv.max_uses != null && (inv.uses_count || 0) >= inv.max_uses;
+  const isRevoked = (inv: any) => !!inv.revoked_at;
   const remainingUses = (inv: any) => inv.max_uses != null ? Math.max(0, inv.max_uses - (inv.uses_count || 0)) : null;
+
+  const RESEND_COOLDOWN_MS = 60_000;
+  const resendCooldownLeft = (inv: any) => {
+    if (!inv.last_sent_at) return 0;
+    const left = RESEND_COOLDOWN_MS - (Date.now() - new Date(inv.last_sent_at).getTime());
+    return Math.max(0, left);
+  };
 
   const resendByEmail = async (inv: any) => {
     if (!inv.invited_email) {
       toast({ title: "Aucun email enregistré", description: "Ajoutez un email à l'invitation pour la renvoyer.", variant: "destructive" });
       return;
     }
+    const left = resendCooldownLeft(inv);
+    if (left > 0) {
+      toast({ title: "Patientez", description: `Vous pourrez renvoyer dans ${Math.ceil(left / 1000)}s.`, variant: "destructive" });
+      return;
+    }
     shareViaMail(inv);
     await supabase.from("event_invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", inv.id);
     toast({ title: "Email préparé", description: `Renvoi à ${inv.invited_email}` });
     fetchInvitations();
+  };
+
+  const revokeInvitation = async (id: string) => {
+    if (!confirm("Révoquer cette invitation ? Le lien et le QR code seront immédiatement invalides. L'historique est conservé.")) return;
+    const { error } = await (supabase.from("event_invitations") as any)
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    else { toast({ title: "Invitation révoquée" }); fetchInvitations(); }
   };
 
   const presentCount = invitations.filter((i) => i.attendance_status === "scanned").length;
