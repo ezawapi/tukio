@@ -26,7 +26,18 @@ interface InvitePreview {
   expires_at: string | null;
   is_expired: boolean;
   is_used_up: boolean;
+  is_revoked?: boolean;
 }
+
+const ERROR_LABELS: Record<string, { title: string; desc: string }> = {
+  expired: { title: "Invitation expirée", desc: "La date limite de cette invitation est dépassée. Demandez une nouvelle invitation à l'organisateur." },
+  used_up: { title: "Invitation utilisée", desc: "Cette invitation a atteint son nombre maximum d'utilisations." },
+  revoked: { title: "Invitation révoquée", desc: "Cette invitation a été désactivée par l'organisateur." },
+  already_claimed: { title: "Déjà utilisée", desc: "Cette invitation a déjà été liée à un autre compte." },
+  email_mismatch: { title: "Email différent", desc: "Cette invitation est nominative. Connectez-vous avec l'email auquel elle a été envoyée." },
+  not_found: { title: "Invitation introuvable", desc: "Le lien est invalide ou a été supprimé." },
+  auth_required: { title: "Connexion requise", desc: "Connectez-vous pour accéder à l'événement." },
+};
 
 const InvitePage = () => {
   const { token } = useParams<{ token: string }>();
