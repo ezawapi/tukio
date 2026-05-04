@@ -38,6 +38,7 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
           src={getEventImage(image)}
           alt={title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          style={isFallbackImage(image) ? { objectPosition: "center bottom" } : undefined}
           loading="lazy"
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = getEventImage(null); }}
         />
