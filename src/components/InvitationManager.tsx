@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { QrCode, Trash2, UserPlus, Copy, Check, MessageCircle, Mail, Clock, Infinity as InfinityIcon, RefreshCw } from "lucide-react";
+import { QrCode, Trash2, UserPlus, Copy, Check, MessageCircle, Mail, Clock, Infinity as InfinityIcon, RefreshCw, Ban } from "lucide-react";
 import QrScanner from "@/components/QrScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,17 +173,39 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
 
   const isExpired = (inv: any) => inv.expires_at && new Date(inv.expires_at) <= new Date();
   const isUsedUp = (inv: any) => inv.max_uses != null && (inv.uses_count || 0) >= inv.max_uses;
+  const isRevoked = (inv: any) => !!inv.revoked_at;
   const remainingUses = (inv: any) => inv.max_uses != null ? Math.max(0, inv.max_uses - (inv.uses_count || 0)) : null;
+
+  const RESEND_COOLDOWN_MS = 60_000;
+  const resendCooldownLeft = (inv: any) => {
+    if (!inv.last_sent_at) return 0;
+    const left = RESEND_COOLDOWN_MS - (Date.now() - new Date(inv.last_sent_at).getTime());
+    return Math.max(0, left);
+  };
 
   const resendByEmail = async (inv: any) => {
     if (!inv.invited_email) {
       toast({ title: "Aucun email enregistré", description: "Ajoutez un email à l'invitation pour la renvoyer.", variant: "destructive" });
       return;
     }
+    const left = resendCooldownLeft(inv);
+    if (left > 0) {
+      toast({ title: "Patientez", description: `Vous pourrez renvoyer dans ${Math.ceil(left / 1000)}s.`, variant: "destructive" });
+      return;
+    }
     shareViaMail(inv);
     await supabase.from("event_invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", inv.id);
     toast({ title: "Email préparé", description: `Renvoi à ${inv.invited_email}` });
     fetchInvitations();
+  };
+
+  const revokeInvitation = async (id: string) => {
+    if (!confirm("Révoquer cette invitation ? Le lien et le QR code seront immédiatement invalides. L'historique est conservé.")) return;
+    const { error } = await (supabase.from("event_invitations") as any)
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    else { toast({ title: "Invitation révoquée" }); fetchInvitations(); }
   };
 
   const presentCount = invitations.filter((i) => i.attendance_status === "scanned").length;
@@ -244,13 +266,18 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
             {invitations.map((inv) => {
               const expired = isExpired(inv);
               const usedUp = isUsedUp(inv);
+              const revoked = isRevoked(inv);
+              const blocked = expired || usedUp || revoked;
+              const cooldownLeft = resendCooldownLeft(inv);
               return (
                 <div key={inv.id} className="flex flex-col gap-2 rounded-lg bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <p className="font-body text-sm font-semibold text-foreground truncate">{inv.invited_name}</p>
                     {inv.invited_email && <p className="font-body text-xs text-muted-foreground truncate">{inv.invited_email}</p>}
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {usedUp ? (
+                      {revoked ? (
+                        <Badge variant="destructive" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Révoquée</Badge>
+                      ) : usedUp ? (
                         <Badge variant="destructive" className="text-[10px]">Utilisé</Badge>
                       ) : expired ? (
                         <Badge variant="destructive" className="text-[10px] gap-1"><Clock className="h-3 w-3" />Expiré</Badge>
@@ -259,12 +286,12 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                           {inv.attendance_status === "scanned" ? "✅ Présent" : inv.invited_user_id ? "Compte lié" : "En attente"}
                         </Badge>
                       )}
-                      {!expired && !usedUp && inv.expires_at && (
+                      {!expired && !usedUp && !revoked && inv.expires_at && (
                         <Badge variant="outline" className="text-[10px] gap-1">
                           <Clock className="h-3 w-3" />Exp. {new Date(inv.expires_at).toLocaleDateString("fr-FR")}
                         </Badge>
                       )}
-                      {!inv.expires_at && (
+                      {!inv.expires_at && !revoked && (
                         <Badge variant="outline" className="text-[10px] gap-1"><InfinityIcon className="h-3 w-3" />Lien ouvert</Badge>
                       )}
                       {inv.max_uses != null && (
@@ -281,9 +308,14 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
+                    <Button variant="outline" size="sm" onClick={() => copyLink(inv.qr_code_token)} className="h-8 text-xs gap-1" title="Copier le lien d'invitation" disabled={blocked}>
+                      {copiedId === inv.qr_code_token ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      <span className="hidden sm:inline">Copier</span>
+                    </Button>
+
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1 text-xs h-8" disabled={expired || usedUp}>
+                        <Button variant="outline" size="sm" className="gap-1 text-xs h-8" disabled={blocked}>
                           <QrCode className="h-3.5 w-3.5" /> QR
                         </Button>
                       </DialogTrigger>
@@ -314,22 +346,35 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                     </Dialog>
 
                     {inv.invited_email && (
-                      <Button variant="outline" size="sm" onClick={() => resendByEmail(inv)} className="h-8 text-xs gap-1" title="Renvoyer par email" disabled={expired || usedUp}>
-                        <Mail className="h-3.5 w-3.5" /> Renvoyer
+                      <Button
+                        variant="outline" size="sm"
+                        onClick={() => resendByEmail(inv)}
+                        className="h-8 text-xs gap-1"
+                        title={cooldownLeft > 0 ? `Réessayez dans ${Math.ceil(cooldownLeft / 1000)}s` : "Renvoyer par email"}
+                        disabled={blocked || cooldownLeft > 0}
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        {cooldownLeft > 0 ? `${Math.ceil(cooldownLeft / 1000)}s` : "Renvoyer"}
                       </Button>
                     )}
 
-                    <Button variant="ghost" size="sm" onClick={() => regenerateToken(inv.id)} className="h-8 text-xs gap-1" title="Régénérer le lien (invalide l'ancien)">
+                    <Button variant="ghost" size="sm" onClick={() => regenerateToken(inv.id)} className="h-8 text-xs gap-1" title="Régénérer le lien (invalide l'ancien)" disabled={revoked}>
                       <RefreshCw className="h-3.5 w-3.5" />
                     </Button>
 
-                    {inv.attendance_status !== "scanned" && (
+                    {!revoked && (
+                      <Button variant="ghost" size="sm" onClick={() => revokeInvitation(inv.id)} className="h-8 text-xs gap-1 text-destructive hover:text-destructive" title="Révoquer immédiatement (invalide le lien et le QR)">
+                        <Ban className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+
+                    {inv.attendance_status !== "scanned" && !revoked && (
                       <Button variant="outline" size="sm" onClick={() => markAsPresent(inv.id)} className="h-8 text-xs gap-1">
                         <Check className="h-3.5 w-3.5" /> Présent
                       </Button>
                     )}
 
-                    <Button variant="ghost" size="sm" onClick={() => deleteInvitation(inv.id)} className="h-8 text-xs text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" onClick={() => deleteInvitation(inv.id)} className="h-8 text-xs text-destructive hover:text-destructive" title="Supprimer définitivement">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

@@ -332,6 +332,7 @@ export type Database = {
           last_sent_at: string | null
           max_uses: number | null
           qr_code_token: string
+          revoked_at: string | null
           scanned_at: string | null
           scanned_by: string | null
           status: string
@@ -352,6 +353,7 @@ export type Database = {
           last_sent_at?: string | null
           max_uses?: number | null
           qr_code_token: string
+          revoked_at?: string | null
           scanned_at?: string | null
           scanned_by?: string | null
           status?: string
@@ -372,6 +374,7 @@ export type Database = {
           last_sent_at?: string | null
           max_uses?: number | null
           qr_code_token?: string
+          revoked_at?: string | null
           scanned_at?: string | null
           scanned_by?: string | null
           status?: string
@@ -1069,6 +1072,7 @@ export type Database = {
           invited_email: string
           invited_name: string
           is_expired: boolean
+          is_revoked: boolean
           is_used_up: boolean
           organizer_name: string
         }[]

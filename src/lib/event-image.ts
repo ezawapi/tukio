@@ -11,4 +11,11 @@ export const getEventImage = (url?: string | null): string => {
   return trimmed;
 };
 
+/** True when the URL would resolve to the Tukio fallback image. */
+export const isFallbackImage = (url?: string | null): boolean => {
+  if (!url) return true;
+  const trimmed = url.trim();
+  return !trimmed || trimmed === "/placeholder.svg";
+};
+
 export { defaultEventImg };
