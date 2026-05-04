@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { getCountdown } from "@/lib/countdown";
-import { getEventImage } from "@/lib/event-image";
+import { getEventImage, isFallbackImage } from "@/lib/event-image";
 
 interface EventCardProps {
   title: string;
