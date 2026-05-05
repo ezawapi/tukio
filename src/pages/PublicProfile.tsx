@@ -371,10 +371,10 @@ const PublicProfile = () => {
                   <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground truncate">
                     {profile.display_name || "Organisateur"}
                   </h1>
-                  {profile.organization_role && (
+                  {profile.organization_role && showField("organization_role") && (
                     <p className="text-sm text-muted-foreground">{profile.organization_role}</p>
                   )}
-                  {profile.organization_name && (
+                  {profile.organization_name && showField("organization_name") && (
                     <div className="mt-1 flex items-center gap-1.5 text-sm text-foreground">
                       <Building2 className="h-3.5 w-3.5 text-primary" />
                       <span className="truncate">{profile.organization_name}</span>
