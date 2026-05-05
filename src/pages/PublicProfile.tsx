@@ -476,7 +476,7 @@ const PublicProfile = () => {
           </Card>
 
           {/* About section */}
-          {profile.bio && (
+          {profile.bio && showField("bio") && (
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-foreground">
