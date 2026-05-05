@@ -47,29 +47,50 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const fetchProfile = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url, video_url, bio, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
+      .select("*")
       .eq("id", userId)
       .maybeSingle();
     if (data) {
+      const d: any = data;
       setForm({
-        display_name: data.display_name || "",
-        avatar_url: data.avatar_url || "",
-        video_url: (data as any).video_url || "",
-        bio: (data as any).bio || "",
-        phone_primary: (data as any).phone_primary || "",
-        phone_secondary: (data as any).phone_secondary || "",
-        physical_address: (data as any).physical_address || "",
-        organization_name: (data as any).organization_name || "",
-        organization_role: (data as any).organization_role || "",
-        facebook_url: (data as any).facebook_url || "",
-        instagram_url: (data as any).instagram_url || "",
-        twitter_url: (data as any).twitter_url || "",
-        tiktok_url: (data as any).tiktok_url || "",
-        linkedin_url: (data as any).linkedin_url || "",
-        website_url: (data as any).website_url || "",
+        display_name: d.display_name || "",
+        avatar_url: d.avatar_url || "",
+        cover_url: d.cover_url || "",
+        video_url: d.video_url || "",
+        bio: d.bio || "",
+        phone_primary: d.phone_primary || "",
+        phone_secondary: d.phone_secondary || "",
+        physical_address: d.physical_address || "",
+        organization_name: d.organization_name || "",
+        organization_role: d.organization_role || "",
+        facebook_url: d.facebook_url || "",
+        instagram_url: d.instagram_url || "",
+        twitter_url: d.twitter_url || "",
+        tiktok_url: d.tiktok_url || "",
+        linkedin_url: d.linkedin_url || "",
+        website_url: d.website_url || "",
       });
+      if (d.visibility_settings && typeof d.visibility_settings === "object") {
+        setVisibility({ ...DEFAULT_VISIBILITY, ...d.visibility_settings });
+      }
     }
     setLoaded(true);
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast({ title: "Format invalide", variant: "destructive" }); return; }
+    if (file.size > 4 * 1024 * 1024) { toast({ title: "Max 4 Mo", variant: "destructive" }); return; }
+    setCoverUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${userId}/cover.${ext}`;
+    const { error } = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
+    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); setCoverUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
+    set("cover_url", urlData.publicUrl + "?t=" + Date.now());
+    setCoverUploading(false);
+    toast({ title: "Couverture mise à jour !" });
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
