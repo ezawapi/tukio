@@ -67,7 +67,7 @@ const setEntry = (key: string, data: CachedProfile) => {
 };
 
 const PROFILE_FIELDS =
-  "id, slug, display_name, avatar_url, bio, organization_name, organization_role, physical_address, website_url, facebook_url, instagram_url, twitter_url, linkedin_url, video_url, created_at";
+  "id, slug, display_name, avatar_url, cover_url, bio, organization_name, organization_role, physical_address, phone_primary, phone_secondary, website_url, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, video_url, visibility_settings, created_at";
 
 const isUuid = (v: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
