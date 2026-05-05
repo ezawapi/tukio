@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin } from "lucide-react";
+import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,18 +14,31 @@ interface ProfileEditorProps {
   email: string;
 }
 
+const DEFAULT_VISIBILITY = {
+  bio: true, video_url: true,
+  phone_primary: false, phone_secondary: false, physical_address: false,
+  organization_name: true, organization_role: true,
+  facebook_url: true, instagram_url: true, twitter_url: true,
+  tiktok_url: true, linkedin_url: true, website_url: true,
+};
+
+type VisibilityKey = keyof typeof DEFAULT_VISIBILITY;
+
 const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    display_name: "", avatar_url: "", video_url: "", bio: "",
+    display_name: "", avatar_url: "", cover_url: "", video_url: "", bio: "",
     phone_primary: "", phone_secondary: "", physical_address: "",
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
     tiktok_url: "", linkedin_url: "", website_url: "",
   });
+  const [visibility, setVisibility] = useState<Record<VisibilityKey, boolean>>(DEFAULT_VISIBILITY);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -33,29 +47,50 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const fetchProfile = async () => {
     const { data } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url, video_url, bio, phone_primary, phone_secondary, physical_address, organization_name, organization_role, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, website_url")
+      .select("*")
       .eq("id", userId)
       .maybeSingle();
     if (data) {
+      const d: any = data;
       setForm({
-        display_name: data.display_name || "",
-        avatar_url: data.avatar_url || "",
-        video_url: (data as any).video_url || "",
-        bio: (data as any).bio || "",
-        phone_primary: (data as any).phone_primary || "",
-        phone_secondary: (data as any).phone_secondary || "",
-        physical_address: (data as any).physical_address || "",
-        organization_name: (data as any).organization_name || "",
-        organization_role: (data as any).organization_role || "",
-        facebook_url: (data as any).facebook_url || "",
-        instagram_url: (data as any).instagram_url || "",
-        twitter_url: (data as any).twitter_url || "",
-        tiktok_url: (data as any).tiktok_url || "",
-        linkedin_url: (data as any).linkedin_url || "",
-        website_url: (data as any).website_url || "",
+        display_name: d.display_name || "",
+        avatar_url: d.avatar_url || "",
+        cover_url: d.cover_url || "",
+        video_url: d.video_url || "",
+        bio: d.bio || "",
+        phone_primary: d.phone_primary || "",
+        phone_secondary: d.phone_secondary || "",
+        physical_address: d.physical_address || "",
+        organization_name: d.organization_name || "",
+        organization_role: d.organization_role || "",
+        facebook_url: d.facebook_url || "",
+        instagram_url: d.instagram_url || "",
+        twitter_url: d.twitter_url || "",
+        tiktok_url: d.tiktok_url || "",
+        linkedin_url: d.linkedin_url || "",
+        website_url: d.website_url || "",
       });
+      if (d.visibility_settings && typeof d.visibility_settings === "object") {
+        setVisibility({ ...DEFAULT_VISIBILITY, ...d.visibility_settings });
+      }
     }
     setLoaded(true);
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast({ title: "Format invalide", variant: "destructive" }); return; }
+    if (file.size > 4 * 1024 * 1024) { toast({ title: "Max 4 Mo", variant: "destructive" }); return; }
+    setCoverUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${userId}/cover.${ext}`;
+    const { error } = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
+    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); setCoverUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
+    set("cover_url", urlData.publicUrl + "?t=" + Date.now());
+    setCoverUploading(false);
+    toast({ title: "Couverture mise à jour !" });
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +116,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     const payload: any = {
       display_name: form.display_name.trim() || null,
       avatar_url: form.avatar_url || null,
+      cover_url: form.cover_url || null,
       video_url: form.video_url || null,
       bio: form.bio || null,
       phone_primary: form.phone_primary || null,
@@ -94,6 +130,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       tiktok_url: form.tiktok_url || null,
       linkedin_url: form.linkedin_url || null,
       website_url: form.website_url || null,
+      visibility_settings: visibility,
       updated_at: new Date().toISOString(),
     };
 
@@ -108,6 +145,9 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     else { toast({ title: "Profil enregistré !" }); setEditing(false); }
     setSaving(false);
   };
+
+  const toggleVisibility = (key: VisibilityKey) =>
+    setVisibility(prev => ({ ...prev, [key]: !prev[key] }));
 
   const initials = form.display_name
     ? form.display_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
@@ -141,6 +181,23 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       <div className="flex items-center justify-between">
         <h3 className="font-display text-sm font-semibold text-foreground">Modifier le profil</h3>
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(false)}><X className="h-4 w-4" /></Button>
+      </div>
+
+      {/* Cover banner with upload */}
+      <div className="relative -m-4 mb-2 rounded-t-xl overflow-hidden bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "3 / 1" }}>
+        {form.cover_url && (
+          <img src={form.cover_url} alt="Couverture" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <button
+          type="button"
+          onClick={() => coverRef.current?.click()}
+          disabled={coverUploading}
+          className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-background"
+        >
+          {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+          {form.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
+        </button>
+        <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
       </div>
 
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
@@ -221,6 +278,41 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
               <Input value={form.tiktok_url} onChange={e => set("tiktok_url", e.target.value)} placeholder="TikTok URL" />
               <Input value={form.linkedin_url} onChange={e => set("linkedin_url", e.target.value)} placeholder="LinkedIn URL" />
               <Input value={form.website_url} onChange={e => set("website_url", e.target.value)} placeholder="Site web" />
+            </div>
+          </div>
+
+          {/* Visibility settings */}
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="font-display text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Eye className="h-4 w-4 text-primary" /> Visibilité sur le profil public
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Choisissez quelles informations apparaissent sur votre profil public. Le nom et l'avatar restent toujours visibles.
+            </p>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {([
+                ["bio", "Biographie"],
+                ["video_url", "Vidéo de présentation"],
+                ["organization_name", "Organisation"],
+                ["organization_role", "Fonction / Rôle"],
+                ["physical_address", "Adresse physique"],
+                ["phone_primary", "Téléphone principal"],
+                ["phone_secondary", "Téléphone secondaire"],
+                ["website_url", "Site web"],
+                ["facebook_url", "Facebook"],
+                ["instagram_url", "Instagram"],
+                ["twitter_url", "Twitter / X"],
+                ["tiktok_url", "TikTok"],
+                ["linkedin_url", "LinkedIn"],
+              ] as [VisibilityKey, string][]).map(([key, label]) => (
+                <label key={key} className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    {visibility[key] ? <Eye className="h-3 w-3 text-primary" /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
+                    {label}
+                  </span>
+                  <Switch checked={visibility[key]} onCheckedChange={() => toggleVisibility(key)} />
+                </label>
+              ))}
             </div>
           </div>
 

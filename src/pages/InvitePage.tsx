@@ -106,10 +106,32 @@ const InvitePage = () => {
     goToAuth();
   };
 
-  const requestNewInvitation = () => {
-    const subject = `Nouvelle invitation : ${preview?.event_title || ""}`;
-    const body = `Bonjour,\n\nMon invitation pour "${preview?.event_title || ""}" n'est plus valable. Pourriez-vous m'envoyer une nouvelle invitation ?\n\nMerci !`;
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const [requesting, setRequesting] = useState(false);
+
+  const requestNewInvitation = async () => {
+    if (!token) return;
+    if (!user) {
+      toast({ title: "Connectez-vous d'abord", description: "Connectez-vous avec l'email invité pour demander un nouveau lien." });
+      goToAuth();
+      return;
+    }
+    setRequesting(true);
+    const { data, error } = await supabase.rpc("request_new_invitation" as any, { _token: token });
+    setRequesting(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    const row: any = Array.isArray(data) ? data[0] : data;
+    if (row?.success && row?.new_token) {
+      toast({ title: "Nouveau lien généré 🎉", description: "Redirection vers votre nouvelle invitation..." });
+      navigate(`/invite/${row.new_token}`, { replace: true });
+    } else {
+      // Fallback: open mailto so user can ask the organizer manually
+      const subject = `Nouvelle invitation : ${preview?.event_title || ""}`;
+      const body = `Bonjour,\n\nMon invitation pour "${preview?.event_title || ""}" n'est plus valable. Pourriez-vous m'envoyer une nouvelle invitation ?\n\nMerci !`;
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
   };
 
   const renderAccessDenied = () => {
@@ -128,7 +150,9 @@ const InvitePage = () => {
           ) : !user ? (
             <Button onClick={goToAuth} size="sm" className="gap-2"><LogIn className="h-4 w-4" /> Se connecter</Button>
           ) : null}
-          <Button onClick={requestNewInvitation} size="sm" variant="outline">Demander une nouvelle invitation</Button>
+          <Button onClick={requestNewInvitation} size="sm" variant="outline" disabled={requesting}>
+            {requesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Demander une nouvelle invitation"}
+          </Button>
           <Link to="/"><Button size="sm" variant="ghost">Accueil</Button></Link>
         </div>
       </div>

@@ -86,8 +86,59 @@ const SecondaryCard = ({ banner, idx, locked }: { banner: any; idx: number; lock
 
 export const renderBannerCard = (banner: any) => <FeaturedCard banner={banner} />;
 
+// Smart redirect for "Install Tukio" banner: detect platform + auth and pick best target
+const isInstallBanner = (banner: any) =>
+  /install/i.test(banner?.title || "") ||
+  /install/i.test(banner?.body || "") ||
+  /install=1/.test(banner?.button_url || "");
+
+const resolveInstallTarget = async (): Promise<{ url: string; external: boolean }> => {
+  // Already installed PWA?
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as any).standalone === true;
+  if (isStandalone) return { url: "/", external: false };
+
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+  const isAndroid = /Android/i.test(ua);
+
+  // Logged-in users: deep link to app or settings/install help
+  const { data } = await supabase.auth.getSession();
+  const loggedIn = !!data.session;
+
+  if (isIOS) return { url: "/?install=ios", external: false };
+  if (isAndroid) return { url: "/?install=android", external: false };
+  return { url: loggedIn ? "/?install=web" : "/auth?install=1", external: false };
+};
+
+const SmartInstallLink = ({
+  banner,
+  onClick,
+  children,
+}: {
+  banner: any;
+  onClick: (id: string) => void;
+  children: React.ReactNode;
+}) => {
+  const handle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    onClick(banner.id);
+    const { url } = await resolveInstallTarget();
+    window.location.href = url;
+  };
+  return (
+    <a href={banner.button_url || "/?install=1"} onClick={handle} className="block h-full">
+      {children}
+    </a>
+  );
+};
+
 const wrapWithLink = (banner: any, child: React.ReactNode, onClick: (id: string) => void) => {
   const handleClick = () => onClick(banner.id);
+  if (isInstallBanner(banner)) {
+    return <SmartInstallLink key={banner.id} banner={banner} onClick={onClick}>{child}</SmartInstallLink>;
+  }
   if (!banner.button_url) return <div key={banner.id} className="block h-full">{child}</div>;
   const isExternal = banner.button_url?.startsWith("http");
   if (isExternal)

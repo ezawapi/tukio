@@ -320,6 +320,9 @@ const PublicProfile = () => {
   const memberSince = format(new Date(profile.created_at), "MMMM yyyy", { locale: fr });
   const isSelf = user?.id === profile.id;
 
+  const vis = (profile?.visibility_settings || {}) as Record<string, boolean>;
+  const showField = (key: string, defaultVal = true) => (key in vis ? !!vis[key] : defaultVal);
+
   const renderCard = (e: any) => (
     <Link key={e.id} to={`/events/${e.id}`} className="block">
       <EventCard
@@ -348,7 +351,11 @@ const PublicProfile = () => {
 
           {/* Header */}
           <Card className="mb-6 overflow-hidden">
-            <div className="h-24 sm:h-32 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" />
+            <div className="relative h-32 sm:h-44 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: profile.cover_url ? "3 / 1" : undefined }}>
+              {profile.cover_url && (
+                <img src={profile.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              )}
+            </div>
             <CardContent className="relative pt-0">
               <div className="-mt-12 sm:-mt-16 flex flex-col gap-4 sm:flex-row sm:items-end">
                 <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-background bg-muted shrink-0">
@@ -364,10 +371,10 @@ const PublicProfile = () => {
                   <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground truncate">
                     {profile.display_name || "Organisateur"}
                   </h1>
-                  {profile.organization_role && (
+                  {profile.organization_role && showField("organization_role") && (
                     <p className="text-sm text-muted-foreground">{profile.organization_role}</p>
                   )}
-                  {profile.organization_name && (
+                  {profile.organization_name && showField("organization_name") && (
                     <div className="mt-1 flex items-center gap-1.5 text-sm text-foreground">
                       <Building2 className="h-3.5 w-3.5 text-primary" />
                       <span className="truncate">{profile.organization_name}</span>
@@ -428,7 +435,7 @@ const PublicProfile = () => {
                 </div>
               </div>
 
-              {profile.physical_address && (
+              {profile.physical_address && showField("physical_address", false) && (
                 <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <span>{profile.physical_address}</span>
@@ -436,29 +443,29 @@ const PublicProfile = () => {
               )}
 
               {/* Socials */}
-              {(profile.website_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
+              {((profile.website_url && showField("website_url")) || (profile.facebook_url && showField("facebook_url")) || (profile.instagram_url && showField("instagram_url")) || (profile.twitter_url && showField("twitter_url")) || (profile.linkedin_url && showField("linkedin_url"))) && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {profile.website_url && (
+                  {profile.website_url && showField("website_url") && (
                     <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Globe className="h-3.5 w-3.5" /> Site
                     </a>
                   )}
-                  {profile.facebook_url && (
+                  {profile.facebook_url && showField("facebook_url") && (
                     <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Facebook className="h-3.5 w-3.5" /> Facebook
                     </a>
                   )}
-                  {profile.instagram_url && (
+                  {profile.instagram_url && showField("instagram_url") && (
                     <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Instagram className="h-3.5 w-3.5" /> Instagram
                     </a>
                   )}
-                  {profile.twitter_url && (
+                  {profile.twitter_url && showField("twitter_url") && (
                     <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Twitter className="h-3.5 w-3.5" /> Twitter
                     </a>
                   )}
-                  {profile.linkedin_url && (
+                  {profile.linkedin_url && showField("linkedin_url") && (
                     <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Linkedin className="h-3.5 w-3.5" /> LinkedIn
                     </a>
@@ -469,7 +476,7 @@ const PublicProfile = () => {
           </Card>
 
           {/* About section */}
-          {profile.bio && (
+          {profile.bio && showField("bio") && (
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-foreground">

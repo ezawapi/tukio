@@ -193,8 +193,23 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
       toast({ title: "Patientez", description: `Vous pourrez renvoyer dans ${Math.ceil(left / 1000)}s.`, variant: "destructive" });
       return;
     }
+    // Server-side rate limit (defense in depth, beyond UI cooldown)
+    const { data, error } = await supabase.rpc("mark_invitation_resent" as any, { _invitation_id: inv.id });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    const row: any = Array.isArray(data) ? data[0] : data;
+    if (!row?.success) {
+      if (row?.message === "cooldown") {
+        toast({ title: "Trop de renvois", description: `Veuillez patienter ${row.wait_seconds || 60}s avant de renvoyer.`, variant: "destructive" });
+      } else {
+        toast({ title: "Action refusée", description: row?.message || "Impossible de renvoyer.", variant: "destructive" });
+      }
+      fetchInvitations();
+      return;
+    }
     shareViaMail(inv);
-    await supabase.from("event_invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", inv.id);
     toast({ title: "Email préparé", description: `Renvoi à ${inv.invited_email}` });
     fetchInvitations();
   };
@@ -276,7 +291,12 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                     {inv.invited_email && <p className="font-body text-xs text-muted-foreground truncate">{inv.invited_email}</p>}
                     <div className="mt-1 flex flex-wrap gap-1">
                       {revoked ? (
-                        <Badge variant="destructive" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Révoquée</Badge>
+                        <>
+                          <Badge variant="destructive" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Révoquée</Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            le {new Date(inv.revoked_at).toLocaleDateString("fr-FR")} · {inv.uses_count || 0} util.
+                          </Badge>
+                        </>
                       ) : usedUp ? (
                         <Badge variant="destructive" className="text-[10px]">Utilisé</Badge>
                       ) : expired ? (

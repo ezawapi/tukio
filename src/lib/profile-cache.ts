@@ -5,16 +5,21 @@ export interface CachedProfile {
   slug: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   bio: string | null;
   organization_name: string | null;
   organization_role: string | null;
   physical_address: string | null;
+  phone_primary: string | null;
+  phone_secondary: string | null;
   website_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
   twitter_url: string | null;
+  tiktok_url: string | null;
   linkedin_url: string | null;
   video_url: string | null;
+  visibility_settings: Record<string, boolean> | null;
   created_at: string;
 }
 
@@ -62,7 +67,7 @@ const setEntry = (key: string, data: CachedProfile) => {
 };
 
 const PROFILE_FIELDS =
-  "id, slug, display_name, avatar_url, bio, organization_name, organization_role, physical_address, website_url, facebook_url, instagram_url, twitter_url, linkedin_url, video_url, created_at";
+  "id, slug, display_name, avatar_url, cover_url, bio, organization_name, organization_role, physical_address, phone_primary, phone_secondary, website_url, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, video_url, visibility_settings, created_at";
 
 const isUuid = (v: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
