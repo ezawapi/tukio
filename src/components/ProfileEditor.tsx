@@ -116,6 +116,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     const payload: any = {
       display_name: form.display_name.trim() || null,
       avatar_url: form.avatar_url || null,
+      cover_url: form.cover_url || null,
       video_url: form.video_url || null,
       bio: form.bio || null,
       phone_primary: form.phone_primary || null,
@@ -129,6 +130,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       tiktok_url: form.tiktok_url || null,
       linkedin_url: form.linkedin_url || null,
       website_url: form.website_url || null,
+      visibility_settings: visibility,
       updated_at: new Date().toISOString(),
     };
 
@@ -143,6 +145,9 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     else { toast({ title: "Profil enregistré !" }); setEditing(false); }
     setSaving(false);
   };
+
+  const toggleVisibility = (key: VisibilityKey) =>
+    setVisibility(prev => ({ ...prev, [key]: !prev[key] }));
 
   const initials = form.display_name
     ? form.display_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
