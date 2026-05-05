@@ -281,6 +281,41 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
             </div>
           </div>
 
+          {/* Visibility settings */}
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="font-display text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <Eye className="h-4 w-4 text-primary" /> Visibilité sur le profil public
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Choisissez quelles informations apparaissent sur votre profil public. Le nom et l'avatar restent toujours visibles.
+            </p>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {([
+                ["bio", "Biographie"],
+                ["video_url", "Vidéo de présentation"],
+                ["organization_name", "Organisation"],
+                ["organization_role", "Fonction / Rôle"],
+                ["physical_address", "Adresse physique"],
+                ["phone_primary", "Téléphone principal"],
+                ["phone_secondary", "Téléphone secondaire"],
+                ["website_url", "Site web"],
+                ["facebook_url", "Facebook"],
+                ["instagram_url", "Instagram"],
+                ["twitter_url", "Twitter / X"],
+                ["tiktok_url", "TikTok"],
+                ["linkedin_url", "LinkedIn"],
+              ] as [VisibilityKey, string][]).map(([key, label]) => (
+                <label key={key} className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    {visibility[key] ? <Eye className="h-3 w-3 text-primary" /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
+                    {label}
+                  </span>
+                  <Switch checked={visibility[key]} onCheckedChange={() => toggleVisibility(key)} />
+                </label>
+              ))}
+            </div>
+          </div>
+
           <p className="font-body text-sm text-muted-foreground break-all">{email}</p>
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={saving} className="gap-2">
