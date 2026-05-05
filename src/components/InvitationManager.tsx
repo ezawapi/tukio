@@ -193,8 +193,23 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
       toast({ title: "Patientez", description: `Vous pourrez renvoyer dans ${Math.ceil(left / 1000)}s.`, variant: "destructive" });
       return;
     }
+    // Server-side rate limit (defense in depth, beyond UI cooldown)
+    const { data, error } = await supabase.rpc("mark_invitation_resent" as any, { _invitation_id: inv.id });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    const row: any = Array.isArray(data) ? data[0] : data;
+    if (!row?.success) {
+      if (row?.message === "cooldown") {
+        toast({ title: "Trop de renvois", description: `Veuillez patienter ${row.wait_seconds || 60}s avant de renvoyer.`, variant: "destructive" });
+      } else {
+        toast({ title: "Action refusée", description: row?.message || "Impossible de renvoyer.", variant: "destructive" });
+      }
+      fetchInvitations();
+      return;
+    }
     shareViaMail(inv);
-    await supabase.from("event_invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", inv.id);
     toast({ title: "Email préparé", description: `Renvoi à ${inv.invited_email}` });
     fetchInvitations();
   };
