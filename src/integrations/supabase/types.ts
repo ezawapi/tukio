@@ -624,6 +624,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cover_url: string | null
           created_at: string
           display_name: string | null
           facebook_url: string | null
@@ -641,11 +642,13 @@ export type Database = {
           twitter_url: string | null
           updated_at: string
           video_url: string | null
+          visibility_settings: Json
           website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           facebook_url?: string | null
@@ -663,11 +666,13 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           video_url?: string | null
+          visibility_settings?: Json
           website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           facebook_url?: string | null
@@ -685,6 +690,7 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           video_url?: string | null
+          visibility_settings?: Json
           website_url?: string | null
         }
         Relationships: []
@@ -1093,11 +1099,27 @@ export type Database = {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      mark_invitation_resent: {
+        Args: { _invitation_id: string }
+        Returns: {
+          message: string
+          success: boolean
+          wait_seconds: number
+        }[]
+      }
       redeem_invitation: {
         Args: { _token: string }
         Returns: {
           event_id: string
           message: string
+          success: boolean
+        }[]
+      }
+      request_new_invitation: {
+        Args: { _token: string }
+        Returns: {
+          message: string
+          new_token: string
           success: boolean
         }[]
       }
