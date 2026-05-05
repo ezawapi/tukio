@@ -14,18 +14,31 @@ interface ProfileEditorProps {
   email: string;
 }
 
+const DEFAULT_VISIBILITY = {
+  bio: true, video_url: true,
+  phone_primary: false, phone_secondary: false, physical_address: false,
+  organization_name: true, organization_role: true,
+  facebook_url: true, instagram_url: true, twitter_url: true,
+  tiktok_url: true, linkedin_url: true, website_url: true,
+};
+
+type VisibilityKey = keyof typeof DEFAULT_VISIBILITY;
+
 const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    display_name: "", avatar_url: "", video_url: "", bio: "",
+    display_name: "", avatar_url: "", cover_url: "", video_url: "", bio: "",
     phone_primary: "", phone_secondary: "", physical_address: "",
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
     tiktok_url: "", linkedin_url: "", website_url: "",
   });
+  const [visibility, setVisibility] = useState<Record<VisibilityKey, boolean>>(DEFAULT_VISIBILITY);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
