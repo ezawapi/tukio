@@ -348,7 +348,11 @@ const PublicProfile = () => {
 
           {/* Header */}
           <Card className="mb-6 overflow-hidden">
-            <div className="h-24 sm:h-32 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" />
+            <div className="relative h-32 sm:h-44 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: profile.cover_url ? "3 / 1" : undefined }}>
+              {profile.cover_url && (
+                <img src={profile.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              )}
+            </div>
             <CardContent className="relative pt-0">
               <div className="-mt-12 sm:-mt-16 flex flex-col gap-4 sm:flex-row sm:items-end">
                 <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-background bg-muted shrink-0">
