@@ -5,16 +5,21 @@ export interface CachedProfile {
   slug: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   bio: string | null;
   organization_name: string | null;
   organization_role: string | null;
   physical_address: string | null;
+  phone_primary: string | null;
+  phone_secondary: string | null;
   website_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
   twitter_url: string | null;
+  tiktok_url: string | null;
   linkedin_url: string | null;
   video_url: string | null;
+  visibility_settings: Record<string, boolean> | null;
   created_at: string;
 }
 
