@@ -320,6 +320,9 @@ const PublicProfile = () => {
   const memberSince = format(new Date(profile.created_at), "MMMM yyyy", { locale: fr });
   const isSelf = user?.id === profile.id;
 
+  const vis = (profile?.visibility_settings || {}) as Record<string, boolean>;
+  const showField = (key: string, defaultVal = true) => (key in vis ? !!vis[key] : defaultVal);
+
   const renderCard = (e: any) => (
     <Link key={e.id} to={`/events/${e.id}`} className="block">
       <EventCard
