@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin } from "lucide-react";
+import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
