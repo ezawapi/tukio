@@ -435,7 +435,7 @@ const PublicProfile = () => {
                 </div>
               </div>
 
-              {profile.physical_address && (
+              {profile.physical_address && showField("physical_address", false) && (
                 <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                   <span>{profile.physical_address}</span>
