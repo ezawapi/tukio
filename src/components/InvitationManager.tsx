@@ -291,7 +291,12 @@ const InvitationManager = ({ eventId, eventTitle }: InvitationManagerProps) => {
                     {inv.invited_email && <p className="font-body text-xs text-muted-foreground truncate">{inv.invited_email}</p>}
                     <div className="mt-1 flex flex-wrap gap-1">
                       {revoked ? (
-                        <Badge variant="destructive" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Révoquée</Badge>
+                        <>
+                          <Badge variant="destructive" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Révoquée</Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            le {new Date(inv.revoked_at).toLocaleDateString("fr-FR")} · {inv.uses_count || 0} util.
+                          </Badge>
+                        </>
                       ) : usedUp ? (
                         <Badge variant="destructive" className="text-[10px]">Utilisé</Badge>
                       ) : expired ? (
