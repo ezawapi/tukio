@@ -183,6 +183,23 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(false)}><X className="h-4 w-4" /></Button>
       </div>
 
+      {/* Cover banner with upload */}
+      <div className="relative -m-4 mb-2 rounded-t-xl overflow-hidden bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "3 / 1" }}>
+        {form.cover_url && (
+          <img src={form.cover_url} alt="Couverture" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <button
+          type="button"
+          onClick={() => coverRef.current?.click()}
+          disabled={coverUploading}
+          className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-background"
+        >
+          {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+          {form.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
+        </button>
+        <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+      </div>
+
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
         <div className="relative">
           <Avatar className="h-20 w-20 border-2 border-border">
