@@ -443,29 +443,29 @@ const PublicProfile = () => {
               )}
 
               {/* Socials */}
-              {(profile.website_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.linkedin_url) && (
+              {((profile.website_url && showField("website_url")) || (profile.facebook_url && showField("facebook_url")) || (profile.instagram_url && showField("instagram_url")) || (profile.twitter_url && showField("twitter_url")) || (profile.linkedin_url && showField("linkedin_url"))) && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {profile.website_url && (
+                  {profile.website_url && showField("website_url") && (
                     <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Globe className="h-3.5 w-3.5" /> Site
                     </a>
                   )}
-                  {profile.facebook_url && (
+                  {profile.facebook_url && showField("facebook_url") && (
                     <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Facebook className="h-3.5 w-3.5" /> Facebook
                     </a>
                   )}
-                  {profile.instagram_url && (
+                  {profile.instagram_url && showField("instagram_url") && (
                     <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Instagram className="h-3.5 w-3.5" /> Instagram
                     </a>
                   )}
-                  {profile.twitter_url && (
+                  {profile.twitter_url && showField("twitter_url") && (
                     <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Twitter className="h-3.5 w-3.5" /> Twitter
                     </a>
                   )}
-                  {profile.linkedin_url && (
+                  {profile.linkedin_url && showField("linkedin_url") && (
                     <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary">
                       <Linkedin className="h-3.5 w-3.5" /> LinkedIn
                     </a>
