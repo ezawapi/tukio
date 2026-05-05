@@ -150,7 +150,9 @@ const InvitePage = () => {
           ) : !user ? (
             <Button onClick={goToAuth} size="sm" className="gap-2"><LogIn className="h-4 w-4" /> Se connecter</Button>
           ) : null}
-          <Button onClick={requestNewInvitation} size="sm" variant="outline">Demander une nouvelle invitation</Button>
+          <Button onClick={requestNewInvitation} size="sm" variant="outline" disabled={requesting}>
+            {requesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Demander une nouvelle invitation"}
+          </Button>
           <Link to="/"><Button size="sm" variant="ghost">Accueil</Button></Link>
         </div>
       </div>
