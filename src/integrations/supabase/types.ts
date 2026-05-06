@@ -396,6 +396,7 @@ export type Database = {
           ad_slot_hint: string | null
           admin_notes: string | null
           attendees_count: number | null
+          author_id: string | null
           capacity: number | null
           category_id: string | null
           city: string
@@ -420,6 +421,7 @@ export type Database = {
           location: string
           longitude: number | null
           organizer_id: string | null
+          organizer_logo_url: string | null
           organizer_name: string | null
           phone1: string | null
           phone2: string | null
@@ -441,6 +443,7 @@ export type Database = {
           ad_slot_hint?: string | null
           admin_notes?: string | null
           attendees_count?: number | null
+          author_id?: string | null
           capacity?: number | null
           category_id?: string | null
           city?: string
@@ -465,6 +468,7 @@ export type Database = {
           location: string
           longitude?: number | null
           organizer_id?: string | null
+          organizer_logo_url?: string | null
           organizer_name?: string | null
           phone1?: string | null
           phone2?: string | null
@@ -486,6 +490,7 @@ export type Database = {
           ad_slot_hint?: string | null
           admin_notes?: string | null
           attendees_count?: number | null
+          author_id?: string | null
           capacity?: number | null
           category_id?: string | null
           city?: string
@@ -510,6 +515,7 @@ export type Database = {
           location?: string
           longitude?: number | null
           organizer_id?: string | null
+          organizer_logo_url?: string | null
           organizer_name?: string | null
           phone1?: string | null
           phone2?: string | null
