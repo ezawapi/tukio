@@ -66,6 +66,7 @@ const EditEvent = () => {
       latitude: data.latitude?.toString() || "",
       longitude: data.longitude?.toString() || "",
       organizer_name: data.organizer_name || "",
+      organizer_logo_url: data.organizer_logo_url || "",
       phone1: data.phone1 || "",
       phone2: data.phone2 || "",
       contact_email: data.contact_email || "",
