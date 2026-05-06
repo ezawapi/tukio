@@ -93,6 +93,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
         description: form.description || null,
         category_id: form.category_id || null,
         organizer_name: form.organizer_name || null,
+        organizer_logo_url: form.organizer_logo_url || null,
         date: new Date(form.date).toISOString(),
         end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
         location: form.location,
