@@ -324,7 +324,8 @@ const Index = () => {
             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
               loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/10" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
               <Badge className="border-0 bg-secondary/90 text-[9px] font-semibold text-secondary-foreground backdrop-blur-sm px-2 py-1 sm:text-xs">
                 {formatEventPrice(event.price, event.currency)}
