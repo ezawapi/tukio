@@ -70,6 +70,17 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label className="font-body">Logo / image de l'organisateur (URL, facultatif)</Label>
+        <Input
+          type="url"
+          value={form.organizer_logo_url || ""}
+          onChange={(e) => onChange("organizer_logo_url", e.target.value)}
+          placeholder="https://exemple.com/logo.png"
+        />
+        <p className="text-xs text-muted-foreground">Utile si l'organisateur est différent de l'utilisateur qui publie.</p>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label className="font-body">Visibilité</Label>

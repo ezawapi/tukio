@@ -28,6 +28,7 @@ const EventDetail = () => {
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
+  const [authorProfile, setAuthorProfile] = useState<{ id: string; slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
@@ -96,6 +97,17 @@ const EventDetail = () => {
       if (ident) {
         import("@/lib/profile-cache").then((m) => m.prefetchPublicProfile(ident));
       }
+    }
+    const authorId = (data as any)?.author_id || data?.organizer_id;
+    if (authorId) {
+      const { data: aprof } = await supabase
+        .from("profiles")
+        .select("id, slug, avatar_url, display_name")
+        .eq("id", authorId)
+        .maybeSingle();
+      setAuthorProfile(aprof as any);
+    } else {
+      setAuthorProfile(null);
     }
   };
 
@@ -321,7 +333,9 @@ const EventDetail = () => {
                     <div className="flex items-center gap-3 text-sm">
                       {organizerHref ? (
                         <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
-                          {organizerProfile?.avatar_url ? (
+                          {event.organizer_logo_url ? (
+                            <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
+                          ) : organizerProfile?.avatar_url ? (
                             <img src={organizerProfile.avatar_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
                           ) : (
                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -332,10 +346,27 @@ const EventDetail = () => {
                         </Link>
                       ) : (
                         <>
-                          <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          {event.organizer_logo_url ? (
+                            <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
+                          ) : (
+                            <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          )}
                           <p className="font-body text-foreground">{event.organizer_name}</p>
                         </>
                       )}
+                    </div>
+                  )}
+                  {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
+                    <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
+                      <span>Publié par</span>
+                      <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
+                        {authorProfile.avatar_url ? (
+                          <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted"><User className="h-3 w-3" /></span>
+                        )}
+                        <span className="font-medium underline-offset-2 hover:underline">{authorProfile.display_name}</span>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -538,7 +569,9 @@ const EventDetail = () => {
                     <div className="flex items-center gap-3 text-sm">
                       {organizerHref ? (
                         <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
-                          {organizerProfile?.avatar_url ? (
+                          {event.organizer_logo_url ? (
+                            <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
+                          ) : organizerProfile?.avatar_url ? (
                             <img src={organizerProfile.avatar_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
                           ) : (
                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -549,10 +582,27 @@ const EventDetail = () => {
                         </Link>
                       ) : (
                         <>
-                          <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          {event.organizer_logo_url ? (
+                            <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
+                          ) : (
+                            <User className="h-5 w-5 flex-shrink-0 text-primary" />
+                          )}
                           <p className="font-body text-foreground">{event.organizer_name}</p>
                         </>
                       )}
+                    </div>
+                  )}
+                  {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
+                    <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
+                      <span>Publié par</span>
+                      <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
+                        {authorProfile.avatar_url ? (
+                          <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted"><User className="h-3 w-3" /></span>
+                        )}
+                        <span className="font-medium underline-offset-2 hover:underline">{authorProfile.display_name}</span>
+                      </Link>
                     </div>
                   )}
                 </div>
