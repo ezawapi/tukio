@@ -98,6 +98,17 @@ const EventDetail = () => {
         import("@/lib/profile-cache").then((m) => m.prefetchPublicProfile(ident));
       }
     }
+    const authorId = (data as any)?.author_id || data?.organizer_id;
+    if (authorId) {
+      const { data: aprof } = await supabase
+        .from("profiles")
+        .select("id, slug, avatar_url, display_name")
+        .eq("id", authorId)
+        .maybeSingle();
+      setAuthorProfile(aprof as any);
+    } else {
+      setAuthorProfile(null);
+    }
   };
 
   const fetchComments = async () => {
