@@ -59,6 +59,7 @@ const CreateEvent = () => {
     image_url: "",
     image_url2: "",
     organizer_name: "",
+    organizer_logo_url: "",
     latitude: "",
     longitude: "",
     phone1: "",
