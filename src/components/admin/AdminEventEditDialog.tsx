@@ -33,6 +33,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
       description: event.description || "",
       category_id: event.category_id || "",
       organizer_name: event.organizer_name || "",
+      organizer_logo_url: event.organizer_logo_url || "",
       date: toDateTimeLocal(event.date),
       end_date: toDateTimeLocal(event.end_date),
       location: event.location || "",
