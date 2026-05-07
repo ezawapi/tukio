@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon } from "lucide-react";
+import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon, UserCircle2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
