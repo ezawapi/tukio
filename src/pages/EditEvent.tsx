@@ -98,6 +98,13 @@ const EditEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !user) return;
+
+    const logo = (form.organizer_logo_url || "").trim();
+    if (logo && !/^https?:\/\/.+/i.test(logo)) {
+      toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
 
     const { error } = await supabase
@@ -117,7 +124,7 @@ const EditEvent = () => {
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         organizer_name: form.organizer_name || null,
-        organizer_logo_url: form.organizer_logo_url || null,
+        organizer_logo_url: logo || null,
         phone1: form.phone1 || null,
         phone2: form.phone2 || null,
         contact_email: form.contact_email || null,
@@ -148,7 +155,8 @@ const EditEvent = () => {
       });
 
       toast({ title: "Modification soumise !", description: "Votre modification sera revue par l'administrateur." });
-      navigate(`/events/${id}`);
+      if (window.history.length > 1) navigate(-1);
+      else navigate(`/events/${id}`);
     }
     setSaving(false);
   };

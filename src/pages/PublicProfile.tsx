@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/use-user-role";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -33,6 +34,7 @@ const PublicProfile = () => {
   const params = useParams<{ userId?: string; slug?: string }>();
   const identifier = params.slug || params.userId || "";
   const { user } = useAuth();
+  const { isAdmin } = useUserRole(user?.id);
   const { toast } = useToast();
 
   // Hydrate from cache for instant paint on mobile
@@ -417,21 +419,23 @@ const PublicProfile = () => {
                       {isFollowing ? "Suivi" : "Suivre"}
                     </Button>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5">
-                        <Download className="h-3.5 w-3.5" /> Exporter
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={exportCsv} className="gap-2">
-                        <FileText className="h-4 w-4" /> Télécharger CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={exportPdf} className="gap-2">
-                        <FileText className="h-4 w-4" /> Télécharger PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {isAdmin && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Download className="h-3.5 w-3.5" /> Exporter
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={exportCsv} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={exportPdf} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
 

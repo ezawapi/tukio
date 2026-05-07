@@ -102,6 +102,12 @@ const CreateEvent = () => {
       return;
     }
 
+    const logo = (form.organizer_logo_url || "").trim();
+    if (logo && !/^https?:\/\/.+/i.test(logo)) {
+      toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.from("events").insert({
@@ -119,7 +125,7 @@ const CreateEvent = () => {
       image_url: form.image_url || null,
       image_url2: form.image_url2 || null,
       organizer_name: form.organizer_name,
-      organizer_logo_url: form.organizer_logo_url || null,
+      organizer_logo_url: logo || null,
       organizer_id: user.id,
       author_id: user.id,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
@@ -147,7 +153,8 @@ const CreateEvent = () => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Événement soumis !", description: "Il sera visible après validation par l'administrateur." });
-      navigate("/events");
+      if (window.history.length > 1) navigate(-1);
+      else navigate("/my-events");
     }
   };
 

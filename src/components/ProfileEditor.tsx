@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon } from "lucide-react";
+import { Camera, User, Save, Loader2, Pencil, X, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Eye, EyeOff, Image as ImageIcon, UserCircle2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
     tiktok_url: "", linkedin_url: "", website_url: "",
+    account_type: "user" as "user" | "organizer",
   });
   const [visibility, setVisibility] = useState<Record<VisibilityKey, boolean>>(DEFAULT_VISIBILITY);
   const [saving, setSaving] = useState(false);
@@ -69,6 +70,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         tiktok_url: d.tiktok_url || "",
         linkedin_url: d.linkedin_url || "",
         website_url: d.website_url || "",
+        account_type: (d.account_type === "organizer" ? "organizer" : "user"),
       });
       if (d.visibility_settings && typeof d.visibility_settings === "object") {
         setVisibility({ ...DEFAULT_VISIBILITY, ...d.visibility_settings });
@@ -130,6 +132,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       tiktok_url: form.tiktok_url || null,
       linkedin_url: form.linkedin_url || null,
       website_url: form.website_url || null,
+      account_type: form.account_type,
       visibility_settings: visibility,
       updated_at: new Date().toISOString(),
     };
@@ -215,6 +218,39 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         </div>
 
         <div className="flex-1 w-full space-y-4">
+          {/* Account type — required */}
+          <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-3 ring-1 ring-primary/10">
+            <p className="font-display text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <UserCircle2 className="h-4 w-4 text-primary" /> Type de compte <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Précisez si vous utilisez Tukio à titre personnel ou en tant qu'organisateur d'événements.
+            </p>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {([
+                ["user", "Utilisateur normal", "Je découvre et participe à des événements", UserCircle2],
+                ["organizer", "Organisateur", "Je publie et gère mes propres événements", Briefcase],
+              ] as const).map(([value, label, desc, Icon]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => set("account_type", value)}
+                  className={`flex items-start gap-2 rounded-md border-2 p-2.5 text-left transition-colors ${
+                    form.account_type === value
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-background hover:border-primary/50"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${form.account_type === value ? "text-primary" : "text-muted-foreground"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground">{label}</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Basic */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>

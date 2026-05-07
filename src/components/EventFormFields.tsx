@@ -72,13 +72,30 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
 
       <div className="space-y-2">
         <Label className="font-body">Logo / image de l'organisateur (URL, facultatif)</Label>
-        <Input
-          type="url"
-          value={form.organizer_logo_url || ""}
-          onChange={(e) => onChange("organizer_logo_url", e.target.value)}
-          placeholder="https://exemple.com/logo.png"
-        />
-        <p className="text-xs text-muted-foreground">Utile si l'organisateur est différent de l'utilisateur qui publie.</p>
+        <div className="flex items-start gap-3">
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-muted flex items-center justify-center">
+            {form.organizer_logo_url && /^https?:\/\//i.test(form.organizer_logo_url) ? (
+              <img
+                src={form.organizer_logo_url}
+                alt="Aperçu logo"
+                className="h-full w-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <span className="text-[10px] text-muted-foreground text-center px-1">Aperçu</span>
+            )}
+          </div>
+          <div className="flex-1">
+            <Input
+              type="url"
+              value={form.organizer_logo_url || ""}
+              onChange={(e) => onChange("organizer_logo_url", e.target.value.trim())}
+              placeholder="https://exemple.com/logo.png"
+              pattern="^https?://.+"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Doit commencer par https:// — facultatif. Utile si l'organisateur est différent de l'utilisateur qui publie.</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
