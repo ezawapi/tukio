@@ -153,7 +153,9 @@ const CreateEvent = () => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Événement soumis !", description: "Il sera visible après validation par l'administrateur." });
-      navigate("/events");
+      toast({ title: "Événement soumis !", description: "Il sera visible après validation par l'administrateur." });
+      if (window.history.length > 1) navigate(-1);
+      else navigate("/my-events");
     }
   };
 
