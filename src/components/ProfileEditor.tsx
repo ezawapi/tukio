@@ -132,6 +132,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       tiktok_url: form.tiktok_url || null,
       linkedin_url: form.linkedin_url || null,
       website_url: form.website_url || null,
+      account_type: form.account_type,
       visibility_settings: visibility,
       updated_at: new Date().toISOString(),
     };
