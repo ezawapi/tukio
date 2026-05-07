@@ -419,21 +419,23 @@ const PublicProfile = () => {
                       {isFollowing ? "Suivi" : "Suivre"}
                     </Button>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5">
-                        <Download className="h-3.5 w-3.5" /> Exporter
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={exportCsv} className="gap-2">
-                        <FileText className="h-4 w-4" /> Télécharger CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={exportPdf} className="gap-2">
-                        <FileText className="h-4 w-4" /> Télécharger PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {isAdmin && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Download className="h-3.5 w-3.5" /> Exporter
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={exportCsv} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={exportPdf} className="gap-2">
+                          <FileText className="h-4 w-4" /> Télécharger PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
 
