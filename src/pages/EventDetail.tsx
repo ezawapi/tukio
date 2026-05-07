@@ -358,7 +358,7 @@ const EventDetail = () => {
                   )}
                   {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
                     <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
-                      <span>Publié par</span>
+                      <span>Par</span>
                       <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
                         {authorProfile.avatar_url ? (
                           <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
@@ -594,7 +594,7 @@ const EventDetail = () => {
                   )}
                   {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
                     <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
-                      <span>Publié par</span>
+                      <span>Par</span>
                       <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
                         {authorProfile.avatar_url ? (
                           <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
