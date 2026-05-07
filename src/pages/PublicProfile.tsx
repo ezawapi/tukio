@@ -34,6 +34,7 @@ const PublicProfile = () => {
   const params = useParams<{ userId?: string; slug?: string }>();
   const identifier = params.slug || params.userId || "";
   const { user } = useAuth();
+  const { isAdmin } = useUserRole(user?.id);
   const { toast } = useToast();
 
   // Hydrate from cache for instant paint on mobile
