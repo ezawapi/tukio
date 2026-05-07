@@ -124,7 +124,7 @@ const EditEvent = () => {
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         organizer_name: form.organizer_name || null,
-        organizer_logo_url: form.organizer_logo_url || null,
+        organizer_logo_url: logo || null,
         phone1: form.phone1 || null,
         phone2: form.phone2 || null,
         contact_email: form.contact_email || null,
