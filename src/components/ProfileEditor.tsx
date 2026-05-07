@@ -34,6 +34,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
     organization_name: "", organization_role: "",
     facebook_url: "", instagram_url: "", twitter_url: "",
     tiktok_url: "", linkedin_url: "", website_url: "",
+    account_type: "user" as "user" | "organizer",
   });
   const [visibility, setVisibility] = useState<Record<VisibilityKey, boolean>>(DEFAULT_VISIBILITY);
   const [saving, setSaving] = useState(false);
