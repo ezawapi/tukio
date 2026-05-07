@@ -155,7 +155,8 @@ const EditEvent = () => {
       });
 
       toast({ title: "Modification soumise !", description: "Votre modification sera revue par l'administrateur." });
-      navigate(`/events/${id}`);
+      if (window.history.length > 1) navigate(-1);
+      else navigate(`/events/${id}`);
     }
     setSaving(false);
   };
