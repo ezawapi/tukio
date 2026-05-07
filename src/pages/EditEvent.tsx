@@ -98,6 +98,13 @@ const EditEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !user) return;
+
+    const logo = (form.organizer_logo_url || "").trim();
+    if (logo && !/^https?:\/\/.+/i.test(logo)) {
+      toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
 
     const { error } = await supabase
