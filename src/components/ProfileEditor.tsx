@@ -70,6 +70,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         tiktok_url: d.tiktok_url || "",
         linkedin_url: d.linkedin_url || "",
         website_url: d.website_url || "",
+        account_type: (d.account_type === "organizer" ? "organizer" : "user"),
       });
       if (d.visibility_settings && typeof d.visibility_settings === "object") {
         setVisibility({ ...DEFAULT_VISIBILITY, ...d.visibility_settings });
