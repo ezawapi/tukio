@@ -102,6 +102,12 @@ const CreateEvent = () => {
       return;
     }
 
+    const logo = (form.organizer_logo_url || "").trim();
+    if (logo && !/^https?:\/\/.+/i.test(logo)) {
+      toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.from("events").insert({
