@@ -327,6 +327,26 @@ const PublicProfile = () => {
   const vis = (profile?.visibility_settings || {}) as Record<string, boolean>;
   const showField = (key: string, defaultVal = true) => (key in vis ? !!vis[key] : defaultVal);
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isSelf || !user) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast({ title: "Format invalide", variant: "destructive" }); return; }
+    if (file.size > 4 * 1024 * 1024) { toast({ title: "Image trop lourde (max 4 Mo)", variant: "destructive" }); return; }
+    setCoverUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/cover.${ext}`;
+    const { error: upErr } = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
+    if (upErr) { toast({ title: "Erreur", description: upErr.message, variant: "destructive" }); setCoverUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
+    const newUrl = urlData.publicUrl + "?t=" + Date.now();
+    const { error: updErr } = await supabase.from("profiles").update({ cover_url: newUrl }).eq("id", user.id);
+    if (updErr) { toast({ title: "Erreur", description: updErr.message, variant: "destructive" }); setCoverUploading(false); return; }
+    setProfile((p) => p ? { ...p, cover_url: newUrl } : p);
+    setCoverUploading(false);
+    toast({ title: "Couverture mise à jour ✨" });
+  };
+
   const renderCard = (e: any) => (
     <Link key={e.id} to={`/events/${e.id}`} className="block">
       <EventCard
