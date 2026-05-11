@@ -164,7 +164,7 @@ const Profile = () => {
       .order("created_at", { ascending: false })
       .range(from, to);
     setNotifications((prev) => [...prev, ...((data as UserNotification[]) || [])]);
-    setNotifsTotal(count || prev_total => notifsTotal);
+    if (typeof count === "number") setNotifsTotal(count);
     setNotifsLoadedCount((c) => c + NOTIFS_PAGE_SIZE);
     setNotifsLoadingMore(false);
   };
