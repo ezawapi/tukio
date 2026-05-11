@@ -406,7 +406,7 @@ const PublicProfile = () => {
                     {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
                     {profile.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
                   </button>
-                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverPick} />
                 </>
               )}
             </div>
