@@ -73,7 +73,7 @@ const Navbar = () => {
     );
   }, []);
 
-  // Harmonized nav links (used in desktop top bar AND hamburger)
+  // Harmonized nav links (used in desktop top bar)
   const navLinks = useMemo(
     () => [
       { label: "Accueil", href: "/" },
@@ -84,6 +84,13 @@ const Navbar = () => {
     ],
     [],
   );
+
+  // Items already present in the bottom MobileTabBar — hide them from the
+  // mobile hamburger to avoid duplicate navigation on phones.
+  const mobileTabHrefs = user
+    ? new Set(["/", "/events", "/create", "/agenda", "/favorites"])
+    : new Set(["/", "/events", "/explorer", "/agenda"]);
+  const hamburgerLinks = navLinks.filter((l) => !mobileTabHrefs.has(l.href));
 
   const handleSignOut = async () => {
     await signOut();
