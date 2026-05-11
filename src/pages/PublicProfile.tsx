@@ -52,6 +52,8 @@ const PublicProfile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = (typeof window !== "undefined") ? { current: null as HTMLInputElement | null } : { current: null };
 
   // Resolve profile (with cache)
   useEffect(() => {
