@@ -170,6 +170,18 @@ const EventDetail = () => {
   const canManageInvitations = isOrganizer || isAdmin;
   const isPending = event && (event.status === "pending" || event.is_published === false);
   const canInteract = !isPending || isOrganizer || isAdmin;
+  const showPendingActionMessage = (action: "partage" | "billetterie" | "invitation") => {
+    const descriptions = {
+      partage: "Le partage sera disponible après validation de l'événement.",
+      billetterie: "L'achat de billets et la participation seront disponibles après validation de l'événement.",
+      invitation: "L'envoi d'invitations sera disponible après validation de l'événement.",
+    };
+    toast({
+      title: `Action indisponible`,
+      description: descriptions[action],
+      variant: "destructive",
+    });
+  };
 
   const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
@@ -404,9 +416,10 @@ const EventDetail = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      disabled
+                      aria-disabled="true"
+                      className="opacity-60"
                       title="Partage indisponible : événement en attente d'approbation"
-                      onClick={() => toast({ title: "Partage indisponible", description: "Cet événement est en attente d'approbation. Le partage sera activé après validation." })}
+                      onClick={() => showPendingActionMessage("partage")}
                     >
                       <Share2 className="h-4 w-4" />
                     </Button>
@@ -422,10 +435,10 @@ const EventDetail = () => {
                   <Button
                     className="w-full border-0 gradient-hero text-primary-foreground"
                     size="lg"
-                    disabled={!canInteract}
+                    aria-disabled={!canInteract}
                     onClick={() => {
                       if (!canInteract) {
-                        toast({ title: "Action indisponible", description: "Billetterie et participation seront disponibles après l'approbation de l'événement.", variant: "destructive" });
+                        showPendingActionMessage("billetterie");
                       }
                     }}
                   >
@@ -530,9 +543,14 @@ const EventDetail = () => {
               {/* Invitation manager for organizer/admin */}
               {canManageInvitations && event.visibility === "private" && (
                 isPending ? (
-                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-400">
-                    L'envoi d'invitations sera disponible une fois l'événement approuvé par la modération.
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => showPendingActionMessage("invitation")}
+                    className="w-full rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-left text-sm text-amber-700 transition-colors hover:bg-amber-500/10 dark:text-amber-400"
+                  >
+                    <div className="font-medium">Invitations indisponibles</div>
+                    <div className="mt-1 opacity-90">L'envoi d'invitations sera disponible une fois l'événement approuvé par la modération.</div>
+                  </button>
                 ) : (
                   <InvitationManager eventId={event.id} eventTitle={event.title} />
                 )
@@ -668,9 +686,10 @@ const EventDetail = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      disabled
+                      aria-disabled="true"
+                      className="opacity-60"
                       title="Partage indisponible : événement en attente d'approbation"
-                      onClick={() => toast({ title: "Partage indisponible", description: "Cet événement est en attente d'approbation. Le partage sera activé après validation." })}
+                      onClick={() => showPendingActionMessage("partage")}
                     >
                       <Share2 className="h-4 w-4" />
                     </Button>
