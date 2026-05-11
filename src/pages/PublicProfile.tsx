@@ -585,6 +585,47 @@ const PublicProfile = () => {
       </div>
       <Footer />
       <MobileTabBar />
+
+      {/* Cover preview dialog (3:1 validation) */}
+      <Dialog open={!!coverPreview} onOpenChange={(open) => { if (!open && coverPreview) { URL.revokeObjectURL(coverPreview.url); setCoverPreview(null); } }}>
+        <DialogContent className="sm:max-w-lg">
+          {coverPreview && (() => {
+            const target = 3;
+            const diff = Math.abs(coverPreview.ratio - target) / target;
+            const isOk = diff < 0.1;
+            const isClose = diff < 0.3;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-display">Aperçu de la couverture</DialogTitle>
+                  <DialogDescription>
+                    Ratio recommandé <strong>3:1</strong> (ex. 1500×500). Votre image : {coverPreview.width}×{coverPreview.height} ({coverPreview.ratio.toFixed(2)}:1).
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="rounded-lg overflow-hidden border border-border bg-muted" style={{ aspectRatio: "3 / 1" }}>
+                  <img src={coverPreview.url} alt="Aperçu" className="h-full w-full object-cover" />
+                </div>
+                <div className={`text-xs rounded-md px-3 py-2 ${isOk ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : isClose ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "bg-destructive/10 text-destructive"}`}>
+                  {isOk
+                    ? "✓ Ratio idéal. L'image sera affichée sans recadrage important."
+                    : isClose
+                      ? "⚠ Ratio acceptable mais des bords seront recadrés. Pour un rendu optimal, utilisez une image au ratio 3:1."
+                      : "✗ Ratio très éloigné de 3:1. L'image sera fortement recadrée. Nous recommandons de la redimensionner avant l'upload."}
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => { URL.revokeObjectURL(coverPreview.url); setCoverPreview(null); }} disabled={coverUploading}>
+                    Annuler
+                  </Button>
+                  <Button onClick={confirmCoverUpload} disabled={coverUploading}>
+                    {coverUploading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                    Confirmer et uploader
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
