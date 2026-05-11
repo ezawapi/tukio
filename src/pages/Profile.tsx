@@ -150,8 +150,24 @@ const Profile = () => {
   const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
   const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
   const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
-  const notifsTotalPages = Math.ceil(notifications.length / ITEMS_PER_PAGE);
-  const paginatedNotifs = notifications.slice((notifsPage - 1) * ITEMS_PER_PAGE, notifsPage * ITEMS_PER_PAGE);
+  const hasMoreNotifs = notifications.length < notifsTotal;
+
+  const loadMoreNotifs = async () => {
+    if (!user || notifsLoadingMore || !hasMoreNotifs) return;
+    setNotifsLoadingMore(true);
+    const from = notifications.length;
+    const to = from + NOTIFS_PAGE_SIZE - 1;
+    const { data, count } = await supabase
+      .from("user_notifications")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    setNotifications((prev) => [...prev, ...((data as UserNotification[]) || [])]);
+    setNotifsTotal(count || prev_total => notifsTotal);
+    setNotifsLoadedCount((c) => c + NOTIFS_PAGE_SIZE);
+    setNotifsLoadingMore(false);
+  };
 
   const tabsList = [
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
