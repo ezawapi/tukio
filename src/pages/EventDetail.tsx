@@ -212,7 +212,7 @@ const EventDetail = () => {
 
   const priceDisplay = formatEventPrice(event.price, event.currency);
 
-  const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
+  const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url && canInteract;
 
   const itineraryUrl = event.latitude && event.longitude
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
