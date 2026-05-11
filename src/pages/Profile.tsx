@@ -227,6 +227,9 @@ const Profile = () => {
                       </Button>
                     </Link>
                   )}
+                  <Button variant="outline" className="w-full sm:w-auto text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30" onClick={async () => { await signOut(); navigate("/"); }}>
+                    <LogOut className="h-4 w-4" /> Déconnexion
+                  </Button>
                 </div>
               </div>
             </CardContent>
