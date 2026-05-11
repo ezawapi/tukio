@@ -1,7 +1,7 @@
 import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2 } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -43,7 +43,7 @@ const typeLabels: Record<string, string> = {
 };
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
@@ -227,6 +227,9 @@ const Profile = () => {
                       </Button>
                     </Link>
                   )}
+                  <Button variant="outline" className="w-full sm:w-auto text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30" onClick={async () => { await signOut(); navigate("/"); }}>
+                    <LogOut className="h-4 w-4" /> Déconnexion
+                  </Button>
                 </div>
               </div>
             </CardContent>
