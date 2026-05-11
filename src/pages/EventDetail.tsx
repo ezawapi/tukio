@@ -232,6 +232,23 @@ const EventDetail = () => {
             <ArrowLeft className="h-4 w-4" /> Retour aux événements
           </Link>
 
+          {isPending && (
+            <div className="mb-4 sm:mb-6 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 px-4 py-3 flex items-start gap-3">
+              <Clock3 className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-display text-sm font-semibold text-amber-700 dark:text-amber-300">
+                  Événement en attente d'approbation
+                </p>
+                <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mt-0.5">
+                  {isOrganizer
+                    ? "Votre événement est en cours de modération. Les actions de partage, billetterie et invitations seront activées dès l'approbation."
+                    : "Cet événement n'est pas encore approuvé par la modération."}
+                </p>
+              </div>
+              <Badge variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-300 shrink-0">En attente</Badge>
+            </div>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             {/* On mobile, sidebar shows AFTER main content via order */}
             <div className="space-y-5 lg:col-span-2 lg:space-y-6 order-1">
