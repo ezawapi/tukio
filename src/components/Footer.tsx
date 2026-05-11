@@ -58,15 +58,16 @@ const Footer = () => {
   return (
     <footer className="bg-card border-t border-border py-10 sm:py-12">
       <div className="container mx-auto w-[90%] md:w-[80%] max-w-6xl">
-        <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
-          <div className="col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="md:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <img src={tukioLogo} alt="Tukio" className="h-10 object-contain" />
             </div>
             <p className="font-body text-sm text-muted-foreground max-w-xs">{description}</p>
           </div>
+          {/* Nav columns hidden on mobile (already accessible via bottom tab bar) */}
           {footerSections.map((section) => (
-            <div key={section.title}>
+            <div key={section.title} className="hidden md:block">
               <h4 className="font-display font-semibold text-foreground mb-3 text-sm sm:text-base">{section.title}</h4>
               <ul className="space-y-2">
                 {section.links.map((link) => (
