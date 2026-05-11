@@ -375,9 +375,23 @@ const PublicProfile = () => {
 
           {/* Header */}
           <Card className="mb-6 overflow-hidden">
-            <div className="relative h-32 sm:h-44 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: profile.cover_url ? "3 / 1" : undefined }}>
+            <div className="relative w-full overflow-hidden bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: "3 / 1" }}>
               {profile.cover_url && (
                 <img src={profile.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              )}
+              {isSelf && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={coverUploading}
+                    className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-background disabled:opacity-60"
+                  >
+                    {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                    {profile.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
+                  </button>
+                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                </>
               )}
             </div>
             <CardContent className="relative pt-0">
