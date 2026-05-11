@@ -54,6 +54,7 @@ const PublicProfile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const [coverPreview, setCoverPreview] = useState<{ url: string; file: File; ratio: number; width: number; height: number } | null>(null);
 
   // Resolve profile (with cache)
   useEffect(() => {
