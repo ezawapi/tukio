@@ -115,6 +115,7 @@ const Profile = () => {
   const deleteNotification = async (id: string) => {
     await supabase.from("user_notifications").delete().eq("id", id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifsTotal((t) => Math.max(0, t - 1));
     if (selectedNotif?.id === id) setSelectedNotif(null);
   };
   const openNotif = (n: UserNotification) => {
@@ -326,13 +327,15 @@ const Profile = () => {
                     </div>
                   ) : (
                     notifications.map((n) => (
-                      <button
+                      <div
                         key={n.id}
-                        type="button"
-                        onClick={() => openNotif(n)}
-                        className={`w-full text-left rounded-xl border p-3 flex gap-3 items-start transition-colors ${n.is_read ? "border-border bg-card hover:bg-muted/60" : "border-primary/30 bg-primary/5 hover:bg-primary/10"}`}
+                        className={`group w-full rounded-xl border p-3 flex gap-3 items-start transition-colors ${n.is_read ? "border-border bg-card hover:bg-muted/60" : "border-primary/30 bg-primary/5 hover:bg-primary/10"}`}
                       >
-                        <div className="flex-1 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => openNotif(n)}
+                          className="flex-1 min-w-0 text-left"
+                        >
                           <div className="flex items-center gap-2 mb-0.5">
                             <Badge variant="secondary" className="text-[9px]">{typeLabels[n.type] || n.type}</Badge>
                             <span className="text-[10px] text-muted-foreground">
@@ -342,8 +345,18 @@ const Profile = () => {
                           </div>
                           <p className="font-body text-sm font-medium text-foreground truncate">{n.title}</p>
                           {n.body && <p className="font-body text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
+                        </button>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          {!n.is_read && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Marquer comme lue" onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}>
+                              <CheckCheck className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Supprimer" onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                      </button>
+                      </div>
                     ))
                   )}
                   {hasMoreNotifs && (

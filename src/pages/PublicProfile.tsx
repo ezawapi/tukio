@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +55,7 @@ const PublicProfile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const [coverPreview, setCoverPreview] = useState<{ url: string; file: File; ratio: number; width: number; height: number } | null>(null);
 
   // Resolve profile (with cache)
   useEffect(() => {
@@ -327,12 +329,25 @@ const PublicProfile = () => {
   const vis = (profile?.visibility_settings || {}) as Record<string, boolean>;
   const showField = (key: string, defaultVal = true) => (key in vis ? !!vis[key] : defaultVal);
 
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isSelf || !user) return;
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) { toast({ title: "Format invalide", variant: "destructive" }); return; }
     if (file.size > 4 * 1024 * 1024) { toast({ title: "Image trop lourde (max 4 Mo)", variant: "destructive" }); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      setCoverPreview({ url, file, ratio: img.width / img.height, width: img.width, height: img.height });
+    };
+    img.onerror = () => toast({ title: "Image illisible", variant: "destructive" });
+    img.src = url;
+  };
+
+  const confirmCoverUpload = async () => {
+    if (!coverPreview || !user) return;
+    const file = coverPreview.file;
     setCoverUploading(true);
     const ext = file.name.split(".").pop();
     const path = `${user.id}/cover.${ext}`;
@@ -344,6 +359,8 @@ const PublicProfile = () => {
     if (updErr) { toast({ title: "Erreur", description: updErr.message, variant: "destructive" }); setCoverUploading(false); return; }
     setProfile((p) => p ? { ...p, cover_url: newUrl } : p);
     setCoverUploading(false);
+    URL.revokeObjectURL(coverPreview.url);
+    setCoverPreview(null);
     toast({ title: "Couverture mise à jour ✨" });
   };
 
@@ -358,6 +375,7 @@ const PublicProfile = () => {
         attendees={e.attendees_count || 0}
         price={e.price ? `${e.price} ${e.currency || ""}` : undefined}
         isLive={e.is_live}
+        isPending={e.status === "pending" || e.is_published === false}
         eventDate={e.date}
         endDate={e.end_date}
       />
@@ -390,7 +408,7 @@ const PublicProfile = () => {
                     {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
                     {profile.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
                   </button>
-                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverPick} />
                 </>
               )}
             </div>
@@ -568,6 +586,47 @@ const PublicProfile = () => {
       </div>
       <Footer />
       <MobileTabBar />
+
+      {/* Cover preview dialog (3:1 validation) */}
+      <Dialog open={!!coverPreview} onOpenChange={(open) => { if (!open && coverPreview) { URL.revokeObjectURL(coverPreview.url); setCoverPreview(null); } }}>
+        <DialogContent className="sm:max-w-lg">
+          {coverPreview && (() => {
+            const target = 3;
+            const diff = Math.abs(coverPreview.ratio - target) / target;
+            const isOk = diff < 0.1;
+            const isClose = diff < 0.3;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="font-display">Aperçu de la couverture</DialogTitle>
+                  <DialogDescription>
+                    Ratio recommandé <strong>3:1</strong> (ex. 1500×500). Votre image : {coverPreview.width}×{coverPreview.height} ({coverPreview.ratio.toFixed(2)}:1).
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="rounded-lg overflow-hidden border border-border bg-muted" style={{ aspectRatio: "3 / 1" }}>
+                  <img src={coverPreview.url} alt="Aperçu" className="h-full w-full object-cover" />
+                </div>
+                <div className={`text-xs rounded-md px-3 py-2 ${isOk ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : isClose ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "bg-destructive/10 text-destructive"}`}>
+                  {isOk
+                    ? "✓ Ratio idéal. L'image sera affichée sans recadrage important."
+                    : isClose
+                      ? "⚠ Ratio acceptable mais des bords seront recadrés. Pour un rendu optimal, utilisez une image au ratio 3:1."
+                      : "✗ Ratio très éloigné de 3:1. L'image sera fortement recadrée. Nous recommandons de la redimensionner avant l'upload."}
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => { URL.revokeObjectURL(coverPreview.url); setCoverPreview(null); }} disabled={coverUploading}>
+                    Annuler
+                  </Button>
+                  <Button onClick={confirmCoverUpload} disabled={coverUploading}>
+                    {coverUploading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                    Confirmer et uploader
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
