@@ -529,7 +529,13 @@ const EventDetail = () => {
 
               {/* Invitation manager for organizer/admin */}
               {canManageInvitations && event.visibility === "private" && (
-                <InvitationManager eventId={event.id} eventTitle={event.title} />
+                isPending ? (
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-400">
+                    L'envoi d'invitations sera disponible une fois l'événement approuvé par la modération.
+                  </div>
+                ) : (
+                  <InvitationManager eventId={event.id} eventTitle={event.title} />
+                )
               )}
 
               {/* Comments */}
