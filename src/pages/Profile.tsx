@@ -22,6 +22,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const ITEMS_PER_PAGE = 15;
+const NOTIFS_PAGE_SIZE = 15;
 
 interface UserNotification {
   id: string;
