@@ -652,11 +652,23 @@ const EventDetail = () => {
                     <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
-                  <ShareDialog title={event.title}>
-                    <Button variant="outline" size="icon">
+                  {canInteract ? (
+                    <ShareDialog title={event.title}>
+                      <Button variant="outline" size="icon">
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </ShareDialog>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      disabled
+                      title="Partage indisponible : événement en attente d'approbation"
+                      onClick={() => toast({ title: "Partage indisponible", description: "Cet événement est en attente d'approbation. Le partage sera activé après validation." })}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
-                  </ShareDialog>
+                  )}
                 </div>
 
                 {event.whatsapp && (
@@ -690,7 +702,16 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                  <Button
+                    className="w-full border-0 gradient-hero text-primary-foreground"
+                    size="lg"
+                    disabled={!canInteract}
+                    onClick={() => {
+                      if (!canInteract) {
+                        toast({ title: "Action indisponible", description: "Billetterie et participation seront disponibles après l'approbation de l'événement.", variant: "destructive" });
+                      }
+                    }}
+                  >
                     {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}
