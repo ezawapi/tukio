@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft, Calendar, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin,
-  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info, Settings as SettingsIcon,
+  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info, Settings as SettingsIcon, Image as ImageIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
