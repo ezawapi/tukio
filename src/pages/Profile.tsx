@@ -70,7 +70,7 @@ const Profile = () => {
         supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("user_notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
+        supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, NOTIFS_PAGE_SIZE - 1),
       ]);
       const acct = (profileResult.data as any)?.account_type;
       setAccountType(acct === "organizer" ? "organizer" : "user");
@@ -78,17 +78,20 @@ const Profile = () => {
       setComments(commentsResult.data || []);
       setFavorites(favoritesResult.data || []);
       setNotifications((notifsResult.data as UserNotification[]) || []);
+      setNotifsTotal(notifsResult.count || 0);
+      setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
       setLoading(false);
     };
     fetchDashboard();
 
-    // Real-time updates for notifications
+    // Real-time updates: just refresh first page
     if (user) {
       const channel = supabase
         .channel("profile-notifs")
         .on("postgres_changes", { event: "*", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, async () => {
-          const { data } = await supabase.from("user_notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
+          const { data, count } = await supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, Math.max(NOTIFS_PAGE_SIZE, notifsLoadedCount) - 1);
           setNotifications((data as UserNotification[]) || []);
+          setNotifsTotal(count || 0);
         })
         .subscribe();
       return () => { supabase.removeChannel(channel); };
