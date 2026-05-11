@@ -33,6 +33,7 @@ const Navbar = () => {
   const [cityName, setCityName] = useState<string | null>(null);
   const [deviceType, setDeviceType] = useState(getDeviceType());
   const [profile, setProfile] = useState<{ display_name: string | null; account_type: string | null } | null>(null);
+  const isPhone = deviceType === "mobile";
 
   useEffect(() => { setIsOpen(false); }, [location.pathname]);
 
@@ -256,7 +257,7 @@ const Navbar = () => {
                 >
                   À propos
                 </NavLink>
-                {user && (
+                {user && !isPhone && (
                   <NavLink
                     to="/profile"
                     className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -265,7 +266,7 @@ const Navbar = () => {
                     Mon profil
                   </NavLink>
                 )}
-                {user && (profile?.account_type === "organizer" || isAdmin) && (
+                {user && !isPhone && (profile?.account_type === "organizer" || isAdmin) && (
                   <NavLink
                     to="/create"
                     className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

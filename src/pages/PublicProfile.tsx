@@ -608,6 +608,7 @@ const PublicProfile = () => {
                   {/* Rule-of-thirds cropping guide overlay */}
                   <div className="pointer-events-none absolute inset-0">
                     <div className="absolute inset-0 border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.15)]" />
+                    <div className="absolute inset-y-[12%] left-[12%] right-[12%] rounded border border-dashed border-white/70" />
                     <div className="absolute inset-y-0 left-1/3 w-px bg-white/50" />
                     <div className="absolute inset-y-0 left-2/3 w-px bg-white/50" />
                     <div className="absolute inset-x-0 top-1/3 h-px bg-white/50" />
@@ -615,10 +616,13 @@ const PublicProfile = () => {
                     <span className="absolute top-1 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
                       Cadre 3:1
                     </span>
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
+                      Zone utile conseillée
+                    </span>
                   </div>
                 </div>
                 <p className="text-[11px] text-muted-foreground -mt-1">
-                  Astuce : placez les éléments importants au centre. Les zones grisées seront recadrées à l'affichage.
+                  Astuce : gardez le sujet principal dans la zone utile centrale. Les bords extérieurs risquent d'être recadrés selon l'écran.
                 </p>
                 <div className={`text-xs rounded-md px-3 py-2 ${isOk ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : isClose ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "bg-destructive/10 text-destructive"}`}>
                   {isOk
