@@ -115,6 +115,7 @@ const Profile = () => {
   const deleteNotification = async (id: string) => {
     await supabase.from("user_notifications").delete().eq("id", id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifsTotal((t) => Math.max(0, t - 1));
     if (selectedNotif?.id === id) setSelectedNotif(null);
   };
   const openNotif = (n: UserNotification) => {
