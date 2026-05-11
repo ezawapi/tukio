@@ -407,8 +407,8 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
-                    Participer
+                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                    {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}
               </div>
