@@ -73,7 +73,7 @@ const Navbar = () => {
     );
   }, []);
 
-  // Harmonized nav links (used in desktop top bar AND hamburger)
+  // Harmonized nav links (used in desktop top bar)
   const navLinks = useMemo(
     () => [
       { label: "Accueil", href: "/" },
@@ -84,6 +84,13 @@ const Navbar = () => {
     ],
     [],
   );
+
+  // Items already present in the bottom MobileTabBar — hide them from the
+  // mobile hamburger to avoid duplicate navigation on phones.
+  const mobileTabHrefs = user
+    ? new Set(["/", "/events", "/create", "/agenda", "/favorites"])
+    : new Set(["/", "/events", "/explorer", "/agenda"]);
+  const hamburgerLinks = navLinks.filter((l) => !mobileTabHrefs.has(l.href));
 
   const handleSignOut = async () => {
     await signOut();
@@ -228,18 +235,36 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Part 2 — Main navigation (always visible) */}
+              {/* Part 2 — Navigation complémentaire (les onglets de la barre mobile sont déjà accessibles en bas) */}
               <div className="mt-5 flex flex-col gap-1">
-                {navLinks.map((link) => (
+                {hamburgerLinks.length > 0 ? (
+                  hamburgerLinks.map((link) => (
+                    <NavLink
+                      key={link.href}
+                      to={link.href}
+                      className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      activeClassName="bg-primary text-primary-foreground"
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))
+                ) : null}
+                <NavLink
+                  to="/about"
+                  className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  activeClassName="bg-primary text-primary-foreground"
+                >
+                  À propos
+                </NavLink>
+                {user && (
                   <NavLink
-                    key={link.href}
-                    to={link.href}
+                    to="/profile"
                     className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     activeClassName="bg-primary text-primary-foreground"
                   >
-                    {link.label}
+                    Mon profil
                   </NavLink>
-                ))}
+                )}
                 {user && (profile?.account_type === "organizer" || isAdmin) && (
                   <NavLink
                     to="/create"

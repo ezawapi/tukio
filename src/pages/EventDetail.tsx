@@ -394,11 +394,23 @@ const EventDetail = () => {
                     <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
-                  <ShareDialog title={event.title}>
-                    <Button variant="outline" size="icon">
+                  {canInteract ? (
+                    <ShareDialog title={event.title}>
+                      <Button variant="outline" size="icon">
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </ShareDialog>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      disabled
+                      title="Partage indisponible : événement en attente d'approbation"
+                      onClick={() => toast({ title: "Partage indisponible", description: "Cet événement est en attente d'approbation. Le partage sera activé après validation." })}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
-                  </ShareDialog>
+                  )}
                 </div>
                 {bookingEnabled ? (
                   <a href={event.external_ticket_url} target="_blank" rel="noopener noreferrer" className="block">
@@ -407,7 +419,16 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                  <Button
+                    className="w-full border-0 gradient-hero text-primary-foreground"
+                    size="lg"
+                    disabled={!canInteract}
+                    onClick={() => {
+                      if (!canInteract) {
+                        toast({ title: "Action indisponible", description: "Billetterie et participation seront disponibles après l'approbation de l'événement.", variant: "destructive" });
+                      }
+                    }}
+                  >
                     {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}
@@ -508,7 +529,13 @@ const EventDetail = () => {
 
               {/* Invitation manager for organizer/admin */}
               {canManageInvitations && event.visibility === "private" && (
-                <InvitationManager eventId={event.id} eventTitle={event.title} />
+                isPending ? (
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-700 dark:text-amber-400">
+                    L'envoi d'invitations sera disponible une fois l'événement approuvé par la modération.
+                  </div>
+                ) : (
+                  <InvitationManager eventId={event.id} eventTitle={event.title} />
+                )
               )}
 
               {/* Comments */}
@@ -631,11 +658,23 @@ const EventDetail = () => {
                     <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
-                  <ShareDialog title={event.title}>
-                    <Button variant="outline" size="icon">
+                  {canInteract ? (
+                    <ShareDialog title={event.title}>
+                      <Button variant="outline" size="icon">
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </ShareDialog>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      disabled
+                      title="Partage indisponible : événement en attente d'approbation"
+                      onClick={() => toast({ title: "Partage indisponible", description: "Cet événement est en attente d'approbation. Le partage sera activé après validation." })}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
-                  </ShareDialog>
+                  )}
                 </div>
 
                 {event.whatsapp && (
@@ -669,7 +708,16 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                  <Button
+                    className="w-full border-0 gradient-hero text-primary-foreground"
+                    size="lg"
+                    disabled={!canInteract}
+                    onClick={() => {
+                      if (!canInteract) {
+                        toast({ title: "Action indisponible", description: "Billetterie et participation seront disponibles après l'approbation de l'événement.", variant: "destructive" });
+                      }
+                    }}
+                  >
                     {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}

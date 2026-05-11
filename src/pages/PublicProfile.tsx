@@ -603,9 +603,23 @@ const PublicProfile = () => {
                     Ratio recommandé <strong>3:1</strong> (ex. 1500×500). Votre image : {coverPreview.width}×{coverPreview.height} ({coverPreview.ratio.toFixed(2)}:1).
                   </DialogDescription>
                 </DialogHeader>
-                <div className="rounded-lg overflow-hidden border border-border bg-muted" style={{ aspectRatio: "3 / 1" }}>
+                <div className="relative rounded-lg overflow-hidden border border-border bg-muted" style={{ aspectRatio: "3 / 1" }}>
                   <img src={coverPreview.url} alt="Aperçu" className="h-full w-full object-cover" />
+                  {/* Rule-of-thirds cropping guide overlay */}
+                  <div className="pointer-events-none absolute inset-0">
+                    <div className="absolute inset-0 border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.15)]" />
+                    <div className="absolute inset-y-0 left-1/3 w-px bg-white/50" />
+                    <div className="absolute inset-y-0 left-2/3 w-px bg-white/50" />
+                    <div className="absolute inset-x-0 top-1/3 h-px bg-white/50" />
+                    <div className="absolute inset-x-0 top-2/3 h-px bg-white/50" />
+                    <span className="absolute top-1 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
+                      Cadre 3:1
+                    </span>
+                  </div>
                 </div>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  Astuce : placez les éléments importants au centre. Les zones grisées seront recadrées à l'affichage.
+                </p>
                 <div className={`text-xs rounded-md px-3 py-2 ${isOk ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : isClose ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "bg-destructive/10 text-destructive"}`}>
                   {isOk
                     ? "✓ Ratio idéal. L'image sera affichée sans recadrage important."
