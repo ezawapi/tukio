@@ -168,6 +168,8 @@ const EventDetail = () => {
 
   const isOrganizer = user && event?.organizer_id === user.id;
   const canManageInvitations = isOrganizer || isAdmin;
+  const isPending = event && (event.status === "pending" || event.is_published === false);
+  const canInteract = !isPending || isOrganizer || isAdmin;
 
   const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
