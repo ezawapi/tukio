@@ -50,7 +50,15 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
               🔴 LIVE
             </Badge>
           )}
+          {isPending && (
+            <Badge className="border-0 bg-amber-500 text-[10px] text-white sm:text-xs">
+              En attente
+            </Badge>
+          )}
         </div>
+        {isPending && (
+          <div className="absolute inset-0 bg-background/40 pointer-events-none" aria-hidden />
+        )}
         <div className="absolute right-2 top-2 flex items-center gap-1.5 sm:right-3 sm:top-3">
           {countdown && (
             <Badge className={cn(
