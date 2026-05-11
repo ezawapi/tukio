@@ -32,15 +32,15 @@ const Footer = () => {
         ...(isAdmin ? [{ label: t("footer.admin"), href: "/admin" }] : []),
       ],
     },
-    {
-      title: "Tukio",
-      links: [
-        { label: t("nav.home"), href: "/" },
-        { label: t("footer.create_event"), href: user ? "/create" : "/auth" },
-        { label: t("footer.terms"), href: "/terms" },
-        { label: t("nav.login"), href: "/auth" },
-      ],
-    },
+      {
+        title: "Tukio",
+        links: [
+          { label: t("nav.home"), href: "/" },
+          { label: t("footer.create_event"), href: user ? "/create" : "/auth" },
+          { label: t("footer.terms"), href: "/terms" },
+          ...(user ? [] : [{ label: t("nav.login"), href: "/auth" }]),
+        ],
+      },
   ];
 
   const contactEmail = content["footer_contact_email"] || "contact@tukio.app";
