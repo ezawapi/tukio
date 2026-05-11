@@ -43,7 +43,7 @@ const typeLabels: Record<string, string> = {
 };
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
