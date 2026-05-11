@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -168,6 +168,8 @@ const EventDetail = () => {
 
   const isOrganizer = user && event?.organizer_id === user.id;
   const canManageInvitations = isOrganizer || isAdmin;
+  const isPending = event && (event.status === "pending" || event.is_published === false);
+  const canInteract = !isPending || isOrganizer || isAdmin;
 
   const hasContactInfo = event && (event.phone1 || event.phone2 || event.whatsapp || event.contact_email || event.website_url || event.facebook_url || event.instagram_url || event.twitter_url || event.tiktok_url);
 
@@ -210,7 +212,7 @@ const EventDetail = () => {
 
   const priceDisplay = formatEventPrice(event.price, event.currency);
 
-  const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url;
+  const bookingEnabled = event.ticketing_mode === "external" && event.external_ticket_url && canInteract;
 
   const itineraryUrl = event.latitude && event.longitude
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
@@ -229,6 +231,23 @@ const EventDetail = () => {
           <Link to="/events" className="mb-4 inline-flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground sm:mb-6">
             <ArrowLeft className="h-4 w-4" /> Retour aux événements
           </Link>
+
+          {isPending && (
+            <div className="mb-4 sm:mb-6 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 px-4 py-3 flex items-start gap-3">
+              <Clock3 className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-display text-sm font-semibold text-amber-700 dark:text-amber-300">
+                  Événement en attente d'approbation
+                </p>
+                <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mt-0.5">
+                  {isOrganizer
+                    ? "Votre événement est en cours de modération. Les actions de partage, billetterie et invitations seront activées dès l'approbation."
+                    : "Cet événement n'est pas encore approuvé par la modération."}
+                </p>
+              </div>
+              <Badge variant="outline" className="border-amber-500/50 text-amber-700 dark:text-amber-300 shrink-0">En attente</Badge>
+            </div>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             {/* On mobile, sidebar shows AFTER main content via order */}
@@ -388,8 +407,8 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
-                    Participer
+                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                    {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}
               </div>
@@ -650,8 +669,8 @@ const EventDetail = () => {
                     </Button>
                   </a>
                 ) : (
-                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
-                    Participer
+                  <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg" disabled={!canInteract}>
+                    {canInteract ? "Participer" : "En attente d'approbation"}
                   </Button>
                 )}
               </div>

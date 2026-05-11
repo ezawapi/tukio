@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft, Calendar, MapPin, Globe, Facebook, Instagram, Twitter, Linkedin,
-  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info, Settings as SettingsIcon,
+  Building2, User as UserIcon, FileText, Download, Heart, HeartOff, Loader2, Info, Settings as SettingsIcon, Image as ImageIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -52,6 +52,8 @@ const PublicProfile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
 
   // Resolve profile (with cache)
   useEffect(() => {
@@ -325,6 +327,26 @@ const PublicProfile = () => {
   const vis = (profile?.visibility_settings || {}) as Record<string, boolean>;
   const showField = (key: string, defaultVal = true) => (key in vis ? !!vis[key] : defaultVal);
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isSelf || !user) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast({ title: "Format invalide", variant: "destructive" }); return; }
+    if (file.size > 4 * 1024 * 1024) { toast({ title: "Image trop lourde (max 4 Mo)", variant: "destructive" }); return; }
+    setCoverUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/cover.${ext}`;
+    const { error: upErr } = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
+    if (upErr) { toast({ title: "Erreur", description: upErr.message, variant: "destructive" }); setCoverUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
+    const newUrl = urlData.publicUrl + "?t=" + Date.now();
+    const { error: updErr } = await supabase.from("profiles").update({ cover_url: newUrl }).eq("id", user.id);
+    if (updErr) { toast({ title: "Erreur", description: updErr.message, variant: "destructive" }); setCoverUploading(false); return; }
+    setProfile((p) => p ? { ...p, cover_url: newUrl } : p);
+    setCoverUploading(false);
+    toast({ title: "Couverture mise à jour ✨" });
+  };
+
   const renderCard = (e: any) => (
     <Link key={e.id} to={`/events/${e.id}`} className="block">
       <EventCard
@@ -353,9 +375,23 @@ const PublicProfile = () => {
 
           {/* Header */}
           <Card className="mb-6 overflow-hidden">
-            <div className="relative h-32 sm:h-44 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: profile.cover_url ? "3 / 1" : undefined }}>
+            <div className="relative w-full overflow-hidden bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20" style={{ aspectRatio: "3 / 1" }}>
               {profile.cover_url && (
                 <img src={profile.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              )}
+              {isSelf && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={coverUploading}
+                    className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-background disabled:opacity-60"
+                  >
+                    {coverUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                    {profile.cover_url ? "Changer la couverture" : "Ajouter une couverture"}
+                  </button>
+                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                </>
               )}
             </div>
             <CardContent className="relative pt-0">

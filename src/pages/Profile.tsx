@@ -22,6 +22,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const ITEMS_PER_PAGE = 15;
+const NOTIFS_PAGE_SIZE = 15;
 
 interface UserNotification {
   id: string;
@@ -53,10 +54,12 @@ const Profile = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [notifsTotal, setNotifsTotal] = useState(0);
+  const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
+  const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
   const [eventsPage, setEventsPage] = useState(1);
   const [commentsPage, setCommentsPage] = useState(1);
   const [favoritesPage, setFavoritesPage] = useState(1);
-  const [notifsPage, setNotifsPage] = useState(1);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
 
   useEffect(() => {
@@ -67,7 +70,7 @@ const Profile = () => {
         supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("user_notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
+        supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, NOTIFS_PAGE_SIZE - 1),
       ]);
       const acct = (profileResult.data as any)?.account_type;
       setAccountType(acct === "organizer" ? "organizer" : "user");
@@ -75,17 +78,20 @@ const Profile = () => {
       setComments(commentsResult.data || []);
       setFavorites(favoritesResult.data || []);
       setNotifications((notifsResult.data as UserNotification[]) || []);
+      setNotifsTotal(notifsResult.count || 0);
+      setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
       setLoading(false);
     };
     fetchDashboard();
 
-    // Real-time updates for notifications
+    // Real-time updates: just refresh first page
     if (user) {
       const channel = supabase
         .channel("profile-notifs")
         .on("postgres_changes", { event: "*", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, async () => {
-          const { data } = await supabase.from("user_notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
+          const { data, count } = await supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, Math.max(NOTIFS_PAGE_SIZE, notifsLoadedCount) - 1);
           setNotifications((data as UserNotification[]) || []);
+          setNotifsTotal(count || 0);
         })
         .subscribe();
       return () => { supabase.removeChannel(channel); };
@@ -144,8 +150,24 @@ const Profile = () => {
   const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
   const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
   const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
-  const notifsTotalPages = Math.ceil(notifications.length / ITEMS_PER_PAGE);
-  const paginatedNotifs = notifications.slice((notifsPage - 1) * ITEMS_PER_PAGE, notifsPage * ITEMS_PER_PAGE);
+  const hasMoreNotifs = notifications.length < notifsTotal;
+
+  const loadMoreNotifs = async () => {
+    if (!user || notifsLoadingMore || !hasMoreNotifs) return;
+    setNotifsLoadingMore(true);
+    const from = notifications.length;
+    const to = from + NOTIFS_PAGE_SIZE - 1;
+    const { data, count } = await supabase
+      .from("user_notifications")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    setNotifications((prev) => [...prev, ...((data as UserNotification[]) || [])]);
+    if (typeof count === "number") setNotifsTotal(count);
+    setNotifsLoadedCount((c) => c + NOTIFS_PAGE_SIZE);
+    setNotifsLoadingMore(false);
+  };
 
   const tabsList = [
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
@@ -297,13 +319,13 @@ const Profile = () => {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {paginatedNotifs.length === 0 ? (
+                  {notifications.length === 0 ? (
                     <div className="py-12 text-center">
                       <Bell className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
                       <p className="font-body text-sm text-muted-foreground">Aucune notification.</p>
                     </div>
                   ) : (
-                    paginatedNotifs.map((n) => (
+                    notifications.map((n) => (
                       <button
                         key={n.id}
                         type="button"
@@ -324,7 +346,16 @@ const Profile = () => {
                       </button>
                     ))
                   )}
-                  <PaginationControls currentPage={notifsPage} totalPages={notifsTotalPages} totalItems={notifications.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setNotifsPage} label="notifications" />
+                  {hasMoreNotifs && (
+                    <div className="pt-3 flex justify-center">
+                      <Button variant="outline" size="sm" onClick={loadMoreNotifs} disabled={notifsLoadingMore} className="gap-1.5">
+                        {notifsLoadingMore ? "Chargement…" : `Charger plus (${notifsTotal - notifications.length} restantes)`}
+                      </Button>
+                    </div>
+                  )}
+                  {notifications.length > 0 && !hasMoreNotifs && notifsTotal > NOTIFS_PAGE_SIZE && (
+                    <p className="pt-2 text-center text-[11px] text-muted-foreground">Toutes les notifications affichées ({notifsTotal}).</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
