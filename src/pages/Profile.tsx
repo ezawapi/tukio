@@ -319,13 +319,13 @@ const Profile = () => {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {paginatedNotifs.length === 0 ? (
+                  {notifications.length === 0 ? (
                     <div className="py-12 text-center">
                       <Bell className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
                       <p className="font-body text-sm text-muted-foreground">Aucune notification.</p>
                     </div>
                   ) : (
-                    paginatedNotifs.map((n) => (
+                    notifications.map((n) => (
                       <button
                         key={n.id}
                         type="button"
@@ -346,7 +346,16 @@ const Profile = () => {
                       </button>
                     ))
                   )}
-                  <PaginationControls currentPage={notifsPage} totalPages={notifsTotalPages} totalItems={notifications.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setNotifsPage} label="notifications" />
+                  {hasMoreNotifs && (
+                    <div className="pt-3 flex justify-center">
+                      <Button variant="outline" size="sm" onClick={loadMoreNotifs} disabled={notifsLoadingMore} className="gap-1.5">
+                        {notifsLoadingMore ? "Chargement…" : `Charger plus (${notifsTotal - notifications.length} restantes)`}
+                      </Button>
+                    </div>
+                  )}
+                  {notifications.length > 0 && !hasMoreNotifs && notifsTotal > NOTIFS_PAGE_SIZE && (
+                    <p className="pt-2 text-center text-[11px] text-muted-foreground">Toutes les notifications affichées ({notifsTotal}).</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
