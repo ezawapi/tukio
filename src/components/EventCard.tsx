@@ -15,6 +15,7 @@ interface EventCardProps {
   attendees: number;
   price?: string;
   isLive?: boolean;
+  isPending?: boolean;
   compact?: boolean;
   eventDate?: string;
   endDate?: string | null;
@@ -24,7 +25,7 @@ interface EventCardProps {
   organizerSlug?: string | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, isPending, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
   const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
 
   return (
