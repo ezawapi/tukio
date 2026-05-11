@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
