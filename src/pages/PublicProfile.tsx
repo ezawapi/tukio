@@ -375,6 +375,7 @@ const PublicProfile = () => {
         attendees={e.attendees_count || 0}
         price={e.price ? `${e.price} ${e.currency || ""}` : undefined}
         isLive={e.is_live}
+        isPending={e.status === "pending" || e.is_published === false}
         eventDate={e.date}
         endDate={e.end_date}
       />
