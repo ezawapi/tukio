@@ -24,7 +24,8 @@ const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isAdmin } = useUserRole(user?.id);
+  const { isAdmin, role } = useUserRole(user?.id);
+  const isModerator = role === "moderator";
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
