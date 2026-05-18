@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3 } from "lucide-react";
+import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +24,8 @@ const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isAdmin } = useUserRole(user?.id);
+  const { isAdmin, role } = useUserRole(user?.id);
+  const isModerator = role === "moderator";
   const { toast } = useToast();
   const [event, setEvent] = useState<any>(null);
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
@@ -117,8 +118,29 @@ const EventDetail = () => {
       .select("*")
       .eq("event_id", id!)
       .order("created_at", { ascending: false });
-    setComments(data || []);
+    const rows = data || [];
+    const userIds = Array.from(new Set(rows.map((c: any) => c.user_id).filter(Boolean)));
+    let profilesMap: Record<string, { display_name: string | null; avatar_url: string | null; slug: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, slug")
+        .in("id", userIds);
+      (profs || []).forEach((p: any) => { profilesMap[p.id] = p; });
+    }
+    setComments(rows.map((c: any) => ({ ...c, author: profilesMap[c.user_id] || null })));
   };
+
+  const deleteComment = async (commentId: string) => {
+    const { error } = await supabase.from("comments").delete().eq("id", commentId);
+    if (error) {
+      toast({ title: "Suppression impossible", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Commentaire supprimé" });
+      fetchComments();
+    }
+  };
+
 
   const checkFavorite = async () => {
     const { data } = await supabase
@@ -578,17 +600,58 @@ const EventDetail = () => {
                   {comments.length === 0 ? (
                     <p className="font-body text-sm text-muted-foreground">Aucun commentaire pour le moment.</p>
                   ) : (
-                    comments.map((comment) => (
-                      <div key={comment.id} className="border-b border-border pb-3 last:border-0">
-                        <div className="mb-1 flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-body text-xs text-muted-foreground">
-                            {format(new Date(comment.created_at), "d MMM yyyy à HH:mm", { locale: fr })}
-                          </span>
+                    comments.map((comment) => {
+                      const author = comment.author;
+                      const authorName = author?.display_name || "Utilisateur";
+                      const authorHref = author ? `/u/${author.slug || comment.user_id}` : null;
+                      const canDelete = !!user && (
+                        comment.user_id === user.id ||
+                        isAdmin ||
+                        isModerator ||
+                        (event && event.organizer_id === user.id)
+                      );
+                      return (
+                        <div key={comment.id} className="border-b border-border pb-3 last:border-0">
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {author?.avatar_url ? (
+                                <img src={author.avatar_url} alt={authorName} className="h-6 w-6 rounded-full object-cover" />
+                              ) : (
+                                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <User className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                              )}
+                              <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                                {authorHref ? (
+                                  <Link to={authorHref} className="font-body text-sm font-semibold text-foreground hover:text-primary truncate">
+                                    {authorName}
+                                  </Link>
+                                ) : (
+                                  <span className="font-body text-sm font-semibold text-foreground truncate">{authorName}</span>
+                                )}
+                                <span className="font-body text-xs text-muted-foreground">
+                                  {format(new Date(comment.created_at), "d MMM yyyy à HH:mm", { locale: fr })}
+                                </span>
+                              </div>
+                            </div>
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0"
+                                onClick={() => {
+                                  if (confirm("Supprimer ce commentaire ?")) deleteComment(comment.id);
+                                }}
+                                aria-label="Supprimer le commentaire"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                          <p className="font-body text-sm text-foreground pl-8">{comment.content}</p>
                         </div>
-                        <p className="font-body text-sm text-foreground">{comment.content}</p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
