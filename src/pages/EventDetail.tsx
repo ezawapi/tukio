@@ -118,8 +118,29 @@ const EventDetail = () => {
       .select("*")
       .eq("event_id", id!)
       .order("created_at", { ascending: false });
-    setComments(data || []);
+    const rows = data || [];
+    const userIds = Array.from(new Set(rows.map((c: any) => c.user_id).filter(Boolean)));
+    let profilesMap: Record<string, { display_name: string | null; avatar_url: string | null; slug: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, slug")
+        .in("id", userIds);
+      (profs || []).forEach((p: any) => { profilesMap[p.id] = p; });
+    }
+    setComments(rows.map((c: any) => ({ ...c, author: profilesMap[c.user_id] || null })));
   };
+
+  const deleteComment = async (commentId: string) => {
+    const { error } = await supabase.from("comments").delete().eq("id", commentId);
+    if (error) {
+      toast({ title: "Suppression impossible", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Commentaire supprimé" });
+      fetchComments();
+    }
+  };
+
 
   const checkFavorite = async () => {
     const { data } = await supabase
