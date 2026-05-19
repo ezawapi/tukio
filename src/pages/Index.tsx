@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -149,16 +149,8 @@ const CarouselSkeleton = () => (
   </div>
 );
 
-// Haversine distance (km) between two coords
-const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
+import LocationPicker from "@/components/LocationPicker";
 
 /**
  * Re-rank events around the user position:
@@ -173,8 +165,8 @@ const sortByProximity = <T extends { latitude?: number | null; longitude?: numbe
   const withoutCoords = events.filter((e) => e.latitude == null || e.longitude == null);
   withCoords.sort(
     (a, b) =>
-      getDistanceKm(coords.lat, coords.lng, a.latitude!, a.longitude!) -
-      getDistanceKm(coords.lat, coords.lng, b.latitude!, b.longitude!),
+      distanceKmFn(coords.lat, coords.lng, a.latitude!, a.longitude!) -
+      distanceKmFn(coords.lat, coords.lng, b.latitude!, b.longitude!),
   );
   return [...withCoords, ...withoutCoords];
 };
@@ -191,26 +183,18 @@ const Index = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const { location: userLocation } = useUserLocation();
+  const userCoords = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null;
   const { isAdmin } = useUserRole(userId);
+
+  // Compute distance from user to an event (km) or null
+  const distanceFor = (lat?: number | null, lng?: number | null): number | null => {
+    if (!userCoords || lat == null || lng == null) return null;
+    return distanceKmFn(userCoords.lat, userCoords.lng, lat, lng);
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
-  }, []);
-
-  // Try to obtain the user position to bias homepage feeds by proximity.
-  // Falls back silently to default ordering if permission is denied.
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        if (pos.coords.accuracy < 200) navigator.geolocation.clearWatch(watchId);
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   // Simulate a brand-new public event toast (test mode, admin only)
@@ -388,6 +372,15 @@ const Index = () => {
                   Nouveau
                 </Badge>
               )}
+              {(() => {
+                const d = distanceFor(event.latitude, event.longitude);
+                return d != null ? (
+                  <Badge className="border-0 bg-background/90 text-[8px] font-semibold text-foreground backdrop-blur-sm px-2 py-0.5 sm:text-[10px] flex items-center gap-1">
+                    <MapPin className="h-2.5 w-2.5 text-primary" />
+                    {formatDistance(d)}
+                  </Badge>
+                ) : null;
+              })()}
             </div>
             <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
               {countdown && (
@@ -539,6 +532,7 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> {t("home.new")}</Badge>
+              <LocationPicker compact />
               <Link to="/events?sort=recent">
                 <Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button>
               </Link>
@@ -582,7 +576,10 @@ const Index = () => {
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("home.upcoming")}</h2>
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.upcoming_sub")}</p>
             </div>
-            <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
+            <div className="flex items-center gap-2">
+              <LocationPicker compact />
+              <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
+            </div>
           </div>
           {upcomingEvents.length === 0 ? (
             <div className="py-12 text-center">
@@ -599,7 +596,8 @@ const Index = () => {
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || t("home.event")}
                       image={event.image_url || ""} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date} />
+                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
+                      distanceKm={distanceFor(event.latitude, event.longitude)} />
                   </Link>
                 </motion.div>
               ))}

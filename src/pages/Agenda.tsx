@@ -13,6 +13,8 @@ import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventPrice } from "@/lib/format-price";
 import { getEventImage } from "@/lib/event-image";
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
+import LocationPicker from "@/components/LocationPicker";
 
 interface AgendaEvent {
   id: string;
@@ -25,6 +27,8 @@ interface AgendaEvent {
   price: string | null;
   currency: string;
   is_live: boolean | null;
+  latitude: number | null;
+  longitude: number | null;
   categories: { name: string } | null;
 }
 
@@ -33,6 +37,7 @@ const Agenda = () => {
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const { location: userLocation } = useUserLocation();
 
   useEffect(() => {
     fetchAllEvents();
@@ -50,7 +55,7 @@ const Agenda = () => {
   const fetchAllEvents = async () => {
     const { data } = await supabase
       .from("events")
-      .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name)")
+      .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, latitude, longitude, categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
@@ -74,12 +79,15 @@ const Agenda = () => {
       <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-3">
-              <CalendarIcon className="h-8 w-8 text-primary" />
-              Agenda
-            </h1>
-            <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-3">
+                <CalendarIcon className="h-8 w-8 text-primary" />
+                Agenda
+              </h1>
+              <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
+            </div>
+            <LocationPicker />
           </div>
 
           <div className="grid lg:grid-cols-[300px_1fr] gap-4">
@@ -159,6 +167,11 @@ const Agenda = () => {
                                   <MapPin className="h-3.5 w-3.5 text-primary" />
                                   <span className="truncate">{event.city}</span>
                                 </span>
+                                {userLocation && event.latitude != null && event.longitude != null && (
+                                  <Badge variant="secondary" className="text-[10px] font-semibold">
+                                    {formatDistance(distanceKmFn(userLocation.lat, userLocation.lng, event.latitude, event.longitude))}
+                                  </Badge>
+                                )}
                               </div>
                               <p className="font-body font-semibold text-sm text-foreground mt-1">
                                 {formatEventPrice(event.price, event.currency)}

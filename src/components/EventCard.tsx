@@ -23,9 +23,11 @@ interface EventCardProps {
   organizerName?: string | null;
   organizerAvatarUrl?: string | null;
   organizerSlug?: string | null;
+  /** Distance to user (in km) — when provided, renders a small badge */
+  distanceKm?: number | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, isPending, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, isPending, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug, distanceKm }: EventCardProps) => {
   const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
 
   return (
@@ -96,6 +98,15 @@ const EventCard = ({ title, date, location, category, image, attendees, price, i
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground sm:gap-2 sm:text-sm">
             <MapPin className="h-3 w-3 text-primary sm:h-3.5 sm:w-3.5" />
             <span className="truncate">{location}</span>
+            {typeof distanceKm === "number" && (
+              <Badge variant="secondary" className="ml-auto shrink-0 text-[9px] font-semibold sm:text-[10px]">
+                {distanceKm < 1
+                  ? `${Math.round(distanceKm * 1000)} m`
+                  : distanceKm < 10
+                    ? `${distanceKm.toFixed(1).replace(".", ",")} km`
+                    : `${Math.round(distanceKm)} km`}
+              </Badge>
+            )}
           </div>
         </div>
         {attendees > 0 && (
