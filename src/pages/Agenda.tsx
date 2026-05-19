@@ -13,6 +13,8 @@ import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventPrice } from "@/lib/format-price";
 import { getEventImage } from "@/lib/event-image";
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
+import LocationPicker from "@/components/LocationPicker";
 
 interface AgendaEvent {
   id: string;
@@ -25,6 +27,8 @@ interface AgendaEvent {
   price: string | null;
   currency: string;
   is_live: boolean | null;
+  latitude: number | null;
+  longitude: number | null;
   categories: { name: string } | null;
 }
 
