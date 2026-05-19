@@ -149,16 +149,8 @@ const CarouselSkeleton = () => (
   </div>
 );
 
-// Haversine distance (km) between two coords
-const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
+import LocationPicker from "@/components/LocationPicker";
 
 /**
  * Re-rank events around the user position:
@@ -173,8 +165,8 @@ const sortByProximity = <T extends { latitude?: number | null; longitude?: numbe
   const withoutCoords = events.filter((e) => e.latitude == null || e.longitude == null);
   withCoords.sort(
     (a, b) =>
-      getDistanceKm(coords.lat, coords.lng, a.latitude!, a.longitude!) -
-      getDistanceKm(coords.lat, coords.lng, b.latitude!, b.longitude!),
+      distanceKmFn(coords.lat, coords.lng, a.latitude!, a.longitude!) -
+      distanceKmFn(coords.lat, coords.lng, b.latitude!, b.longitude!),
   );
   return [...withCoords, ...withoutCoords];
 };
@@ -191,26 +183,18 @@ const Index = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const { location: userLocation } = useUserLocation();
+  const userCoords = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null;
   const { isAdmin } = useUserRole(userId);
+
+  // Compute distance from user to an event (km) or null
+  const distanceFor = (lat?: number | null, lng?: number | null): number | null => {
+    if (!userCoords || lat == null || lng == null) return null;
+    return distanceKmFn(userCoords.lat, userCoords.lng, lat, lng);
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
-  }, []);
-
-  // Try to obtain the user position to bias homepage feeds by proximity.
-  // Falls back silently to default ordering if permission is denied.
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        if (pos.coords.accuracy < 200) navigator.geolocation.clearWatch(watchId);
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   // Simulate a brand-new public event toast (test mode, admin only)
