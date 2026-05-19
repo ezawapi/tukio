@@ -79,12 +79,15 @@ const Agenda = () => {
       <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-3">
-              <CalendarIcon className="h-8 w-8 text-primary" />
-              Agenda
-            </h1>
-            <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-3">
+                <CalendarIcon className="h-8 w-8 text-primary" />
+                Agenda
+              </h1>
+              <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
+            </div>
+            <LocationPicker />
           </div>
 
           <div className="grid lg:grid-cols-[300px_1fr] gap-4">
