@@ -372,7 +372,6 @@ const Index = () => {
                   Nouveau
                 </Badge>
               )}
-            </div>
               {(() => {
                 const d = distanceFor(event.latitude, event.longitude);
                 return d != null ? (
