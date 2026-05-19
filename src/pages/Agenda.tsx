@@ -55,7 +55,7 @@ const Agenda = () => {
   const fetchAllEvents = async () => {
     const { data } = await supabase
       .from("events")
-      .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, categories(name)")
+      .select("id, title, date, end_date, location, city, image_url, price, currency, is_live, latitude, longitude, categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
