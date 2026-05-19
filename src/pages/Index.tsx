@@ -576,7 +576,10 @@ const Index = () => {
               <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("home.upcoming")}</h2>
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.upcoming_sub")}</p>
             </div>
-            <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
+            <div className="flex items-center gap-2">
+              <LocationPicker compact />
+              <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
+            </div>
           </div>
           {upcomingEvents.length === 0 ? (
             <div className="py-12 text-center">
