@@ -596,7 +596,8 @@ const Index = () => {
                       date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                       location={event.location} category={event.categories?.name || t("home.event")}
                       image={event.image_url || ""} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date} />
+                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
+                      distanceKm={distanceFor(event.latitude, event.longitude)} />
                   </Link>
                 </motion.div>
               ))}
