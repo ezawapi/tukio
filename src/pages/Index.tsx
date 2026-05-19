@@ -328,6 +328,8 @@ const Index = () => {
   };
 
   const fetchUpcomingEvents = async () => {
+    // Fetch a wider pool so we can re-rank by proximity when geolocation is available.
+    const poolSize = userCoords ? 40 : 6;
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
@@ -335,13 +337,15 @@ const Index = () => {
       .eq("visibility", "public")
       .gte("date", new Date().toISOString())
       .order("date", { ascending: true })
-      .limit(6);
-    setUpcomingEvents(data || []);
+      .limit(poolSize);
+    const ranked = sortByProximity(data || [], userCoords);
+    setUpcomingEvents(ranked.slice(0, 6));
   };
 
   const fetchRecentEvents = async () => {
     setLoadingRecent(true);
     const todayISO = startOfTodayISO();
+    const poolSize = userCoords ? 40 : 8;
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
@@ -349,8 +353,10 @@ const Index = () => {
       .eq("visibility", "public")
       .gte("date", todayISO)
       .order("created_at", { ascending: false })
-      .limit(8);
-    setRecentEvents((data || []).filter((e: any) => isEventActive(e.date, e.end_date)));
+      .limit(poolSize);
+    const filtered = (data || []).filter((e: any) => isEventActive(e.date, e.end_date));
+    const ranked = sortByProximity(filtered, userCoords);
+    setRecentEvents(ranked.slice(0, 8));
     setLoadingRecent(false);
   };
 
