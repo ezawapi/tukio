@@ -149,6 +149,36 @@ const CarouselSkeleton = () => (
   </div>
 );
 
+// Haversine distance (km) between two coords
+const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+/**
+ * Re-rank events around the user position:
+ * events with coords closer first, then events without coords keep original order.
+ */
+const sortByProximity = <T extends { latitude?: number | null; longitude?: number | null }>(
+  events: T[],
+  coords: { lat: number; lng: number } | null,
+): T[] => {
+  if (!coords) return events;
+  const withCoords = events.filter((e) => e.latitude != null && e.longitude != null);
+  const withoutCoords = events.filter((e) => e.latitude == null || e.longitude == null);
+  withCoords.sort(
+    (a, b) =>
+      getDistanceKm(coords.lat, coords.lng, a.latitude!, a.longitude!) -
+      getDistanceKm(coords.lat, coords.lng, b.latitude!, b.longitude!),
+  );
+  return [...withCoords, ...withoutCoords];
+};
+
 const Index = () => {
   const { t } = useTranslation();
   useFavoriteAlerts();
@@ -161,10 +191,26 @@ const Index = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { isAdmin } = useUserRole(userId);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+  }, []);
+
+  // Try to obtain the user position to bias homepage feeds by proximity.
+  // Falls back silently to default ordering if permission is denied.
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        if (pos.coords.accuracy < 200) navigator.geolocation.clearWatch(watchId);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   // Simulate a brand-new public event toast (test mode, admin only)
@@ -195,7 +241,7 @@ const Index = () => {
     fetchLiveEvents();
     fetchUpcomingEvents();
     fetchRecentEvents();
-  }, []);
+  }, [userCoords]);
 
   useEffect(() => {
     refreshAll();
@@ -282,6 +328,8 @@ const Index = () => {
   };
 
   const fetchUpcomingEvents = async () => {
+    // Fetch a wider pool so we can re-rank by proximity when geolocation is available.
+    const poolSize = userCoords ? 40 : 6;
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
@@ -289,13 +337,15 @@ const Index = () => {
       .eq("visibility", "public")
       .gte("date", new Date().toISOString())
       .order("date", { ascending: true })
-      .limit(6);
-    setUpcomingEvents(data || []);
+      .limit(poolSize);
+    const ranked = sortByProximity(data || [], userCoords);
+    setUpcomingEvents(ranked.slice(0, 6));
   };
 
   const fetchRecentEvents = async () => {
     setLoadingRecent(true);
     const todayISO = startOfTodayISO();
+    const poolSize = userCoords ? 40 : 8;
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
@@ -303,8 +353,10 @@ const Index = () => {
       .eq("visibility", "public")
       .gte("date", todayISO)
       .order("created_at", { ascending: false })
-      .limit(8);
-    setRecentEvents((data || []).filter((e: any) => isEventActive(e.date, e.end_date)));
+      .limit(poolSize);
+    const filtered = (data || []).filter((e: any) => isEventActive(e.date, e.end_date));
+    const ranked = sortByProximity(filtered, userCoords);
+    setRecentEvents(ranked.slice(0, 8));
     setLoadingRecent(false);
   };
 
