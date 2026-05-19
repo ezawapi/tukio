@@ -373,6 +373,16 @@ const Index = () => {
                 </Badge>
               )}
             </div>
+              {(() => {
+                const d = distanceFor(event.latitude, event.longitude);
+                return d != null ? (
+                  <Badge className="border-0 bg-background/90 text-[8px] font-semibold text-foreground backdrop-blur-sm px-2 py-0.5 sm:text-[10px] flex items-center gap-1">
+                    <MapPin className="h-2.5 w-2.5 text-primary" />
+                    {formatDistance(d)}
+                  </Badge>
+                ) : null;
+              })()}
+            </div>
             <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
               {countdown && (
                 <Badge className="border-0 bg-primary/90 text-[8px] font-bold text-primary-foreground backdrop-blur-sm px-2 py-1 sm:text-[10px]">
