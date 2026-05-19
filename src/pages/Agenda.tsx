@@ -37,6 +37,7 @@ const Agenda = () => {
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const { location: userLocation } = useUserLocation();
 
   useEffect(() => {
     fetchAllEvents();
