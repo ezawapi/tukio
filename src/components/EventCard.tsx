@@ -23,9 +23,11 @@ interface EventCardProps {
   organizerName?: string | null;
   organizerAvatarUrl?: string | null;
   organizerSlug?: string | null;
+  /** Distance to user (in km) — when provided, renders a small badge */
+  distanceKm?: number | null;
 }
 
-const EventCard = ({ title, date, location, category, image, attendees, price, isLive, isPending, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug }: EventCardProps) => {
+const EventCard = ({ title, date, location, category, image, attendees, price, isLive, isPending, compact = false, eventDate, endDate, organizerId, organizerName, organizerAvatarUrl, organizerSlug, distanceKm }: EventCardProps) => {
   const countdown = eventDate ? getCountdown(eventDate, endDate) : null;
 
   return (
