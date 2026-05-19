@@ -167,6 +167,11 @@ const Agenda = () => {
                                   <MapPin className="h-3.5 w-3.5 text-primary" />
                                   <span className="truncate">{event.city}</span>
                                 </span>
+                                {userLocation && event.latitude != null && event.longitude != null && (
+                                  <Badge variant="secondary" className="text-[10px] font-semibold">
+                                    {formatDistance(distanceKmFn(userLocation.lat, userLocation.lng, event.latitude, event.longitude))}
+                                  </Badge>
+                                )}
                               </div>
                               <p className="font-body font-semibold text-sm text-foreground mt-1">
                                 {formatEventPrice(event.price, event.currency)}
