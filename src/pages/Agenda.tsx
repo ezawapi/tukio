@@ -32,11 +32,20 @@ interface AgendaEvent {
   categories: { name: string } | null;
 }
 
+const RADIUS_OPTIONS = [
+  { value: "all", label: "Toutes distances" },
+  { value: "5", label: "≤ 5 km" },
+  { value: "10", label: "≤ 10 km" },
+  { value: "25", label: "≤ 25 km" },
+  { value: "50", label: "≤ 50 km" },
+];
+
 const Agenda = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [radius, setRadius] = useState<string>("all");
   const { location: userLocation } = useUserLocation();
 
   useEffect(() => {
@@ -45,12 +54,21 @@ const Agenda = () => {
 
   useEffect(() => {
     if (selectedDate && allEvents.length > 0) {
-      const filtered = allEvents.filter((e) => isSameDay(new Date(e.date), selectedDate));
+      let filtered = allEvents.filter((e) => isSameDay(new Date(e.date), selectedDate));
+      if (radius !== "all" && userLocation) {
+        const max = Number(radius);
+        filtered = filtered.filter(
+          (e) =>
+            e.latitude != null &&
+            e.longitude != null &&
+            distanceKmFn(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= max,
+        );
+      }
       setEvents(filtered);
     } else {
       setEvents([]);
     }
-  }, [selectedDate, allEvents]);
+  }, [selectedDate, allEvents, radius, userLocation]);
 
   const fetchAllEvents = async () => {
     const { data } = await supabase
