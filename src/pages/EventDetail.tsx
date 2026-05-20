@@ -28,6 +28,7 @@ const EventDetail = () => {
   const { isAdmin, role } = useUserRole(user?.id);
   const isModerator = role === "moderator";
   const { toast } = useToast();
+  const { location: userLocation } = useUserLocation();
   const [event, setEvent] = useState<any>(null);
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [authorProfile, setAuthorProfile] = useState<{ id: string; slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
