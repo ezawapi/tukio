@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import LeafletMap from "@/components/LeafletMap";
 import { formatEventPrice } from "@/lib/format-price";
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
