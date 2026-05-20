@@ -199,6 +199,14 @@ const MapExplore = () => {
                 <p className="font-body text-[11px] text-muted-foreground flex items-center gap-1">
                   <MapPin className="h-3 w-3 text-primary shrink-0" />
                   <span className="truncate">{event.city}</span>
+                  {userPos && (
+                    <span className="ml-1 text-primary font-semibold">
+                      · {(() => {
+                        const d = getDistance(userPos.lat, userPos.lng, event.latitude, event.longitude);
+                        return d < 1 ? `${Math.round(d * 1000)} m` : d < 10 ? `${d.toFixed(1).replace(".", ",")} km` : `${Math.round(d)} km`;
+                      })()}
+                    </span>
+                  )}
                 </p>
               </div>
             </Link>
