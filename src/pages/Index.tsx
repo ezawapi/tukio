@@ -150,7 +150,6 @@ const CarouselSkeleton = () => (
 );
 
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
-import LocationPicker from "@/components/LocationPicker";
 
 /**
  * Re-rank events around the user position:
