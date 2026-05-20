@@ -105,25 +105,32 @@ const MapExplore = () => {
     return result;
   }, [events, search, selectedCategory, sortByProximity, userPos]);
 
-  const markers: MapMarker[] = filtered.map((event) => ({
-    id: event.id,
-    lat: event.latitude,
-    lng: event.longitude,
-    popupHtml: `
-      <div style="min-width:200px">
-        ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}" style="width:100%;height:96px;object-fit:cover;border-radius:6px;margin-bottom:8px" />` : ""}
-        <h3 style="font-weight:bold;font-size:14px;margin-bottom:4px">${event.title}</h3>
-        ${event.is_live ? '<span style="background:#ef4444;color:white;font-size:11px;padding:2px 8px;border-radius:4px">🔴 LIVE</span>' : ""}
-        <p style="font-size:12px;color:#6b7280;margin:4px 0">${event.categories?.name || "Événement"}</p>
-        <p style="font-size:12px;color:#6b7280;margin:2px 0">📅 ${format(new Date(event.date), "d MMM yyyy", { locale: fr })}</p>
-        <p style="font-size:12px;color:#6b7280;margin:2px 0">📍 ${event.location}, ${event.city}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <span style="font-size:12px;font-weight:600">${event.price || "Gratuit"}</span>
-          <a href="/events/${event.id}" style="font-size:12px;color:#2563eb">Voir détails →</a>
+  const markers: MapMarker[] = filtered.map((event) => {
+    const dist = userPos ? getDistance(userPos.lat, userPos.lng, event.latitude, event.longitude) : null;
+    const distLabel = dist != null
+      ? (dist < 1 ? `${Math.round(dist * 1000)} m` : dist < 10 ? `${dist.toFixed(1).replace(".", ",")} km` : `${Math.round(dist)} km`)
+      : null;
+    return {
+      id: event.id,
+      lat: event.latitude,
+      lng: event.longitude,
+      popupHtml: `
+        <div style="min-width:200px">
+          ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}" style="width:100%;height:96px;object-fit:cover;border-radius:6px;margin-bottom:8px" />` : ""}
+          <h3 style="font-weight:bold;font-size:14px;margin-bottom:4px">${event.title}</h3>
+          ${event.is_live ? '<span style="background:#ef4444;color:white;font-size:11px;padding:2px 8px;border-radius:4px">🔴 LIVE</span>' : ""}
+          <p style="font-size:12px;color:#6b7280;margin:4px 0">${event.categories?.name || "Événement"}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0">📅 ${format(new Date(event.date), "d MMM yyyy", { locale: fr })}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0">📍 ${event.location}, ${event.city}</p>
+          ${distLabel ? `<p style="font-size:12px;color:#2563eb;font-weight:600;margin:2px 0">🧭 ${distLabel} de vous</p>` : ""}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <span style="font-size:12px;font-weight:600">${event.price || "Gratuit"}</span>
+            <a href="/events/${event.id}" style="font-size:12px;color:#2563eb">Voir détails →</a>
+          </div>
         </div>
-      </div>
-    `,
-  }));
+      `,
+    };
+  });
 
   const defaultCenter: [number, number] = [2.0, 15.0];
 
