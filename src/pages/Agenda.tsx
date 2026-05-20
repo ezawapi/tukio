@@ -105,7 +105,19 @@ const Agenda = () => {
               </h1>
               <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
             </div>
-            <LocationPicker />
+            <div className="flex items-center gap-2">
+              <Select value={radius} onValueChange={setRadius} disabled={!userLocation}>
+                <SelectTrigger className="h-9 w-[170px] text-xs" title={!userLocation ? "Activez votre position dans les paramètres pour filtrer" : "Filtrer par distance"}>
+                  <MapPin className="h-3.5 w-3.5 mr-1 text-primary" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RADIUS_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-[300px_1fr] gap-4">
