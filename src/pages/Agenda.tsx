@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatEventPrice } from "@/lib/format-price";
 import { getEventImage } from "@/lib/event-image";
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
-import LocationPicker from "@/components/LocationPicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AgendaEvent {
   id: string;
