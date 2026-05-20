@@ -254,6 +254,11 @@ const EventDetail = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
     : null;
 
+  const eventDistanceKm =
+    userLocation && event.latitude != null && event.longitude != null
+      ? distanceKmFn(userLocation.lat, userLocation.lng, event.latitude, event.longitude)
+      : null;
+
   const organizerHref = event.organizer_id
     ? `/u/${organizerProfile?.slug || event.organizer_id}`
     : null;
