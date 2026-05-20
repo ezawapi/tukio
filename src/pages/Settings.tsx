@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LocationPicker from "@/components/LocationPicker";
+import { useUserLocation } from "@/hooks/use-user-location";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation, LANGUAGES } from "@/contexts/I18nContext";
 import type { Lang } from "@/contexts/I18nContext";
