@@ -532,7 +532,6 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> {t("home.new")}</Badge>
-              <LocationPicker compact />
               <Link to="/events?sort=recent">
                 <Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button>
               </Link>
