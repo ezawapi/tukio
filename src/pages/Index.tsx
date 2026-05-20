@@ -576,7 +576,6 @@ const Index = () => {
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.upcoming_sub")}</p>
             </div>
             <div className="flex items-center gap-2">
-              <LocationPicker compact />
               <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
             </div>
           </div>
