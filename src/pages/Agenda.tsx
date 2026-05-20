@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatEventPrice } from "@/lib/format-price";
 import { getEventImage } from "@/lib/event-image";
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
-import LocationPicker from "@/components/LocationPicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AgendaEvent {
   id: string;
@@ -32,11 +32,20 @@ interface AgendaEvent {
   categories: { name: string } | null;
 }
 
+const RADIUS_OPTIONS = [
+  { value: "all", label: "Toutes distances" },
+  { value: "5", label: "≤ 5 km" },
+  { value: "10", label: "≤ 10 km" },
+  { value: "25", label: "≤ 25 km" },
+  { value: "50", label: "≤ 50 km" },
+];
+
 const Agenda = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [radius, setRadius] = useState<string>("all");
   const { location: userLocation } = useUserLocation();
 
   useEffect(() => {
@@ -45,12 +54,21 @@ const Agenda = () => {
 
   useEffect(() => {
     if (selectedDate && allEvents.length > 0) {
-      const filtered = allEvents.filter((e) => isSameDay(new Date(e.date), selectedDate));
+      let filtered = allEvents.filter((e) => isSameDay(new Date(e.date), selectedDate));
+      if (radius !== "all" && userLocation) {
+        const max = Number(radius);
+        filtered = filtered.filter(
+          (e) =>
+            e.latitude != null &&
+            e.longitude != null &&
+            distanceKmFn(userLocation.lat, userLocation.lng, e.latitude, e.longitude) <= max,
+        );
+      }
       setEvents(filtered);
     } else {
       setEvents([]);
     }
-  }, [selectedDate, allEvents]);
+  }, [selectedDate, allEvents, radius, userLocation]);
 
   const fetchAllEvents = async () => {
     const { data } = await supabase
@@ -87,7 +105,19 @@ const Agenda = () => {
               </h1>
               <p className="font-body text-muted-foreground mt-1">Calendrier interactif des activités</p>
             </div>
-            <LocationPicker />
+            <div className="flex items-center gap-2">
+              <Select value={radius} onValueChange={setRadius} disabled={!userLocation}>
+                <SelectTrigger className="h-9 w-[170px] text-xs" title={!userLocation ? "Activez votre position dans les paramètres pour filtrer" : "Filtrer par distance"}>
+                  <MapPin className="h-3.5 w-3.5 mr-1 text-primary" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RADIUS_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-[300px_1fr] gap-4">

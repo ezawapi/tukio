@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import LeafletMap from "@/components/LeafletMap";
 import { formatEventPrice } from "@/lib/format-price";
+import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ const EventDetail = () => {
   const { isAdmin, role } = useUserRole(user?.id);
   const isModerator = role === "moderator";
   const { toast } = useToast();
+  const { location: userLocation } = useUserLocation();
   const [event, setEvent] = useState<any>(null);
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [authorProfile, setAuthorProfile] = useState<{ id: string; slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
@@ -252,6 +254,11 @@ const EventDetail = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`
     : null;
 
+  const eventDistanceKm =
+    userLocation && event.latitude != null && event.longitude != null
+      ? distanceKmFn(userLocation.lat, userLocation.lng, event.latitude, event.longitude)
+      : null;
+
   const organizerHref = event.organizer_id
     ? `/u/${organizerProfile?.slug || event.organizer_id}`
     : null;
@@ -374,6 +381,11 @@ const EventDetail = () => {
                       {event.venue_name && <p className="font-body font-bold text-foreground">{event.venue_name}</p>}
                       <p className="font-body text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
+                      {eventDistanceKm != null && (
+                        <Badge variant="secondary" className="mt-1 gap-1 text-[10px]">
+                          <Navigation className="h-3 w-3 text-primary" /> {formatDistance(eventDistanceKm)} de vous
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   {(event.attendees_count ?? 0) > 0 && (
@@ -684,6 +696,11 @@ const EventDetail = () => {
                       )}
                       <p className="font-body text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
+                      {eventDistanceKm != null && (
+                        <Badge variant="secondary" className="mt-1 gap-1 text-[10px]">
+                          <Navigation className="h-3 w-3 text-primary" /> {formatDistance(eventDistanceKm)} de vous
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   {(event.attendees_count ?? 0) > 0 && (

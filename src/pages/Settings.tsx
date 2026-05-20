@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LocationPicker from "@/components/LocationPicker";
+import { useUserLocation } from "@/hooks/use-user-location";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation, LANGUAGES } from "@/contexts/I18nContext";
 import type { Lang } from "@/contexts/I18nContext";
@@ -212,6 +214,26 @@ const Settings = () => {
                   <p className="font-body text-[10px] text-muted-foreground">{t("settings.mobile")}</p>
                   <Badge variant="outline" className="mt-0.5 text-[9px]">{t("settings.compatible")}</Badge>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location / Zone */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 font-display text-lg">
+                <MapPin className="h-5 w-5 text-primary" /> Zone & proximité
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Label className="font-body text-sm font-medium text-foreground">Ville ou zone</Label>
+                  <p className="font-body text-xs text-muted-foreground">
+                    Choisissez une ville pour calibrer les événements proches lorsque la géolocalisation est refusée ou indisponible.
+                  </p>
+                </div>
+                <LocationPicker compact />
               </div>
             </CardContent>
           </Card>

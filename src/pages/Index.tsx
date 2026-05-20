@@ -150,7 +150,6 @@ const CarouselSkeleton = () => (
 );
 
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
-import LocationPicker from "@/components/LocationPicker";
 
 /**
  * Re-rank events around the user position:
@@ -532,7 +531,6 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="gap-2 text-[10px] sm:text-xs"><Sparkles className="h-3 w-3" /> {t("home.new")}</Badge>
-              <LocationPicker compact />
               <Link to="/events?sort=recent">
                 <Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button>
               </Link>
@@ -577,7 +575,6 @@ const Index = () => {
               <p className="mt-1 font-body text-xs text-muted-foreground sm:text-sm">{t("home.upcoming_sub")}</p>
             </div>
             <div className="flex items-center gap-2">
-              <LocationPicker compact />
               <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
             </div>
           </div>
