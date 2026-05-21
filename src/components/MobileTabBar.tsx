@@ -13,7 +13,7 @@ const MobileTabBar = () => {
   const tabs = user
     ? [
         { label: "Accueil", icon: Home, href: "/" },
-        { label: "Activités", icon: Compass, href: "/events" },
+        { label: "Carte", icon: Compass, href: "/explorer" },
         { label: "Créer", icon: PlusCircle, href: "/create" },
         { label: "Agenda", icon: CalendarDays, href: "/agenda" },
         { label: "Favoris", icon: Heart, href: "/favorites" },
