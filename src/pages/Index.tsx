@@ -227,16 +227,22 @@ const Index = () => {
     fetchLiveEvents();
     fetchUpcomingEvents();
     fetchRecentEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userCoords]);
 
   useEffect(() => {
     refreshAll();
     const mountedAt = Date.now();
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => refreshAll(), 600);
+    };
     // Realtime: keep homepage data in sync across all open clients
     const channel = supabase
       .channel("home-events-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload: any) => {
-        refreshAll();
+        debouncedRefresh();
         if (Date.now() - mountedAt < 1500) return;
         // Discreet toast when a brand-new public event appears
         if (payload.eventType === "INSERT") {
@@ -271,6 +277,7 @@ const Index = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => fetchCategories())
       .subscribe();
     return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
       supabase.removeChannel(channel);
     };
   }, [refreshAll]);
@@ -278,22 +285,21 @@ const Index = () => {
   const fetchCategories = async () => {
     setLoadingCats(true);
     const todayISO = startOfTodayISO();
-    const { data } = await supabase.from("categories").select("*").order("name");
-    if (data) {
-      setCategories(data);
+    const [{ data: cats }, { data: evRows }] = await Promise.all([
+      supabase.from("categories").select("*").order("name"),
+      supabase
+        .from("events")
+        .select("category_id")
+        .eq("is_published", true)
+        .eq("visibility", "public")
+        .gte("date", todayISO),
+    ]);
+    if (cats) {
+      setCategories(cats);
       const counts: Record<string, number> = {};
-      await Promise.all(
-        data.map(async (cat) => {
-          const { count } = await supabase
-            .from("events")
-            .select("*", { count: "exact", head: true })
-            .eq("category_id", cat.id)
-            .eq("is_published", true)
-            .eq("visibility", "public")
-            .gte("date", todayISO);
-          counts[cat.id] = count || 0;
-        }),
-      );
+      (evRows || []).forEach((row: any) => {
+        if (row.category_id) counts[row.category_id] = (counts[row.category_id] || 0) + 1;
+      });
       setCategoryCounts(counts);
     }
     setLoadingCats(false);
