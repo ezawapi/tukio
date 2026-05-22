@@ -183,7 +183,10 @@ const Index = () => {
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
   const { location: userLocation } = useUserLocation();
-  const userCoords = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null;
+  const userCoords = useMemo(
+    () => (userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null),
+    [userLocation?.lat, userLocation?.lng],
+  );
   const { isAdmin } = useUserRole(userId);
 
   // Compute distance from user to an event (km) or null
