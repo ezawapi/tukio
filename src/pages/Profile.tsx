@@ -396,6 +396,62 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="invitations">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-display text-xl flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> Invitations reçues ({receivedInvitations.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {receivedInvitations.length === 0 ? (
+                    <p className="font-body text-sm text-muted-foreground">
+                      Vous n'avez reçu aucune invitation à un événement privé pour le moment.
+                    </p>
+                  ) : (
+                    paginatedInvitations.map((inv) => {
+                      const event = inv.events;
+                      const status = invitationStatus(inv);
+                      const blocked = inv.revoked_at || (inv.expires_at && new Date(inv.expires_at) <= new Date());
+                      return (
+                        <div key={inv.id} className="rounded-xl border border-border bg-muted/40 p-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="font-body font-semibold text-foreground truncate">{event?.title || "Événement"}</h3>
+                                <Badge variant={status.variant} className="text-[10px]">{status.label}</Badge>
+                                {inv.revoked_at && <Badge variant="outline" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Lien invalide</Badge>}
+                              </div>
+                              <p className="font-body text-sm text-muted-foreground flex flex-wrap items-center gap-3">
+                                {event?.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" /> {event.city}</span>}
+                                {event?.date && <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-primary" /> {format(new Date(event.date), "d MMM yyyy", { locale: fr })}</span>}
+                                <span className="text-xs">Reçue {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, locale: fr })}</span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {!blocked && event?.id && (
+                                <Link to={`/invite/${inv.qr_code_token}`}>
+                                  <Button size="sm" className="gap-1 gradient-hero text-primary-foreground border-0">
+                                    <QrCode className="h-3.5 w-3.5" /> {inv.claimed_at ? "Rouvrir" : "Ouvrir l'invitation"}
+                                  </Button>
+                                </Link>
+                              )}
+                              {event?.id && inv.claimed_at && (
+                                <Link to={`/events/${event.id}`}>
+                                  <Button variant="outline" size="sm">Voir</Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <PaginationControls currentPage={invitationsPage} totalPages={invitationsTotalPages} totalItems={receivedInvitations.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setInvitationsPage} label="invitations" />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="comments">
               <Card>
                 <CardHeader>
