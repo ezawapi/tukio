@@ -159,6 +159,9 @@ const Profile = () => {
   const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
   const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
   const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
+  const invitationsTotalPages = Math.ceil(receivedInvitations.length / ITEMS_PER_PAGE);
+  const paginatedInvitations = receivedInvitations.slice((invitationsPage - 1) * ITEMS_PER_PAGE, invitationsPage * ITEMS_PER_PAGE);
+  const pendingInvitationsCount = receivedInvitations.filter((i) => !i.revoked_at && !i.claimed_at && (!i.expires_at || new Date(i.expires_at) > new Date())).length;
   const hasMoreNotifs = notifications.length < notifsTotal;
 
   const loadMoreNotifs = async () => {
@@ -178,9 +181,18 @@ const Profile = () => {
     setNotifsLoadingMore(false);
   };
 
+  const invitationStatus = (inv: any): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
+    if (inv.revoked_at) return { label: "Révoquée", variant: "destructive" };
+    if (inv.expires_at && new Date(inv.expires_at) <= new Date()) return { label: "Expirée", variant: "destructive" };
+    if (inv.attendance_status === "scanned") return { label: "✅ Scannée (présent)", variant: "default" };
+    if (inv.claimed_at) return { label: "Ouverte", variant: "default" };
+    return { label: "Reçue · non ouverte", variant: "secondary" };
+  };
+
   const tabsList = [
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
     { value: "notifications", label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ""}` },
+    { value: "invitations", label: `Invitations${pendingInvitationsCount > 0 ? ` (${pendingInvitationsCount})` : ""}` },
     { value: "comments", label: "Commentaires" },
     { value: "favorites", label: "Favoris" },
   ];
