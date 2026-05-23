@@ -1,7 +1,7 @@
 import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -54,23 +54,30 @@ const Profile = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [receivedInvitations, setReceivedInvitations] = useState<any[]>([]);
   const [notifsTotal, setNotifsTotal] = useState(0);
   const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
   const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
   const [eventsPage, setEventsPage] = useState(1);
   const [commentsPage, setCommentsPage] = useState(1);
   const [favoritesPage, setFavoritesPage] = useState(1);
+  const [invitationsPage, setInvitationsPage] = useState(1);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     const fetchDashboard = async () => {
-      const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult] = await Promise.all([
+      const userEmail = (user.email || "").toLowerCase();
+      const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult, invitationsResult] = await Promise.all([
         supabase.from("profiles").select("account_type").eq("id", user.id).maybeSingle(),
         supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, NOTIFS_PAGE_SIZE - 1),
+        supabase.from("event_invitations")
+          .select("id, status, attendance_status, claimed_at, scanned_at, expires_at, revoked_at, max_uses, uses_count, qr_code_token, invited_email, invited_name, created_at, last_sent_at, events(id, title, city, date, image_url)")
+          .or(`invited_user_id.eq.${user.id}${userEmail ? `,invited_email.eq.${userEmail}` : ""}`)
+          .order("created_at", { ascending: false }),
       ]);
       const acct = (profileResult.data as any)?.account_type;
       setAccountType(acct === "organizer" ? "organizer" : "user");
@@ -80,6 +87,7 @@ const Profile = () => {
       setNotifications((notifsResult.data as UserNotification[]) || []);
       setNotifsTotal(notifsResult.count || 0);
       setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
+      setReceivedInvitations(invitationsResult.data || []);
       setLoading(false);
     };
     fetchDashboard();
@@ -151,6 +159,9 @@ const Profile = () => {
   const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
   const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
   const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
+  const invitationsTotalPages = Math.ceil(receivedInvitations.length / ITEMS_PER_PAGE);
+  const paginatedInvitations = receivedInvitations.slice((invitationsPage - 1) * ITEMS_PER_PAGE, invitationsPage * ITEMS_PER_PAGE);
+  const pendingInvitationsCount = receivedInvitations.filter((i) => !i.revoked_at && !i.claimed_at && (!i.expires_at || new Date(i.expires_at) > new Date())).length;
   const hasMoreNotifs = notifications.length < notifsTotal;
 
   const loadMoreNotifs = async () => {
@@ -170,9 +181,18 @@ const Profile = () => {
     setNotifsLoadingMore(false);
   };
 
+  const invitationStatus = (inv: any): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
+    if (inv.revoked_at) return { label: "Révoquée", variant: "destructive" };
+    if (inv.expires_at && new Date(inv.expires_at) <= new Date()) return { label: "Expirée", variant: "destructive" };
+    if (inv.attendance_status === "scanned") return { label: "✅ Scannée (présent)", variant: "default" };
+    if (inv.claimed_at) return { label: "Ouverte", variant: "default" };
+    return { label: "Reçue · non ouverte", variant: "secondary" };
+  };
+
   const tabsList = [
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
     { value: "notifications", label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ""}` },
+    { value: "invitations", label: `Invitations${pendingInvitationsCount > 0 ? ` (${pendingInvitationsCount})` : ""}` },
     { value: "comments", label: "Commentaires" },
     { value: "favorites", label: "Favoris" },
   ];
@@ -372,6 +392,62 @@ const Profile = () => {
                   {notifications.length > 0 && !hasMoreNotifs && notifsTotal > NOTIFS_PAGE_SIZE && (
                     <p className="pt-2 text-center text-[11px] text-muted-foreground">Toutes les notifications affichées ({notifsTotal}).</p>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="invitations">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-display text-xl flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> Invitations reçues ({receivedInvitations.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {receivedInvitations.length === 0 ? (
+                    <p className="font-body text-sm text-muted-foreground">
+                      Vous n'avez reçu aucune invitation à un événement privé pour le moment.
+                    </p>
+                  ) : (
+                    paginatedInvitations.map((inv) => {
+                      const event = inv.events;
+                      const status = invitationStatus(inv);
+                      const blocked = inv.revoked_at || (inv.expires_at && new Date(inv.expires_at) <= new Date());
+                      return (
+                        <div key={inv.id} className="rounded-xl border border-border bg-muted/40 p-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="font-body font-semibold text-foreground truncate">{event?.title || "Événement"}</h3>
+                                <Badge variant={status.variant} className="text-[10px]">{status.label}</Badge>
+                                {inv.revoked_at && <Badge variant="outline" className="text-[10px] gap-1"><Ban className="h-3 w-3" />Lien invalide</Badge>}
+                              </div>
+                              <p className="font-body text-sm text-muted-foreground flex flex-wrap items-center gap-3">
+                                {event?.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" /> {event.city}</span>}
+                                {event?.date && <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-primary" /> {format(new Date(event.date), "d MMM yyyy", { locale: fr })}</span>}
+                                <span className="text-xs">Reçue {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, locale: fr })}</span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {!blocked && event?.id && (
+                                <Link to={`/invite/${inv.qr_code_token}`}>
+                                  <Button size="sm" className="gap-1 gradient-hero text-primary-foreground border-0">
+                                    <QrCode className="h-3.5 w-3.5" /> {inv.claimed_at ? "Rouvrir" : "Ouvrir l'invitation"}
+                                  </Button>
+                                </Link>
+                              )}
+                              {event?.id && inv.claimed_at && (
+                                <Link to={`/events/${event.id}`}>
+                                  <Button variant="outline" size="sm">Voir</Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <PaginationControls currentPage={invitationsPage} totalPages={invitationsTotalPages} totalItems={receivedInvitations.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setInvitationsPage} label="invitations" />
                 </CardContent>
               </Card>
             </TabsContent>
