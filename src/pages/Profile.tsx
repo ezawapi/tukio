@@ -54,12 +54,14 @@ const Profile = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [receivedInvitations, setReceivedInvitations] = useState<any[]>([]);
   const [notifsTotal, setNotifsTotal] = useState(0);
   const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
   const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
   const [eventsPage, setEventsPage] = useState(1);
   const [commentsPage, setCommentsPage] = useState(1);
   const [favoritesPage, setFavoritesPage] = useState(1);
+  const [invitationsPage, setInvitationsPage] = useState(1);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
 
   useEffect(() => {
