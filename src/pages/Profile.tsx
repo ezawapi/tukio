@@ -67,12 +67,17 @@ const Profile = () => {
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     const fetchDashboard = async () => {
-      const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult] = await Promise.all([
+      const userEmail = (user.email || "").toLowerCase();
+      const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult, invitationsResult] = await Promise.all([
         supabase.from("profiles").select("account_type").eq("id", user.id).maybeSingle(),
         supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, NOTIFS_PAGE_SIZE - 1),
+        supabase.from("event_invitations")
+          .select("id, status, attendance_status, claimed_at, scanned_at, expires_at, revoked_at, max_uses, uses_count, qr_code_token, invited_email, invited_name, created_at, last_sent_at, events(id, title, city, date, image_url)")
+          .or(`invited_user_id.eq.${user.id}${userEmail ? `,invited_email.eq.${userEmail}` : ""}`)
+          .order("created_at", { ascending: false }),
       ]);
       const acct = (profileResult.data as any)?.account_type;
       setAccountType(acct === "organizer" ? "organizer" : "user");
@@ -82,6 +87,7 @@ const Profile = () => {
       setNotifications((notifsResult.data as UserNotification[]) || []);
       setNotifsTotal(notifsResult.count || 0);
       setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
+      setReceivedInvitations(invitationsResult.data || []);
       setLoading(false);
     };
     fetchDashboard();
