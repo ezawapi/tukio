@@ -1,7 +1,7 @@
 import { getEventImage } from "@/lib/event-image";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban, Send, UserCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -55,6 +55,7 @@ const Profile = () => {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [receivedInvitations, setReceivedInvitations] = useState<any[]>([]);
+  const [sentInvitationsStats, setSentInvitationsStats] = useState<{ total: number; scanned: number }>({ total: 0, scanned: 0 });
   const [notifsTotal, setNotifsTotal] = useState(0);
   const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
   const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
@@ -88,6 +89,18 @@ const Profile = () => {
       setNotifsTotal(notifsResult.count || 0);
       setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
       setReceivedInvitations(invitationsResult.data || []);
+
+      // Organizer KPI: invitations sent + presents scanned
+      const { data: sentInv } = await supabase
+        .from("event_invitations")
+        .select("id, attendance_status")
+        .eq("invited_by", user.id);
+      const sentList = sentInv || [];
+      setSentInvitationsStats({
+        total: sentList.length,
+        scanned: sentList.filter((i: any) => i.attendance_status === "scanned").length,
+      });
+
       setLoading(false);
     };
     fetchDashboard();
@@ -261,13 +274,17 @@ const Profile = () => {
                   { label: "Publications", value: events.length, icon: Calendar },
                   { label: "Publiées", value: publishedCount, icon: ArrowRight },
                   { label: "En attente", value: pendingCount, icon: Clock3 },
+                  { label: "Invitations envoyées", value: sentInvitationsStats.total, icon: Send },
+                  { label: "Présents scannés", value: sentInvitationsStats.scanned, icon: UserCheck },
+                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
+                  { label: "Favoris", value: favorites.length, icon: Heart },
                   { label: "Notifications", value: unreadCount, icon: Bell },
                 ]
               : [
                   { label: "Notifications", value: unreadCount, icon: Bell },
+                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
                   { label: "Commentaires", value: comments.length, icon: MessageSquare },
                   { label: "Favoris", value: favorites.length, icon: Heart },
-                  { label: "Connexion", value: isOnline ? "Active" : "Hors-ligne", icon: Wifi },
                 ]
             ).map((stat: any) => (
               <Card key={stat.label}>
