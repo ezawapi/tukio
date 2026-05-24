@@ -26,6 +26,7 @@ import Notifications from "./pages/Notifications.tsx";
 import History from "./pages/History.tsx";
 import PublicProfile from "./pages/PublicProfile.tsx";
 import MyEvents from "./pages/MyEvents.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import InvitePage from "./pages/InvitePage.tsx";
 import AdminRoles from "./pages/AdminRoles.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
