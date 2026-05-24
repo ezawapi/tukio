@@ -76,6 +76,7 @@ const App = () => {
             <Route path="/history" element={<History />} />
             <Route path="/my-events" element={<MyEvents />} />
             <Route path="/invite/:token" element={<InvitePage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
