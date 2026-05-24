@@ -89,6 +89,18 @@ const Profile = () => {
       setNotifsTotal(notifsResult.count || 0);
       setNotifsLoadedCount(NOTIFS_PAGE_SIZE);
       setReceivedInvitations(invitationsResult.data || []);
+
+      // Organizer KPI: invitations sent + presents scanned
+      const { data: sentInv } = await supabase
+        .from("event_invitations")
+        .select("id, attendance_status")
+        .eq("invited_by", user.id);
+      const sentList = sentInv || [];
+      setSentInvitationsStats({
+        total: sentList.length,
+        scanned: sentList.filter((i: any) => i.attendance_status === "scanned").length,
+      });
+
       setLoading(false);
     };
     fetchDashboard();
