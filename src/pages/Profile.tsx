@@ -274,13 +274,17 @@ const Profile = () => {
                   { label: "Publications", value: events.length, icon: Calendar },
                   { label: "Publiées", value: publishedCount, icon: ArrowRight },
                   { label: "En attente", value: pendingCount, icon: Clock3 },
+                  { label: "Invitations envoyées", value: sentInvitationsStats.total, icon: Send },
+                  { label: "Présents scannés", value: sentInvitationsStats.scanned, icon: UserCheck },
+                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
+                  { label: "Favoris", value: favorites.length, icon: Heart },
                   { label: "Notifications", value: unreadCount, icon: Bell },
                 ]
               : [
                   { label: "Notifications", value: unreadCount, icon: Bell },
+                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
                   { label: "Commentaires", value: comments.length, icon: MessageSquare },
                   { label: "Favoris", value: favorites.length, icon: Heart },
-                  { label: "Connexion", value: isOnline ? "Active" : "Hors-ligne", icon: Wifi },
                 ]
             ).map((stat: any) => (
               <Card key={stat.label}>
