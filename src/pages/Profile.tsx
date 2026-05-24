@@ -55,6 +55,7 @@ const Profile = () => {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [receivedInvitations, setReceivedInvitations] = useState<any[]>([]);
+  const [sentInvitationsStats, setSentInvitationsStats] = useState<{ total: number; scanned: number }>({ total: 0, scanned: 0 });
   const [notifsTotal, setNotifsTotal] = useState(0);
   const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
   const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
