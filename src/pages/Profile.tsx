@@ -446,6 +446,9 @@ const Profile = () => {
                               </p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
+                              <Link to={`/my-invitations/${inv.id}`}>
+                                <Button variant="outline" size="sm">Détails</Button>
+                              </Link>
                               {!blocked && event?.id && (
                                 <Link to={`/invite/${inv.qr_code_token}`}>
                                   <Button size="sm" className="gap-1 gradient-hero text-primary-foreground border-0">
