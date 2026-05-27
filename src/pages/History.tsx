@@ -1,43 +1,54 @@
 import { getEventImage } from "@/lib/event-image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, MapPin, ArrowLeft, Archive, Users } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Archive, Users, Download, Ticket } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import PaginationControls from "@/components/PaginationControls";
+import DashboardFilters, { type SortKey } from "@/components/DashboardFilters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { isEventActive } from "@/lib/event-filters";
+import { downloadReceiptPdf } from "@/lib/receipt-pdf";
+import { useToast } from "@/hooks/use-toast";
 
 const ITEMS_PER_PAGE = 15;
 
 const History = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [pastEvents, setPastEvents] = useState<any[]>([]);
+  const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [search, setSearch] = useState(""); const [city, setCity] = useState("all"); const [sort, setSort] = useState<SortKey>("date_desc");
+  const [oSearch, setOSearch] = useState(""); const [oCity, setOCity] = useState("all"); const [oSort, setOSort] = useState<SortKey>("date_desc");
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     const fetchHistory = async () => {
-      const { data } = await supabase
-        .from("events")
-        .select("id, title, city, date, end_date, image_url, status, is_published, attendees_count")
-        .eq("organizer_id", user.id)
-        .order("date", { ascending: false });
-      const past = (data || []).filter((e) => !isEventActive(e.date, e.end_date));
+      const [eventsRes, ordersRes] = await Promise.all([
+        supabase.from("events").select("id, title, city, date, end_date, image_url, status, is_published, attendees_count").eq("organizer_id", user.id).order("date", { ascending: false }),
+        supabase.from("ticket_orders").select("id, created_at, quantity, unit_price_amount, total_amount, currency, payment_status, payment_provider, qr_code_token, buyer_name, buyer_email, attendance_status, ticket_types(name), events(id, title, city, location, date, end_date, image_url)").eq("buyer_user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+      const past = (eventsRes.data || []).filter((e) => !isEventActive(e.date, e.end_date));
       setPastEvents(past);
+      const pastO = (ordersRes.data || []).filter((o) => o.events && !isEventActive(o.events.date, o.events.end_date));
+      setPastOrders(pastO);
       setLoading(false);
     };
     fetchHistory();
   }, [user, navigate]);
+
 
   if (!user) return null;
 
