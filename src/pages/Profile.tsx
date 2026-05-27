@@ -198,15 +198,80 @@ const Profile = () => {
   const pendingCount = events.filter((event) => event.status === "pending").length;
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const eventsTotalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
-  const paginatedEvents = events.slice((eventsPage - 1) * ITEMS_PER_PAGE, eventsPage * ITEMS_PER_PAGE);
+  // ===== Filter / sort helpers =====
+  const applyTextCity = <T,>(items: T[], getCity: (x: T) => string, getText: (x: T) => string, search: string, city: string) => {
+    const q = search.trim().toLowerCase();
+    return items.filter((it) => {
+      if (city !== "all" && (getCity(it) || "") !== city) return false;
+      if (q && !getText(it).toLowerCase().includes(q)) return false;
+      return true;
+    });
+  };
+  const groupBy = <T,>(items: T[], key: (x: T) => string) => {
+    const map = new Map<string, T[]>();
+    items.forEach((it) => {
+      const k = key(it) || "—";
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(it);
+    });
+    return Array.from(map.entries());
+  };
+
+  // Events tab
+  const eventsCities = useMemo(() => Array.from(new Set(events.map((e) => e.city).filter(Boolean))) as string[], [events]);
+  const filteredEvents = useMemo(() => {
+    let arr = applyTextCity(events, (e) => e.city, (e) => `${e.title || ""} ${e.categories?.name || ""}`, evSearch, evCity);
+    if (evSort === "date_desc") arr = [...arr].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+    else if (evSort === "date_asc") arr = [...arr].sort((a, b) => +new Date(a.date) - +new Date(b.date));
+    else if (evSort === "popularity") arr = [...arr].sort((a, b) => (b.attendees_count || 0) - (a.attendees_count || 0));
+    else if (evSort === "status") arr = [...arr].sort((a, b) => eventStatusRank(a) - eventStatusRank(b));
+    return arr;
+  }, [events, evSearch, evCity, evSort]);
+  const eventsTotalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const paginatedEvents = filteredEvents.slice((eventsPage - 1) * ITEMS_PER_PAGE, eventsPage * ITEMS_PER_PAGE);
+
+  // Comments tab (search only)
   const commentsTotalPages = Math.ceil(comments.length / ITEMS_PER_PAGE);
   const paginatedComments = comments.slice((commentsPage - 1) * ITEMS_PER_PAGE, commentsPage * ITEMS_PER_PAGE);
-  const favoritesTotalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
-  const paginatedFavorites = favorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
-  const invitationsTotalPages = Math.ceil(receivedInvitations.length / ITEMS_PER_PAGE);
-  const paginatedInvitations = receivedInvitations.slice((invitationsPage - 1) * ITEMS_PER_PAGE, invitationsPage * ITEMS_PER_PAGE);
+
+  // Favorites tab
+  const favCities = useMemo(() => Array.from(new Set(favorites.map((f) => f.events?.city).filter(Boolean))) as string[], [favorites]);
+  const filteredFavorites = useMemo(() => {
+    let arr = applyTextCity(favorites, (f) => f.events?.city || "", (f) => f.events?.title || "", favSearch, favCity);
+    if (favSort === "date_desc") arr = [...arr].sort((a, b) => +new Date(b.events?.date || 0) - +new Date(a.events?.date || 0));
+    else if (favSort === "date_asc") arr = [...arr].sort((a, b) => +new Date(a.events?.date || 0) - +new Date(b.events?.date || 0));
+    return arr;
+  }, [favorites, favSearch, favCity, favSort]);
+  const favoritesTotalPages = Math.ceil(filteredFavorites.length / ITEMS_PER_PAGE);
+  const paginatedFavorites = filteredFavorites.slice((favoritesPage - 1) * ITEMS_PER_PAGE, favoritesPage * ITEMS_PER_PAGE);
+
+  // Invitations tab
+  const invCities = useMemo(() => Array.from(new Set(receivedInvitations.map((i) => i.events?.city).filter(Boolean))) as string[], [receivedInvitations]);
+  const filteredInvitations = useMemo(() => {
+    let arr = applyTextCity(receivedInvitations, (i) => i.events?.city || "", (i) => i.events?.title || "", invSearch, invCity);
+    if (invSort === "date_desc") arr = [...arr].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+    else if (invSort === "date_asc") arr = [...arr].sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+    else if (invSort === "status") arr = [...arr].sort((a, b) => invStatusRank(a) - invStatusRank(b));
+    return arr;
+  }, [receivedInvitations, invSearch, invCity, invSort]);
+  const invitationsGrouped = useMemo(() => invGroup ? groupBy(filteredInvitations, (i) => i.events?.title || "Événement") : null, [filteredInvitations, invGroup]);
+  const invitationsTotalPages = Math.ceil(filteredInvitations.length / ITEMS_PER_PAGE);
+  const paginatedInvitations = filteredInvitations.slice((invitationsPage - 1) * ITEMS_PER_PAGE, invitationsPage * ITEMS_PER_PAGE);
   const pendingInvitationsCount = receivedInvitations.filter((i) => !i.revoked_at && !i.claimed_at && (!i.expires_at || new Date(i.expires_at) > new Date())).length;
+
+  // Participations tab
+  const partCities = useMemo(() => Array.from(new Set(participations.map((p) => p.events?.city).filter(Boolean))) as string[], [participations]);
+  const filteredParticipations = useMemo(() => {
+    let arr = applyTextCity(participations, (p) => p.events?.city || "", (p) => p.events?.title || "", partSearch, partCity);
+    if (partSort === "date_desc") arr = [...arr].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+    else if (partSort === "date_asc") arr = [...arr].sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+    else if (partSort === "status") arr = [...arr].sort((a, b) => (a.payment_status || "").localeCompare(b.payment_status || ""));
+    return arr;
+  }, [participations, partSearch, partCity, partSort]);
+  const participationsGrouped = useMemo(() => partGroup ? groupBy(filteredParticipations, (p) => p.events?.title || "Événement") : null, [filteredParticipations, partGroup]);
+  const participationsTotalPages = Math.ceil(filteredParticipations.length / ITEMS_PER_PAGE);
+  const paginatedParticipations = filteredParticipations.slice((participationsPage - 1) * ITEMS_PER_PAGE, participationsPage * ITEMS_PER_PAGE);
+
   const hasMoreNotifs = notifications.length < notifsTotal;
 
   const loadMoreNotifs = async () => {
