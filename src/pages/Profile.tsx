@@ -125,6 +125,14 @@ const Profile = () => {
         scanned: sentList.filter((i: any) => i.attendance_status === "scanned").length,
       });
 
+      // Participations (ticket orders)
+      const { data: orders } = await supabase
+        .from("ticket_orders")
+        .select("id, created_at, quantity, unit_price_amount, total_amount, currency, payment_status, payment_provider, qr_code_token, buyer_name, buyer_email, attendance_status, ticket_types(name), events(id, title, city, location, date, image_url)")
+        .eq("buyer_user_id", user.id)
+        .order("created_at", { ascending: false });
+      setParticipations(orders || []);
+
       setLoading(false);
     };
     fetchDashboard();
