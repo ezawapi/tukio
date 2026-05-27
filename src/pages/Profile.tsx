@@ -303,9 +303,39 @@ const Profile = () => {
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
     { value: "notifications", label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ""}` },
     { value: "invitations", label: `Invitations${pendingInvitationsCount > 0 ? ` (${pendingInvitationsCount})` : ""}` },
+    { value: "participations", label: `Participations${participations.length > 0 ? ` (${participations.length})` : ""}` },
     { value: "comments", label: "Commentaires" },
     { value: "favorites", label: "Favoris" },
   ];
+
+  const handleDownloadReceipt = (order: any) => {
+    downloadReceiptPdf({
+      orderId: order.id,
+      buyerName: order.buyer_name,
+      buyerEmail: order.buyer_email,
+      quantity: order.quantity,
+      unitPrice: Number(order.unit_price_amount),
+      total: Number(order.total_amount),
+      currency: order.currency,
+      paymentStatus: order.payment_status,
+      paymentProvider: order.payment_provider,
+      qrToken: order.qr_code_token,
+      createdAt: order.created_at,
+      eventTitle: order.events?.title || "Événement",
+      eventDate: order.events?.date,
+      eventLocation: order.events?.location,
+      eventCity: order.events?.city,
+      ticketTypeName: order.ticket_types?.name,
+    });
+    toast({ title: "Reçu téléchargé" });
+  };
+
+  const participationStatusBadge = (p: any) => {
+    if (p.payment_status === "paid") return <Badge className="text-[10px]">Payée</Badge>;
+    if (p.payment_status === "pending") return <Badge variant="secondary" className="text-[10px]">En attente</Badge>;
+    if (p.payment_status === "failed" || p.payment_status === "canceled") return <Badge variant="destructive" className="text-[10px]">{p.payment_status}</Badge>;
+    return <Badge variant="outline" className="text-[10px]">{p.payment_status}</Badge>;
+  };
 
   return (
     <div className="min-h-screen bg-background">
