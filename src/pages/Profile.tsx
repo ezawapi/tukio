@@ -439,11 +439,16 @@ const Profile = () => {
               <TabsContent value="events">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="font-display text-xl">Mes publications ({events.length})</CardTitle>
+                    <CardTitle className="font-display text-xl">Mes publications ({filteredEvents.length}{filteredEvents.length !== events.length ? `/${events.length}` : ""})</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {events.length === 0 ? (
-                      <p className="font-body text-sm text-muted-foreground">Vous n'avez encore publié aucune activité.</p>
+                    <DashboardFilters
+                      search={evSearch} onSearch={setEvSearch}
+                      city={evCity} onCity={setEvCity} cities={eventsCities}
+                      sort={evSort} onSort={setEvSort}
+                    />
+                    {filteredEvents.length === 0 ? (
+                      <p className="font-body text-sm text-muted-foreground">Aucune activité ne correspond à ces filtres.</p>
                     ) : (
                       paginatedEvents.map((event) => (
                         <Link key={event.id} to={`/events/${event.id}`} className="block rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:bg-muted">
@@ -454,10 +459,12 @@ const Profile = () => {
                                 <Badge variant={event.is_published ? "default" : event.status === "rejected" ? "destructive" : "secondary"}>
                                   {event.is_published ? "Publié" : event.status === "rejected" ? "Rejeté" : "En attente"}
                                 </Badge>
+                                {event.categories?.name && <Badge variant="outline" className="text-[10px]">{event.categories.name}</Badge>}
                               </div>
                               <p className="font-body text-sm text-muted-foreground flex flex-wrap items-center gap-3">
                                 <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" /> {event.city || "Ville non précisée"}</span>
                                 <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 text-primary" /> {format(new Date(event.date), "d MMM yyyy", { locale: fr })}</span>
+                                {typeof event.attendees_count === "number" && <span className="inline-flex items-center gap-1"><UserCheck className="h-3.5 w-3.5 text-primary" /> {event.attendees_count}</span>}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -470,7 +477,7 @@ const Profile = () => {
                         </Link>
                       ))
                     )}
-                    <PaginationControls currentPage={eventsPage} totalPages={eventsTotalPages} totalItems={events.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setEventsPage} label="activités" />
+                    <PaginationControls currentPage={eventsPage} totalPages={eventsTotalPages} totalItems={filteredEvents.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setEventsPage} label="activités" />
                   </CardContent>
                 </Card>
               </TabsContent>
