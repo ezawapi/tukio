@@ -731,11 +731,20 @@ const Profile = () => {
             <TabsContent value="favorites">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-xl">Mes favoris ({favorites.length})</CardTitle>
+                  <CardTitle className="font-display text-xl">Mes favoris ({filteredFavorites.length}{filteredFavorites.length !== favorites.length ? `/${favorites.length}` : ""})</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <DashboardFilters
+                    search={favSearch} onSearch={setFavSearch}
+                    city={favCity} onCity={setFavCity} cities={favCities}
+                    sort={favSort} onSort={setFavSort}
+                    showPopularitySort={false}
+                    showStatusSort={false}
+                  />
                   {favorites.length === 0 ? (
                     <p className="font-body text-sm text-muted-foreground">Aucun favori pour le moment.</p>
+                  ) : filteredFavorites.length === 0 ? (
+                    <p className="font-body text-sm text-muted-foreground">Aucun favori ne correspond aux filtres.</p>
                   ) : (
                     paginatedFavorites.map((favorite) => {
                       const event = favorite.events;
@@ -761,7 +770,7 @@ const Profile = () => {
                       );
                     })
                   )}
-                  <PaginationControls currentPage={favoritesPage} totalPages={favoritesTotalPages} totalItems={favorites.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setFavoritesPage} label="favoris" />
+                  <PaginationControls currentPage={favoritesPage} totalPages={favoritesTotalPages} totalItems={filteredFavorites.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setFavoritesPage} label="favoris" />
                 </CardContent>
               </Card>
             </TabsContent>
