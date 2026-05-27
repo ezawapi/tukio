@@ -72,6 +72,7 @@ const Profile = () => {
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [receivedInvitations, setReceivedInvitations] = useState<any[]>([]);
   const [sentInvitationsStats, setSentInvitationsStats] = useState<{ total: number; scanned: number }>({ total: 0, scanned: 0 });
+  const [participations, setParticipations] = useState<any[]>([]);
   const [notifsTotal, setNotifsTotal] = useState(0);
   const [notifsLoadedCount, setNotifsLoadedCount] = useState(NOTIFS_PAGE_SIZE);
   const [notifsLoadingMore, setNotifsLoadingMore] = useState(false);
@@ -79,7 +80,14 @@ const Profile = () => {
   const [commentsPage, setCommentsPage] = useState(1);
   const [favoritesPage, setFavoritesPage] = useState(1);
   const [invitationsPage, setInvitationsPage] = useState(1);
+  const [participationsPage, setParticipationsPage] = useState(1);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
+
+  // Per-tab filters
+  const [evSearch, setEvSearch] = useState(""); const [evCity, setEvCity] = useState("all"); const [evSort, setEvSort] = useState<SortKey>("date_desc");
+  const [invSearch, setInvSearch] = useState(""); const [invCity, setInvCity] = useState("all"); const [invSort, setInvSort] = useState<SortKey>("date_desc"); const [invGroup, setInvGroup] = useState(false);
+  const [favSearch, setFavSearch] = useState(""); const [favCity, setFavCity] = useState("all"); const [favSort, setFavSort] = useState<SortKey>("date_desc");
+  const [partSearch, setPartSearch] = useState(""); const [partCity, setPartCity] = useState("all"); const [partSort, setPartSort] = useState<SortKey>("date_desc"); const [partGroup, setPartGroup] = useState(false);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
