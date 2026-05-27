@@ -1,12 +1,13 @@
 import { getEventImage } from "@/lib/event-image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban, Send, UserCheck } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban, Send, UserCheck, Download, Ticket } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import ProfileEditor from "@/components/ProfileEditor";
 import PaginationControls from "@/components/PaginationControls";
+import DashboardFilters, { type SortKey } from "@/components/DashboardFilters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +21,24 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { downloadReceiptPdf } from "@/lib/receipt-pdf";
 
 const ITEMS_PER_PAGE = 15;
 const NOTIFS_PAGE_SIZE = 15;
+
+const invStatusRank = (inv: any) => {
+  if (inv.revoked_at) return 4;
+  if (inv.expires_at && new Date(inv.expires_at) <= new Date()) return 3;
+  if (inv.attendance_status === "scanned") return 0;
+  if (inv.claimed_at) return 1;
+  return 2;
+};
+const eventStatusRank = (e: any) => {
+  if (e.is_published) return 0;
+  if (e.status === "pending") return 1;
+  if (e.status === "rejected") return 3;
+  return 2;
+};
 
 interface UserNotification {
   id: string;
