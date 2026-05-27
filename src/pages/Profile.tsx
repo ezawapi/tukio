@@ -95,7 +95,7 @@ const Profile = () => {
       const userEmail = (user.email || "").toLowerCase();
       const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult, invitationsResult] = await Promise.all([
         supabase.from("profiles").select("account_type").eq("id", user.id).maybeSingle(),
-        supabase.from("events").select("id, title, city, date, created_at, status, is_published").eq("organizer_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("events").select("id, title, city, date, created_at, status, is_published, attendees_count, categories(name)").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, NOTIFS_PAGE_SIZE - 1),
