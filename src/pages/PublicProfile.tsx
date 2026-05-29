@@ -493,12 +493,7 @@ const PublicProfile = () => {
                 </div>
               </div>
 
-              {profile.physical_address && showField("physical_address", false) && (
-                <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>{profile.physical_address}</span>
-                </div>
-              )}
+              {/* Physical address removed from public profile view to protect privacy */}
 
               {/* Socials */}
               {((profile.website_url && showField("website_url")) || (profile.facebook_url && showField("facebook_url")) || (profile.instagram_url && showField("instagram_url")) || (profile.twitter_url && showField("twitter_url")) || (profile.linkedin_url && showField("linkedin_url"))) && (
