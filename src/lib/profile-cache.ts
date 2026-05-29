@@ -9,9 +9,6 @@ export interface CachedProfile {
   bio: string | null;
   organization_name: string | null;
   organization_role: string | null;
-  physical_address: string | null;
-  phone_primary: string | null;
-  phone_secondary: string | null;
   website_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
