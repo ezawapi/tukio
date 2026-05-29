@@ -64,7 +64,7 @@ const setEntry = (key: string, data: CachedProfile) => {
 };
 
 const PROFILE_FIELDS =
-  "id, slug, display_name, avatar_url, cover_url, bio, organization_name, organization_role, physical_address, phone_primary, phone_secondary, website_url, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, video_url, visibility_settings, created_at";
+  "id, slug, display_name, avatar_url, cover_url, bio, organization_name, organization_role, website_url, facebook_url, instagram_url, twitter_url, tiktok_url, linkedin_url, video_url, visibility_settings, created_at";
 
 const isUuid = (v: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -72,6 +72,7 @@ const isUuid = (v: string) =>
 /**
  * Resolve a public profile by slug or UUID with client-side caching.
  * Returns cached data immediately if fresh, otherwise fetches.
+ * Uses the `public_profiles` view which exposes only non-sensitive fields.
  */
 export const resolvePublicProfile = async (
   identifier: string,
@@ -81,7 +82,7 @@ export const resolvePublicProfile = async (
   const cached = memCache[identifier];
   if (isFresh(cached)) return cached.data;
 
-  const query = supabase.from("profiles").select(PROFILE_FIELDS);
+  const query = (supabase as any).from("public_profiles").select(PROFILE_FIELDS);
   const { data } = isUuid(identifier)
     ? await query.eq("id", identifier).maybeSingle()
     : await query.eq("slug", identifier).maybeSingle();
