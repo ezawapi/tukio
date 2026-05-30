@@ -31,8 +31,10 @@ const History = () => {
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
-  const [search, setSearch] = useState(""); const [city, setCity] = useState("all"); const [sort, setSort] = useState<SortKey>("date_desc");
-  const [oSearch, setOSearch] = useState(""); const [oCity, setOCity] = useState("all"); const [oSort, setOSort] = useState<SortKey>("date_desc");
+  const hF = usePersistedFilters("hist");
+  const search = hF.search, setSearch = hF.setSearch, city = hF.city, setCity = hF.setCity, sort = hF.sort, setSort = hF.setSort;
+  const oF = usePersistedFilters("histo");
+  const oSearch = oF.search, setOSearch = oF.setSearch, oCity = oF.city, setOCity = oF.setCity, oSort = oF.sort, setOSort = oF.setSort;
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
