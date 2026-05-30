@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import PaginationControls from "@/components/PaginationControls";
 import DashboardFilters, { type SortKey } from "@/components/DashboardFilters";
+import { usePersistedFilters } from "@/hooks/use-persisted-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
