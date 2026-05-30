@@ -8,6 +8,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import ProfileEditor from "@/components/ProfileEditor";
 import PaginationControls from "@/components/PaginationControls";
 import DashboardFilters, { type SortKey } from "@/components/DashboardFilters";
+import { usePersistedFilters } from "@/hooks/use-persisted-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,11 +84,15 @@ const Profile = () => {
   const [participationsPage, setParticipationsPage] = useState(1);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
 
-  // Per-tab filters
-  const [evSearch, setEvSearch] = useState(""); const [evCity, setEvCity] = useState("all"); const [evSort, setEvSort] = useState<SortKey>("date_desc");
-  const [invSearch, setInvSearch] = useState(""); const [invCity, setInvCity] = useState("all"); const [invSort, setInvSort] = useState<SortKey>("date_desc"); const [invGroup, setInvGroup] = useState(false);
-  const [favSearch, setFavSearch] = useState(""); const [favCity, setFavCity] = useState("all"); const [favSort, setFavSort] = useState<SortKey>("date_desc");
-  const [partSearch, setPartSearch] = useState(""); const [partCity, setPartCity] = useState("all"); const [partSort, setPartSort] = useState<SortKey>("date_desc"); const [partGroup, setPartGroup] = useState(false);
+  // Per-tab filters (persisted in URL + localStorage)
+  const evF = usePersistedFilters("ev");
+  const evSearch = evF.search, setEvSearch = evF.setSearch, evCity = evF.city, setEvCity = evF.setCity, evSort = evF.sort, setEvSort = evF.setSort;
+  const invF = usePersistedFilters("inv", true);
+  const invSearch = invF.search, setInvSearch = invF.setSearch, invCity = invF.city, setInvCity = invF.setCity, invSort = invF.sort, setInvSort = invF.setSort, invGroup = invF.group, setInvGroup = invF.setGroup;
+  const favF = usePersistedFilters("fav");
+  const favSearch = favF.search, setFavSearch = favF.setSearch, favCity = favF.city, setFavCity = favF.setCity, favSort = favF.sort, setFavSort = favF.setSort;
+  const partF = usePersistedFilters("part", true);
+  const partSearch = partF.search, setPartSearch = partF.setSearch, partCity = partF.city, setPartCity = partF.setCity, partSort = partF.sort, setPartSort = partF.setSort, partGroup = partF.group, setPartGroup = partF.setGroup;
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }

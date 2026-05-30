@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import PaginationControls from "@/components/PaginationControls";
 import DashboardFilters, { type SortKey } from "@/components/DashboardFilters";
+import { usePersistedFilters } from "@/hooks/use-persisted-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,8 +31,10 @@ const History = () => {
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
-  const [search, setSearch] = useState(""); const [city, setCity] = useState("all"); const [sort, setSort] = useState<SortKey>("date_desc");
-  const [oSearch, setOSearch] = useState(""); const [oCity, setOCity] = useState("all"); const [oSort, setOSort] = useState<SortKey>("date_desc");
+  const hF = usePersistedFilters("hist");
+  const search = hF.search, setSearch = hF.setSearch, city = hF.city, setCity = hF.setCity, sort = hF.sort, setSort = hF.setSort;
+  const oF = usePersistedFilters("histo");
+  const oSearch = oF.search, setOSearch = oF.setSearch, oCity = oF.city, setOCity = oF.setCity, oSort = oF.sort, setOSort = oF.setSort;
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
