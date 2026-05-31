@@ -31,6 +31,7 @@ const typeLabels: Record<string, string> = {
   event_modified: "Modification",
   info: "Information",
   reminder: "Rappel",
+  promotion: "Promotion",
 };
 
 const Notifications = () => {

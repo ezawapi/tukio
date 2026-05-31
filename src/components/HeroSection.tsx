@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfTodayISO } from "@/lib/event-filters";
 import heroImage from "@/assets/hero-event.jpg";
+import { useSiteContent } from "@/hooks/use-site-content";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const HeroSection = () => {
   const [city, setCity] = useState("");
   const [date, setDate] = useState("");
   const [stats, setStats] = useState({ events: 0, users: 0, cities: 0 });
+  const { content } = useSiteContent();
 
   const fetchStats = async () => {
     const todayISO = startOfTodayISO();
@@ -79,13 +81,13 @@ const HeroSection = () => {
         <div className="max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary-foreground text-sm font-body font-medium mb-6 backdrop-blur-sm border border-primary-foreground/20">
-              🎉 La plateforme événementielle #1
+              {content.home_badge_text || "🎉 La plateforme événementielle #1"}
             </span>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-tight mb-4">
-              Découvrez les événements qui comptent
+              {content.home_hero_title || "Découvrez les événements qui comptent"}
             </h1>
             <p className="font-body text-lg text-primary-foreground/80 mb-8 max-w-lg">
-              Explorez, suivez et participez aux événements publics et privés. Concerts, conférences, festivals et bien plus encore.
+              {content.home_hero_description || "Explorez, suivez et participez aux événements publics et privés. Concerts, conférences, festivals et bien plus encore."}
             </p>
           </motion.div>
 
@@ -99,7 +101,7 @@ const HeroSection = () => {
               <div className="flex-1 flex items-center gap-2 px-4 py-2 rounded-xl bg-muted">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <input
-                  placeholder="Rechercher un événement..."
+                  placeholder={content.home_search_placeholder || "Rechercher un événement..."}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   onKeyDown={(event) => event.key === "Enter" && handleSearch()}
@@ -109,7 +111,7 @@ const HeroSection = () => {
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <input
-                  placeholder="Ville"
+                  placeholder={content.home_city_placeholder || "Ville"}
                   value={city}
                   onChange={(event) => setCity(event.target.value)}
                   onKeyDown={(event) => event.key === "Enter" && handleSearch()}
@@ -126,7 +128,7 @@ const HeroSection = () => {
                 />
               </div>
               <Button onClick={handleSearch} className="gradient-hero text-primary-foreground border-0 px-8">
-                Rechercher
+                {content.home_search_button || "Rechercher"}
               </Button>
             </div>
           </motion.div>

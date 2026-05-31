@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags } from "lucide-react";
+import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags, SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -53,6 +55,11 @@ const AdminDashboard = () => {
   const [allEventsPage, setAllEventsPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
   const [notifPage, setNotifPage] = useState(1);
+  const [promoEventId, setPromoEventId] = useState<string>("all");
+  const [promoTarget, setPromoTarget] = useState<"all" | "favorites">("all");
+  const [promoTitle, setPromoTitle] = useState("");
+  const [promoBody, setPromoBody] = useState("");
+  const [promoSending, setPromoSending] = useState(false);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
@@ -90,6 +97,34 @@ const AdminDashboard = () => {
   const rejectEvent = async (eventId: string) => { await supabase.from("events").update({ status: "rejected", is_published: false, last_reviewed_at: new Date().toISOString(), updated_by_admin: true }).eq("id", eventId); toast({ title: "Événement rejeté" }); fetchAll(); };
   const togglePublish = async (eventId: string, cur: boolean) => { await supabase.from("events").update({ is_published: !cur, updated_by_admin: true }).eq("id", eventId); toast({ title: cur ? "Dépublié" : "Republié" }); fetchEvents(); };
   const toggleLive = async (eventId: string, cur: boolean) => { await supabase.from("events").update({ is_live: !cur, updated_by_admin: true }).eq("id", eventId); toast({ title: cur ? "Live off" : "Live on" }); fetchEvents(); };
+  const sendPromotionalNotification = async () => {
+    if (promoEventId === "all") {
+      toast({ title: "Sélectionnez une activité", variant: "destructive" });
+      return;
+    }
+    if (!promoTitle.trim()) {
+      toast({ title: "Ajoutez un titre", variant: "destructive" });
+      return;
+    }
+
+    setPromoSending(true);
+    const { data, error } = await supabase.rpc("send_promotional_notification", {
+      _event_id: promoEventId,
+      _title: promoTitle.trim(),
+      _body: promoBody.trim(),
+      _target: promoTarget,
+    });
+    setPromoSending(false);
+
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Notification envoyée", description: `${data || 0} destinataire(s)` });
+    setPromoTitle("");
+    setPromoBody("");
+  };
 
   const filteredAllEvents = useMemo(() => {
     let list = events;
@@ -264,6 +299,49 @@ const AdminDashboard = () => {
 
             {isVisible("notifications") && (
               <TabsContent value="notifications">
+                <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><SendHorizonal className="h-5 w-5 text-primary" /> Notification promotionnelle</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Activité liée</Label>
+                        <Select value={promoEventId} onValueChange={setPromoEventId}>
+                          <SelectTrigger><SelectValue placeholder="Choisir une activité" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Choisir une activité</SelectItem>
+                            {events.map((event) => (
+                              <SelectItem key={event.id} value={event.id}>{event.title}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Destinataires</Label>
+                        <Select value={promoTarget} onValueChange={(value) => setPromoTarget(value as "all" | "favorites")}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Tous les utilisateurs</SelectItem>
+                            <SelectItem value="favorites">Uniquement les favoris de l’activité</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Titre</Label>
+                      <Input value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} placeholder="Ex: Places limitées ce week-end" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Message</Label>
+                      <Textarea value={promoBody} onChange={(e) => setPromoBody(e.target.value)} rows={4} placeholder="Ajoutez un message promotionnel avec appel à l’action." />
+                    </div>
+                    <Button onClick={sendPromotionalNotification} disabled={promoSending} className="gap-2">
+                      <SendHorizonal className="h-4 w-4" /> {promoSending ? "Envoi..." : "Envoyer la notification"}
+                    </Button>
+                  </CardContent>
+                </Card>
                 <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
                   <CardContent>
                     {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
@@ -280,6 +358,7 @@ const AdminDashboard = () => {
                     <PaginationControls currentPage={notifPage} totalPages={notifTotalPages} totalItems={notifications.length} itemsPerPage={NOTIF_PER_PAGE} onPageChange={setNotifPage} label="notifications" />
                   </CardContent>
                 </Card>
+                </div>
               </TabsContent>
             )}
 

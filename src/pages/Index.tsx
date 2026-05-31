@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
@@ -182,6 +182,7 @@ const Index = () => {
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
+  const [, startTransition] = useTransition();
   const { location: userLocation } = useUserLocation();
   const userCoords = useMemo(
     () => (userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null),
@@ -223,10 +224,12 @@ const Index = () => {
   }, []);
 
   const refreshAll = useCallback(() => {
-    fetchCategories();
-    fetchLiveEvents();
-    fetchUpcomingEvents();
-    fetchRecentEvents();
+    startTransition(() => {
+      fetchCategories();
+      fetchLiveEvents();
+      fetchUpcomingEvents();
+      fetchRecentEvents();
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userCoords]);
 
@@ -365,9 +368,10 @@ const Index = () => {
       <Link to={`/events/${event.id}`}>
         <div className="group/card relative overflow-hidden rounded-2xl shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
           <div className="relative h-64 sm:h-72">
-            <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
+              <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-              loading="lazy" />
+                loading="lazy"
+                decoding="async" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/10" />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
@@ -435,9 +439,10 @@ const Index = () => {
       <Link to={event.live_url || `/events/${event.id}`} target={event.live_url ? "_blank" : undefined}>
         <div className="group/card overflow-hidden rounded-2xl bg-[hsl(var(--card))] shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
           <div className="relative h-36 sm:h-44 overflow-hidden">
-            <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
+             <img src={hasImage ? event.image_url : defaultEventImg} alt={event.title}
               className={`h-full w-full transition-transform duration-500 group-hover/card:scale-105 ${hasImage ? "object-cover" : "object-contain bg-muted p-6"}`}
-              loading="lazy" />
+               loading="lazy"
+               decoding="async" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             {/* Play button when live_url exists */}
             {event.live_url && (
