@@ -51,10 +51,6 @@ const History = () => {
     };
     fetchHistory();
   }, [user, navigate]);
-
-
-  if (!user) return null;
-
   const cities = useMemo(() => Array.from(new Set(pastEvents.map((e) => e.city).filter(Boolean))) as string[], [pastEvents]);
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -100,6 +96,8 @@ const History = () => {
     });
     toast({ title: "Reçu téléchargé" });
   };
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-background">
