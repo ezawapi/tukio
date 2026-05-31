@@ -1147,6 +1147,15 @@ export type Database = {
           success: boolean
         }[]
       }
+      send_promotional_notification: {
+        Args: {
+          _body: string
+          _event_id: string
+          _target?: string
+          _title: string
+        }
+        Returns: number
+      }
       slugify: { Args: { _input: string }; Returns: string }
       validate_safe_url: {
         Args: { _field: string; _url: string }
