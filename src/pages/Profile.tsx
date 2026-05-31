@@ -181,23 +181,6 @@ const Profile = () => {
     if (!n.is_read) markAsRead(n.id);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 pt-20 pb-16">
-          <div className="grid gap-4 md:grid-cols-4">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="h-28 rounded-xl bg-card animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
   const isOrganizer = accountType === "organizer" || isAdmin;
   const publishedCount = events.filter((event) => event.is_published).length;
   const pendingCount = events.filter((event) => event.status === "pending").length;
@@ -303,6 +286,23 @@ const Profile = () => {
     if (inv.claimed_at) return { label: "Ouverte", variant: "default" };
     return { label: "Reçue · non ouverte", variant: "secondary" };
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 pt-20 pb-16">
+          <div className="grid gap-4 md:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="h-28 rounded-xl bg-card animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const tabsList = [
     ...(isOrganizer ? [{ value: "events", label: "Mes activités" }] : []),
