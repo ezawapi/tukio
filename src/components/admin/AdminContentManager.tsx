@@ -9,6 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const CONTENT_FIELDS = [
+  { key: "home_badge_text", label: "Accueil · Badge au-dessus du titre", type: "input" },
+  { key: "home_hero_title", label: "Accueil · Titre principal", type: "textarea" },
+  { key: "home_hero_description", label: "Accueil · Description", type: "textarea" },
+  { key: "home_search_placeholder", label: "Accueil · Placeholder recherche", type: "input" },
+  { key: "home_city_placeholder", label: "Accueil · Placeholder ville", type: "input" },
+  { key: "home_search_button", label: "Accueil · Bouton recherche", type: "input" },
   { key: "footer_description", label: "Description du footer", type: "textarea" },
   { key: "footer_contact_email", label: "Email de contact (footer)", type: "input" },
   { key: "footer_contact_phone", label: "Téléphone de contact (footer)", type: "input" },
