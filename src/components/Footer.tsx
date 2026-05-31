@@ -10,7 +10,7 @@ import PartnersBlock from "@/components/PartnersBlock";
 const Footer = () => {
   const { user } = useAuth();
   const { isAdmin } = useUserRole(user?.id);
-  const content = useSiteContent();
+  const { content } = useSiteContent();
   const { t } = useTranslation();
 
   const footerSections = [
