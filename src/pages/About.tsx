@@ -6,7 +6,7 @@ import { useSiteContent } from "@/hooks/use-site-content";
 import { useTranslation } from "@/contexts/I18nContext";
 
 const About = () => {
-  const content = useSiteContent();
+  const { content } = useSiteContent();
   const { t } = useTranslation();
   const intro = content["about_intro"] || "Tukio est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales.";
   const vision = content["about_vision"] || "";
