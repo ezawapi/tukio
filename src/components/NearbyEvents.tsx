@@ -111,7 +111,7 @@ const NearbyEvents = () => {
                 <Link to={`/events/${event.id}`} className="group flex gap-3 rounded-xl bg-background p-2.5 shadow-card transition-shadow hover:shadow-warm sm:gap-4 sm:p-3">
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-32">
                     <img src={getEventImage(event.image_url)} alt={event.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
                     {event.distance !== undefined && (
                       <div className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded-full bg-background/90 px-1.5 py-0.5 text-[9px] font-semibold text-foreground backdrop-blur-sm">
                         <MapPin className="h-2.5 w-2.5 text-primary" />
