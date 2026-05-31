@@ -259,7 +259,8 @@ const AdminRolesManager = () => {
                       {userRoles.map((r) => (
                         <Badge
                           key={r}
-                          className={`text-[10px] gap-1 ${r === "admin" ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"}`}
+                          variant={r === "admin" ? "default" : "secondary"}
+                          className="text-[10px] gap-1"
                         >
                           <ShieldCheck className="h-3 w-3" /> {roleLabels[r]}
                           <button
