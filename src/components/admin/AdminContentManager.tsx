@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { invalidateSiteContent } from "@/hooks/use-site-content";
 
 const CONTENT_FIELDS = [
   { key: "home_badge_text", label: "Accueil · Badge au-dessus du titre", type: "input" },
@@ -57,6 +58,7 @@ const AdminContentManager = () => {
         console.error(`Error saving ${field.key}:`, error.message);
       }
     }
+    invalidateSiteContent();
     toast.success("Contenu mis à jour");
     setSaving(false);
   };
