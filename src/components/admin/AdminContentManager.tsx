@@ -58,6 +58,7 @@ const AdminContentManager = () => {
         console.error(`Error saving ${field.key}:`, error.message);
       }
     }
+    invalidateSiteContent();
     toast.success("Contenu mis à jour");
     setSaving(false);
   };
