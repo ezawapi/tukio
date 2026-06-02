@@ -140,7 +140,15 @@ const Notifications = () => {
                     <p className="font-body text-sm font-medium text-foreground">{n.title}</p>
                     {n.body && <p className="font-body text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
                     {n.related_event_id && (
-                      <Link to={`/events/${n.related_event_id}`} className="text-xs text-primary mt-1 inline-block">
+                      <Link
+                        to={`/events/${n.related_event_id}`}
+                        onClick={() => {
+                          if (n.campaign_id) {
+                            supabase.rpc("log_notification_event", { _notification_id: n.id, _event_type: "clicked" });
+                          }
+                        }}
+                        className="text-xs text-primary mt-1 inline-block"
+                      >
                         Voir l'événement →
                       </Link>
                     )}
