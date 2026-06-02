@@ -60,6 +60,7 @@ const AdminDashboard = () => {
   const [promoTitle, setPromoTitle] = useState("");
   const [promoBody, setPromoBody] = useState("");
   const [promoSending, setPromoSending] = useState(false);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
