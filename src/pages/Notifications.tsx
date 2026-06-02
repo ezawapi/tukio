@@ -23,6 +23,7 @@ interface UserNotification {
   is_read: boolean;
   is_favorite: boolean;
   related_event_id: string | null;
+  campaign_id: string | null;
   created_at: string;
 }
 
