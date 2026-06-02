@@ -593,6 +593,69 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_analytics: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          event_id: string | null
+          event_type: string
+          id: string
+          notification_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_type: string
+          id?: string
+          notification_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          notification_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_campaigns: {
+        Row: {
+          body: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          recipients_count: number
+          sender_id: string | null
+          target: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          recipients_count?: number
+          sender_id?: string | null
+          target?: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          recipients_count?: number
+          sender_id?: string | null
+          target?: string
+          title?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           created_at: string
@@ -964,6 +1027,7 @@ export type Database = {
       user_notifications: {
         Row: {
           body: string | null
+          campaign_id: string | null
           created_at: string
           id: string
           is_favorite: boolean
@@ -975,6 +1039,7 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          campaign_id?: string | null
           created_at?: string
           id?: string
           is_favorite?: boolean
@@ -986,6 +1051,7 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          campaign_id?: string | null
           created_at?: string
           id?: string
           is_favorite?: boolean
@@ -1123,6 +1189,10 @@ export type Database = {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
       }
+      log_notification_event: {
+        Args: { _event_type: string; _notification_id: string }
+        Returns: undefined
+      }
       mark_invitation_resent: {
         Args: { _invitation_id: string }
         Returns: {
@@ -1154,7 +1224,7 @@ export type Database = {
           _target?: string
           _title: string
         }
-        Returns: number
+        Returns: string
       }
       slugify: { Args: { _input: string }; Returns: string }
       validate_safe_url: {

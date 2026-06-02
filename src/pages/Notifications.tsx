@@ -23,6 +23,7 @@ interface UserNotification {
   is_read: boolean;
   is_favorite: boolean;
   related_event_id: string | null;
+  campaign_id: string | null;
   created_at: string;
 }
 
@@ -52,7 +53,12 @@ const Notifications = () => {
     const { data } = await supabase
       .from("user_notifications").select("*").eq("user_id", user.id)
       .order("created_at", { ascending: false }).limit(100);
-    setNotifications((data as UserNotification[]) || []);
+    const notifs = (data as UserNotification[]) || [];
+    setNotifications(notifs);
+    // Log 'opened' for promotional notifications shown to the user
+    notifs.filter((n) => n.campaign_id).forEach((n) => {
+      supabase.rpc("log_notification_event", { _notification_id: n.id, _event_type: "opened" });
+    });
   };
 
   const markAsRead = async (id: string) => {
@@ -134,7 +140,15 @@ const Notifications = () => {
                     <p className="font-body text-sm font-medium text-foreground">{n.title}</p>
                     {n.body && <p className="font-body text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
                     {n.related_event_id && (
-                      <Link to={`/events/${n.related_event_id}`} className="text-xs text-primary mt-1 inline-block">
+                      <Link
+                        to={`/events/${n.related_event_id}`}
+                        onClick={() => {
+                          if (n.campaign_id) {
+                            supabase.rpc("log_notification_event", { _notification_id: n.id, _event_type: "clicked" });
+                          }
+                        }}
+                        className="text-xs text-primary mt-1 inline-block"
+                      >
                         Voir l'événement →
                       </Link>
                     )}
