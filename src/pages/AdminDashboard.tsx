@@ -366,6 +366,54 @@ const AdminDashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg">
+                      <BarChart3 className="h-5 w-5 text-primary" /> Suivi des campagnes promotionnelles
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {campaigns.length === 0 ? (
+                      <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucune campagne envoyée pour le moment.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {campaigns.map((c) => {
+                          const openRate = c.stats.sent > 0 ? Math.round((c.stats.opened / c.stats.sent) * 100) : 0;
+                          const clickRate = c.stats.sent > 0 ? Math.round((c.stats.clicked / c.stats.sent) * 100) : 0;
+                          return (
+                            <div key={c.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="font-body text-sm font-semibold text-foreground truncate">{c.title}</p>
+                                  <p className="font-body text-xs text-muted-foreground truncate">
+                                    {c.events?.title || "Activité supprimée"} • {format(new Date(c.created_at), "d MMM yyyy HH:mm", { locale: fr })} • cible: {c.target === "favorites" ? "favoris" : "tous"}
+                                  </p>
+                                </div>
+                                <Badge variant="secondary" className="text-[10px]">{c.recipients_count} envoyé(s)</Badge>
+                              </div>
+                              <div className="grid grid-cols-4 gap-2 text-center">
+                                <div className="rounded bg-muted/50 py-1.5">
+                                  <p className="font-display text-sm font-bold text-foreground">{c.stats.sent}</p>
+                                  <p className="text-[10px] text-muted-foreground">Envois</p>
+                                </div>
+                                <div className="rounded bg-muted/50 py-1.5">
+                                  <p className="font-display text-sm font-bold text-foreground">{c.stats.opened}</p>
+                                  <p className="text-[10px] text-muted-foreground">Ouvertures {openRate}%</p>
+                                </div>
+                                <div className="rounded bg-muted/50 py-1.5">
+                                  <p className="font-display text-sm font-bold text-foreground">{c.stats.clicked}</p>
+                                  <p className="text-[10px] text-muted-foreground">Clics {clickRate}%</p>
+                                </div>
+                                <div className="rounded bg-muted/50 py-1.5">
+                                  <p className="font-display text-sm font-bold text-destructive">{c.stats.failed}</p>
+                                  <p className="text-[10px] text-muted-foreground">Échecs</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                 <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
                   <CardContent>
                     {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
