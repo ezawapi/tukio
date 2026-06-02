@@ -142,7 +142,10 @@ const AdminDashboard = () => {
       return;
     }
 
-    toast({ title: "Notification envoyée", description: `${data || 0} destinataire(s)` });
+    // Fetch fresh campaign to display recipients count
+    await fetchCampaigns();
+    const created = data ? await supabase.from("notification_campaigns").select("recipients_count").eq("id", data as string).maybeSingle() : null;
+    toast({ title: "Notification envoyée", description: `${created?.data?.recipients_count ?? 0} destinataire(s)` });
     setPromoTitle("");
     setPromoBody("");
   };
