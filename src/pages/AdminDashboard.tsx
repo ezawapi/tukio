@@ -414,6 +414,8 @@ const AdminDashboard = () => {
                         })}
                       </div>
                     )}
+                  </CardContent>
+                </Card>
                 <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
                   <CardContent>
                     {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
