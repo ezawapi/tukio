@@ -53,7 +53,12 @@ const Notifications = () => {
     const { data } = await supabase
       .from("user_notifications").select("*").eq("user_id", user.id)
       .order("created_at", { ascending: false }).limit(100);
-    setNotifications((data as UserNotification[]) || []);
+    const notifs = (data as UserNotification[]) || [];
+    setNotifications(notifs);
+    // Log 'opened' for promotional notifications shown to the user
+    notifs.filter((n) => n.campaign_id).forEach((n) => {
+      supabase.rpc("log_notification_event", { _notification_id: n.id, _event_type: "opened" });
+    });
   };
 
   const markAsRead = async (id: string) => {
