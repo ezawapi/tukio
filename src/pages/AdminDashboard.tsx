@@ -77,7 +77,27 @@ const AdminDashboard = () => {
   }, [user, navigate, permLoading, role]);
 
 
-  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchNotifications(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); };
+  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchNotifications(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); fetchCampaigns(); };
+  const fetchCampaigns = async () => {
+    const { data: camps } = await supabase
+      .from("notification_campaigns")
+      .select("id, title, body, target, event_id, recipients_count, created_at, events:event_id(title)")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (!camps || camps.length === 0) { setCampaigns([]); return; }
+    const ids = camps.map((c: any) => c.id);
+    const { data: analytics } = await supabase
+      .from("notification_analytics")
+      .select("campaign_id, event_type")
+      .in("campaign_id", ids);
+    const stats = new Map<string, { sent: number; opened: number; clicked: number; failed: number }>();
+    (analytics || []).forEach((a: any) => {
+      const s = stats.get(a.campaign_id) || { sent: 0, opened: 0, clicked: 0, failed: 0 };
+      if (a.event_type in s) (s as any)[a.event_type]++;
+      stats.set(a.campaign_id, s);
+    });
+    setCampaigns(camps.map((c: any) => ({ ...c, stats: stats.get(c.id) || { sent: 0, opened: 0, clicked: 0, failed: 0 } })));
+  };
   const fetchCategories = async () => { const { data } = await supabase.from("categories").select("id, name").order("name"); setCategories(data || []); };
   const fetchEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").order("created_at", { ascending: false }); setEvents(data || []); };
   const fetchPendingEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").eq("status", "pending").order("created_at", { ascending: false }); setPendingEvents(data || []); };
