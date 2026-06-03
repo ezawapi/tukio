@@ -226,9 +226,7 @@ const Index = () => {
   const refreshAll = useCallback(() => {
     startTransition(() => {
       fetchCategories();
-      fetchLiveEvents();
-      fetchUpcomingEvents();
-      fetchRecentEvents();
+      fetchHomeEvents();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userCoords]);
@@ -308,51 +306,41 @@ const Index = () => {
     setLoadingCats(false);
   };
 
-  const fetchLiveEvents = async () => {
-    const todayISO = startOfTodayISO();
-    const { data } = await supabase
-      .from("events")
-      .select("*, categories(name)")
-      .eq("is_live", true)
-      .eq("is_published", true)
-      .eq("visibility", "public")
-      .gte("date", todayISO)
-      .limit(8);
-    // Extra client-side guard for events whose end_date already passed
-    setLiveEvents((data || []).filter((e: any) => isEventActive(e.date, e.end_date)));
+  const splitEvents = (data: any[]) => {
+    const filtered = data.filter((e: any) => isEventActive(e.date, e.end_date));
+    setLiveEvents(filtered.filter((e: any) => e.is_live).slice(0, 8));
+    const upcomingRanked = sortByProximity([...filtered], userCoords);
+    setUpcomingEvents(upcomingRanked.slice(0, 6));
+    const recentSorted = [...filtered].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+    setRecentEvents(sortByProximity(recentSorted, userCoords).slice(0, 8));
+    setLoadingRecent(false);
   };
 
-  const fetchUpcomingEvents = async () => {
-    // Fetch a wider pool so we can re-rank by proximity when geolocation is available.
-    const poolSize = userCoords ? 40 : 6;
-    const { data } = await supabase
-      .from("events")
-      .select("*, categories(name)")
-      .eq("is_published", true)
-      .eq("visibility", "public")
-      .gte("date", new Date().toISOString())
-      .order("date", { ascending: true })
-      .limit(poolSize);
-    const ranked = sortByProximity(data || [], userCoords);
-    setUpcomingEvents(ranked.slice(0, 6));
-  };
-
-  const fetchRecentEvents = async () => {
+  // Combined fetch for live + upcoming + recent (all share base filter)
+  const fetchHomeEvents = async () => {
     setLoadingRecent(true);
     const todayISO = startOfTodayISO();
-    const poolSize = userCoords ? 40 : 8;
+    const poolSize = userCoords ? 60 : 30;
+    const cacheKey = `tukio:home-events:v2:${poolSize}`;
+    try {
+      const raw = sessionStorage.getItem(cacheKey);
+      if (raw) {
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts < 60_000 && Array.isArray(data)) splitEvents(data);
+      }
+    } catch {}
     const { data } = await supabase
       .from("events")
       .select("*, categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", todayISO)
-      .order("created_at", { ascending: false })
+      .order("date", { ascending: true })
       .limit(poolSize);
-    const filtered = (data || []).filter((e: any) => isEventActive(e.date, e.end_date));
-    const ranked = sortByProximity(filtered, userCoords);
-    setRecentEvents(ranked.slice(0, 8));
-    setLoadingRecent(false);
+    try { sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: data || [] })); } catch {}
+    splitEvents(data || []);
   };
 
   const isNewEvent = (createdAt: string | undefined) => {
