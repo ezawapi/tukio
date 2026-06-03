@@ -62,6 +62,8 @@ const AdminDashboard = () => {
   const [promoBody, setPromoBody] = useState("");
   const [promoSending, setPromoSending] = useState(false);
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaignPeriod, setCampaignPeriod] = useState<"7d" | "30d" | "90d" | "all">("30d");
+  const [campaignStatus, setCampaignStatus] = useState<"all" | "sent" | "opened" | "clicked" | "failed">("all");
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
