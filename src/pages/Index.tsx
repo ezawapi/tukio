@@ -226,9 +226,7 @@ const Index = () => {
   const refreshAll = useCallback(() => {
     startTransition(() => {
       fetchCategories();
-      fetchLiveEvents();
-      fetchUpcomingEvents();
-      fetchRecentEvents();
+      fetchHomeEvents();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userCoords]);
