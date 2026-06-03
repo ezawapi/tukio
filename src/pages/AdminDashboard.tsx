@@ -537,4 +537,87 @@ const EventRow = ({ event, actions }: { event: any; actions: React.ReactNode }) 
   );
 };
 
+const CampaignDetailDialog = ({ campaign, onNavigateEvent }: { campaign: any; onNavigateEvent: (id: string) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    supabase
+      .from("notification_analytics")
+      .select("id, event_type, created_at, user_id")
+      .eq("campaign_id", campaign.id)
+      .order("created_at", { ascending: false })
+      .limit(200)
+      .then(({ data }) => { setEvents(data || []); setLoading(false); });
+  }, [open, campaign.id]);
+
+  const typeBadge = (t: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      sent: { label: "Envoyée", cls: "bg-muted text-foreground" },
+      opened: { label: "Ouverte", cls: "bg-primary/15 text-primary" },
+      clicked: { label: "Clic", cls: "bg-secondary text-secondary-foreground" },
+      failed: { label: "Échec", cls: "bg-destructive/15 text-destructive" },
+    };
+    const it = map[t] || { label: t, cls: "bg-muted" };
+    return <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${it.cls}`}>{it.label}</span>;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 text-[10px]">Détails</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display text-base">{campaign.title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="text-xs text-muted-foreground">
+            {campaign.events?.title || "Activité supprimée"} • {format(new Date(campaign.created_at), "d MMM yyyy HH:mm", { locale: fr })} • cible: {campaign.target === "favorites" ? "favoris" : "tous"}
+          </div>
+          {campaign.body && <p className="text-sm text-foreground bg-muted/40 rounded p-2">{campaign.body}</p>}
+          <div className="grid grid-cols-4 gap-2 text-center">
+            {(["sent", "opened", "clicked", "failed"] as const).map((k) => (
+              <div key={k} className="rounded bg-muted/50 py-1.5">
+                <p className="font-display text-sm font-bold text-foreground">{campaign.stats[k]}</p>
+                <p className="text-[10px] text-muted-foreground capitalize">{k}</p>
+              </div>
+            ))}
+          </div>
+          {campaign.event_id && (
+            <Button variant="outline" size="sm" className="w-full" onClick={() => onNavigateEvent(campaign.event_id)}>
+              Ouvrir l'activité liée
+            </Button>
+          )}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Timeline (200 derniers)</p>
+            {loading ? (
+              <p className="text-xs text-muted-foreground py-4 text-center">Chargement…</p>
+            ) : events.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-4 text-center">Aucun évènement.</p>
+            ) : (
+              <ol className="relative border-l border-border ml-2 space-y-2">
+                {events.map((ev) => (
+                  <li key={ev.id} className="ml-3">
+                    <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-primary border border-background" />
+                    <div className="flex items-center gap-2">
+                      {typeBadge(ev.event_type)}
+                      <span className="text-[10px] text-muted-foreground">
+                        {format(new Date(ev.created_at), "d MMM HH:mm:ss", { locale: fr })}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default AdminDashboard;
