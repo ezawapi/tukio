@@ -45,15 +45,6 @@ const HeroSection = () => {
 
   useEffect(() => {
     fetchStats();
-    // Realtime updates: refresh counters when events or profiles change
-    const channel = supabase
-      .channel("hero-stats")
-      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchStats())
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => fetchStats())
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const handleSearch = () => {

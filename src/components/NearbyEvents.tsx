@@ -39,12 +39,15 @@ const NearbyEvents = () => {
   const [events, setEvents] = useState<NearbyEvent[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "denied" | "ready">("idle");
   const watchIdRef = useRef<number | null>(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
     if (!navigator.geolocation) { setStatus("denied"); return; }
     setStatus("loading");
 
     const fetchNearby = async (latitude: number, longitude: number) => {
+      if (fetchedRef.current) return;
+      fetchedRef.current = true;
       const { data } = await supabase
         .from("events")
         .select("id, title, date, end_date, location, city, image_url, price, attendees_count, latitude, longitude, categories(name)")
@@ -52,7 +55,8 @@ const NearbyEvents = () => {
         .eq("visibility", "public")
         .gte("date", startOfTodayISO())
         .not("latitude", "is", null)
-        .not("longitude", "is", null);
+        .not("longitude", "is", null)
+        .limit(40);
 
       if (data) {
         const withDist = (data as unknown as NearbyEvent[])
@@ -65,19 +69,11 @@ const NearbyEvents = () => {
       setStatus("ready");
     };
 
-    let resolved = false;
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (!resolved || pos.coords.accuracy < 500) {
-          resolved = true;
-          fetchNearby(pos.coords.latitude, pos.coords.longitude);
-        }
-        if (pos.coords.accuracy < 100 && watchIdRef.current !== null) {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-        }
-      },
+    // Single low-accuracy fix is enough for "near you" ranking (avoids repeated queries on every GPS update)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => fetchNearby(pos.coords.latitude, pos.coords.longitude),
       () => setStatus("denied"),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
     );
 
     return () => {
