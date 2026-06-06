@@ -394,7 +394,6 @@ export type Database = {
       events: {
         Row: {
           ad_slot_hint: string | null
-          admin_notes: string | null
           attendees_count: number | null
           author_id: string | null
           capacity: number | null
@@ -441,7 +440,6 @@ export type Database = {
         }
         Insert: {
           ad_slot_hint?: string | null
-          admin_notes?: string | null
           attendees_count?: number | null
           author_id?: string | null
           capacity?: number | null
@@ -488,7 +486,6 @@ export type Database = {
         }
         Update: {
           ad_slot_hint?: string | null
-          admin_notes?: string | null
           attendees_count?: number | null
           author_id?: string | null
           capacity?: number | null
