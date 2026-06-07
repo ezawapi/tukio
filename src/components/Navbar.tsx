@@ -257,6 +257,13 @@ const Navbar = () => {
                 >
                   À propos
                 </NavLink>
+                <NavLink
+                  to="/settings"
+                  className="rounded-xl px-4 py-3 font-body text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground inline-flex items-center gap-2"
+                  activeClassName="bg-primary text-primary-foreground"
+                >
+                  <Settings className="h-4 w-4" /> Paramètres
+                </NavLink>
                 {user && !isPhone && (
                   <NavLink
                     to="/profile"
