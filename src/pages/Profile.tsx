@@ -1,7 +1,7 @@
 import { getEventImage } from "@/lib/event-image";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban, Send, UserCheck, Download, Ticket } from "lucide-react";
+import { Calendar, Heart, MessageSquare, PlusCircle, Shield, Wifi, WifiOff, MapPin, Clock3, ArrowRight, Pencil, Archive, Bell, Trash2, Star, StarOff, CheckCheck, Briefcase, UserCircle2, LogOut, Mail, QrCode, Ban, Send, UserCheck, Download, Ticket, Settings as SettingsIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -61,7 +61,7 @@ const typeLabels: Record<string, string> = {
 };
 
 const Profile = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
@@ -96,6 +96,10 @@ const Profile = () => {
   const partSearch = partF.search, setPartSearch = partF.setSearch, partCity = partF.city, setPartCity = partF.setCity, partSort = partF.sort, setPartSort = partF.setSort, partGroup = partF.group, setPartGroup = partF.setGroup;
 
   useEffect(() => {
+    // Wait until Supabase has restored the session before redirecting;
+    // otherwise the first click on the profile icon flashes /auth and
+    // the user must click a second time.
+    if (authLoading) return;
     if (!user) { navigate("/auth"); return; }
     const fetchDashboard = async () => {
       const userEmail = (user.email || "").toLowerCase();
@@ -155,7 +159,7 @@ const Profile = () => {
         .subscribe();
       return () => { supabase.removeChannel(channel); };
     }
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const markAsRead = async (id: string) => {
     await supabase.from("user_notifications").update({ is_read: true }).eq("id", id);
@@ -381,6 +385,11 @@ const Profile = () => {
                       </Button>
                     </Link>
                   )}
+                  <Link to="/settings">
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <SettingsIcon className="h-4 w-4" /> Paramètres
+                    </Button>
+                  </Link>
                   <Link to="/history">
                     <Button variant="outline" className="w-full sm:w-auto">
                       <Archive className="h-4 w-4" /> Historique

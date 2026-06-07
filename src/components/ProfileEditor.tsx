@@ -180,14 +180,9 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold text-foreground">Modifier le profil</h3>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(false)}><X className="h-4 w-4" /></Button>
-      </div>
-
+    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
       {/* Cover banner with upload */}
-      <div className="relative -m-4 mb-2 rounded-t-xl overflow-hidden bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "3 / 1" }}>
+      <div className="relative bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "4 / 1" }}>
         {form.cover_url && (
           <img src={form.cover_url} alt="Couverture" className="absolute inset-0 h-full w-full object-cover" />
         )}
@@ -203,21 +198,31 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
         <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
       </div>
 
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
-        <div className="relative">
-          <Avatar className="h-20 w-20 border-2 border-border">
-            <AvatarImage src={form.avatar_url} alt={form.display_name || email} />
-            <AvatarFallback className="text-lg font-display">{initials}</AvatarFallback>
-          </Avatar>
-          <button onClick={() => fileRef.current?.click()}
-            className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5 text-primary-foreground shadow-md hover:bg-primary/90 transition-colors"
-            disabled={uploading}>
-            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+      {/* Header bar with avatar (overlapping cover) + title + close */}
+      <div className="relative px-4 pt-3 pb-4 sm:px-6">
+        <div className="flex items-start gap-4">
+          <div className="relative -mt-12 sm:-mt-14 shrink-0">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-card shadow-md">
+              <AvatarImage src={form.avatar_url} alt={form.display_name || email} />
+              <AvatarFallback className="text-lg font-display">{initials}</AvatarFallback>
+            </Avatar>
+            <button onClick={() => fileRef.current?.click()}
+              className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5 text-primary-foreground shadow-md hover:bg-primary/90 transition-colors"
+              disabled={uploading}>
+              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+          </div>
+          <div className="flex-1 min-w-0 pt-1">
+            <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">Modifier le profil</h3>
+            <p className="text-xs text-muted-foreground break-all">{email}</p>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditing(false)} aria-label="Fermer">
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
-        <div className="flex-1 w-full space-y-4">
+        <div className="mt-5 space-y-4">
           {/* Account type — required */}
           <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-3 ring-1 ring-primary/10">
             <p className="font-display text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -352,7 +357,6 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
             </div>
           </div>
 
-          <p className="font-body text-sm text-muted-foreground break-all">{email}</p>
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
