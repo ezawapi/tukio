@@ -355,96 +355,148 @@ const Profile = () => {
       <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4 space-y-8">
-          <Card className={`overflow-hidden ${isOrganizer ? "border-primary/40 ring-1 ring-primary/20" : "border-border"}`}>
-            <CardContent className="p-6 sm:p-8">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={isAdmin ? "default" : "secondary"} className="gap-1">
-                      {isAdmin ? <Shield className="h-3 w-3" /> : isOrganizer ? <Briefcase className="h-3 w-3" /> : <UserCircle2 className="h-3 w-3" />}
-                      {isAdmin ? "Administrateur" : role === "moderator" ? "Modérateur" : isOrganizer ? "Organisateur" : "Utilisateur"}
-                    </Badge>
-                    <Badge variant="outline" className="gap-2">
-                      {isOnline ? <Wifi className="h-3.5 w-3.5 text-primary" /> : <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                      {isOnline ? "En ligne" : "Hors ligne"}
-                    </Badge>
+          {/* Profile header — EzaWapi-style card */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col items-center text-center gap-3">
+                {/* Avatar with online dot */}
+                <div className="relative">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center p-1">
+                    <div className="w-full h-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                      {profileInfo?.avatar_url ? (
+                        <img src={profileInfo.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserCircle2 className="w-12 h-12 text-primary/60" />
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="font-display text-3xl font-bold text-foreground">Mon profil</h1>
-                    <p className="font-body text-muted-foreground mt-1 break-all">{user.email}</p>
-                  </div>
-                  <div className="pt-2">
-                    <ProfileEditor userId={user.id} email={user.email || ""} />
-                  </div>
-                  <p className="max-w-2xl font-body text-sm text-muted-foreground">
-                    Suivez vos {isOrganizer ? "publications, " : ""}notifications, commentaires et favoris depuis votre mini tableau de bord personnel.
-                  </p>
+                  <span
+                    className={`absolute bottom-1 left-1 w-4 h-4 rounded-full border-2 border-card ${isOnline ? "bg-emerald-500" : "bg-muted-foreground"}`}
+                    title={isOnline ? "En ligne" : "Hors ligne"}
+                  />
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  {isOrganizer && (
-                    <Link to="/create">
-                      <Button className="w-full gradient-hero text-primary-foreground border-0 sm:w-auto">
-                        <PlusCircle className="h-4 w-4" /> Nouvelle activité
-                      </Button>
-                    </Link>
+
+                {/* Name + admin badge */}
+                <div className="flex items-center gap-2 flex-wrap justify-center">
+                  <h1 className="font-display text-lg sm:text-xl font-bold text-foreground break-all">
+                    {profileInfo?.display_name || user.email}
+                  </h1>
+                  {isAdmin && (
+                    <Badge className="gap-1 text-[10px]"><Shield className="h-3 w-3" /> Admin</Badge>
                   )}
+                  {!isAdmin && isOrganizer && (
+                    <Badge variant="secondary" className="gap-1 text-[10px]"><Briefcase className="h-3 w-3" /> Organisateur</Badge>
+                  )}
+                </div>
+
+                <p className="text-sm text-muted-foreground break-all -mt-1">{user.email}</p>
+
+                {/* Info row */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground justify-center">
+                  {profileInfo?.phone_primary && (
+                    <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" />{profileInfo.phone_primary}</span>
+                  )}
+                  {profileInfo?.physical_address && (
+                    <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{profileInfo.physical_address}</span>
+                  )}
+                  {profileInfo?.organization_role && (
+                    <span className="inline-flex items-center gap-1"><Briefcase className="w-3 h-3" />{profileInfo.organization_role}</span>
+                  )}
+                  {user.created_at && (
+                    <span className="inline-flex items-center gap-1"><Calendar className="w-3 h-3" />Depuis {format(new Date(user.created_at), "MMMM yyyy", { locale: fr })}</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2 justify-center pt-1">
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setEditProfileOpen(true)}>
+                    <Pencil className="h-3.5 w-3.5" /> Modifier
+                  </Button>
                   <Link to="/settings">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      <SettingsIcon className="h-4 w-4" /> Paramètres
-                    </Button>
-                  </Link>
-                  <Link to="/history">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      <Archive className="h-4 w-4" /> Historique
+                    <Button variant="outline" size="icon" className="h-9 w-9" aria-label="Paramètres">
+                      <SettingsIcon className="h-4 w-4" />
                     </Button>
                   </Link>
                   {isAdmin && (
                     <Link to="/admin">
-                      <Button variant="outline" className="w-full sm:w-auto">
-                        <Shield className="h-4 w-4" /> Dashboard admin
+                      <Button variant="outline" size="icon" className="h-9 w-9" aria-label="Dashboard admin">
+                        <Shield className="h-4 w-4" />
                       </Button>
                     </Link>
                   )}
-                  <Button variant="outline" className="w-full sm:w-auto text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30" onClick={async () => { await signOut(); navigate("/"); }}>
-                    <LogOut className="h-4 w-4" /> Déconnexion
+                  {isOrganizer && (
+                    <Link to="/create">
+                      <Button size="sm" className="gradient-hero text-primary-foreground border-0 gap-1.5">
+                        <PlusCircle className="h-4 w-4" /> Nouvelle activité
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+                    aria-label="Déconnexion"
+                    onClick={async () => { await signOut(); navigate("/"); }}
+                  >
+                    <LogOut className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-5 pt-4 border-t border-border">
+                {(isOrganizer
+                  ? [
+                      { label: "Activités", value: events.length, icon: Calendar, color: "primary" },
+                      { label: "Favoris", value: favorites.length, icon: Heart, color: "destructive" },
+                      { label: "Commentaires", value: comments.length, icon: MessageSquare, color: "accent" },
+                      { label: "Notifications", value: unreadCount, icon: Bell, color: "emerald" },
+                    ]
+                  : [
+                      { label: "Notifications", value: unreadCount, icon: Bell, color: "primary" },
+                      { label: "Favoris", value: favorites.length, icon: Heart, color: "destructive" },
+                      { label: "Commentaires", value: comments.length, icon: MessageSquare, color: "accent" },
+                      { label: "Invitations", value: receivedInvitations.length, icon: Mail, color: "emerald" },
+                    ]
+                ).map((stat: any) => {
+                  const bg = stat.color === "destructive" ? "bg-destructive/5" : stat.color === "accent" ? "bg-accent/5" : stat.color === "emerald" ? "bg-emerald-500/5" : "bg-primary/5";
+                  const iconBg = stat.color === "destructive" ? "bg-destructive/10" : stat.color === "accent" ? "bg-accent/10" : stat.color === "emerald" ? "bg-emerald-500/10" : "bg-primary/10";
+                  const iconColor = stat.color === "destructive" ? "text-destructive" : stat.color === "accent" ? "text-accent" : stat.color === "emerald" ? "text-emerald-600" : "text-primary";
+                  return (
+                    <div key={stat.label} className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl ${bg}`}>
+                      <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                        <stat.icon className={`w-4 h-4 ${iconColor}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-display text-base font-bold text-foreground">{stat.value}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{stat.label}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {(isOrganizer
-              ? [
-                  { label: "Publications", value: events.length, icon: Calendar },
-                  { label: "Publiées", value: publishedCount, icon: ArrowRight },
-                  { label: "En attente", value: pendingCount, icon: Clock3 },
-                  { label: "Invitations envoyées", value: sentInvitationsStats.total, icon: Send },
-                  { label: "Présents scannés", value: sentInvitationsStats.scanned, icon: UserCheck },
-                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
-                  { label: "Favoris", value: favorites.length, icon: Heart },
-                  { label: "Notifications", value: unreadCount, icon: Bell },
-                ]
-              : [
-                  { label: "Notifications", value: unreadCount, icon: Bell },
-                  { label: "Invitations reçues", value: receivedInvitations.length, icon: Mail },
-                  { label: "Commentaires", value: comments.length, icon: MessageSquare },
-                  { label: "Favoris", value: favorites.length, icon: Heart },
-                ]
-            ).map((stat: any) => (
-              <Card key={stat.label}>
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="rounded-2xl bg-muted p-3">
-                    <stat.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-display text-2xl font-bold text-foreground">{stat.value}</p>
-                    <p className="font-body text-sm text-muted-foreground">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {/* Edit profile dialog */}
+          <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+              <DialogHeader className="px-6 pt-5">
+                <DialogTitle className="font-display">Modifier le profil</DialogTitle>
+                <DialogDescription>Mettez à jour vos informations et préférences de visibilité.</DialogDescription>
+              </DialogHeader>
+              <div className="px-2 sm:px-4 pb-2">
+                <ProfileEditor
+                  userId={user.id}
+                  email={user.email || ""}
+                  autoEdit
+                  hideChrome
+                  onClose={() => setEditProfileOpen(false)}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+
 
           <Tabs defaultValue={tabsList[0].value} className="space-y-6">
             <TabsList className={`grid w-full md:w-auto`} style={{ gridTemplateColumns: `repeat(${tabsList.length}, minmax(0, 1fr))` }}>
