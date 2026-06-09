@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 interface ProfileEditorProps {
   userId: string;
   email: string;
+  autoEdit?: boolean;
+  onClose?: () => void;
+  hideChrome?: boolean;
 }
 
 const DEFAULT_VISIBILITY = {
@@ -24,7 +27,7 @@ const DEFAULT_VISIBILITY = {
 
 type VisibilityKey = keyof typeof DEFAULT_VISIBILITY;
 
-const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
+const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
@@ -40,7 +43,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!autoEdit);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => { fetchProfile(); }, [userId]);
@@ -145,7 +148,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
       ({ error } = await supabase.from("profiles").insert({ id: userId, ...payload }));
     }
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); }
-    else { toast({ title: "Profil enregistré !" }); setEditing(false); }
+    else { toast({ title: "Profil enregistré !" }); setEditing(false); onClose?.(); }
     setSaving(false);
   };
 
@@ -180,7 +183,8 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+    <div className={hideChrome ? "overflow-hidden" : "rounded-2xl border border-border bg-card shadow-sm overflow-hidden"}>
+
       {/* Cover banner with upload */}
       <div className="relative bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "4 / 1" }}>
         {form.cover_url && (
@@ -214,12 +218,14 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
           <div className="flex-1 min-w-0 pt-1">
-            <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">Modifier le profil</h3>
+            {!hideChrome && <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">Modifier le profil</h3>}
             <p className="text-xs text-muted-foreground break-all">{email}</p>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditing(false)} aria-label="Fermer">
-            <X className="h-4 w-4" />
-          </Button>
+          {!hideChrome && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setEditing(false); onClose?.(); }} aria-label="Fermer">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <div className="mt-5 space-y-4">
@@ -362,7 +368,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Enregistrer
             </Button>
-            <Button variant="outline" onClick={() => setEditing(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setEditing(false); onClose?.(); }}>Annuler</Button>
           </div>
         </div>
       </div>

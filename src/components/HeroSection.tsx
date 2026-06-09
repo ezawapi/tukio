@@ -25,7 +25,7 @@ const HeroSection = () => {
         .eq("is_published", true)
         .eq("visibility", "public")
         .gte("date", todayISO),
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      (supabase as any).from("public_profiles").select("id", { count: "exact", head: true }),
       supabase
         .from("events")
         .select("city")

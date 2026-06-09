@@ -89,8 +89,8 @@ const EventDetail = () => {
     setEvent(data);
     setLoading(false);
     if (data?.organizer_id) {
-      const { data: prof } = await supabase
-        .from("profiles")
+      const { data: prof } = await (supabase as any)
+        .from("public_profiles")
         .select("slug, avatar_url, display_name")
         .eq("id", data.organizer_id)
         .maybeSingle();
@@ -103,8 +103,8 @@ const EventDetail = () => {
     }
     const authorId = (data as any)?.author_id || data?.organizer_id;
     if (authorId) {
-      const { data: aprof } = await supabase
-        .from("profiles")
+      const { data: aprof } = await (supabase as any)
+        .from("public_profiles")
         .select("id, slug, avatar_url, display_name")
         .eq("id", authorId)
         .maybeSingle();
@@ -124,8 +124,8 @@ const EventDetail = () => {
     const userIds = Array.from(new Set(rows.map((c: any) => c.user_id).filter(Boolean)));
     let profilesMap: Record<string, { display_name: string | null; avatar_url: string | null; slug: string | null }> = {};
     if (userIds.length > 0) {
-      const { data: profs } = await supabase
-        .from("profiles")
+      const { data: profs } = await (supabase as any)
+        .from("public_profiles")
         .select("id, display_name, avatar_url, slug")
         .in("id", userIds);
       (profs || []).forEach((p: any) => { profilesMap[p.id] = p; });
