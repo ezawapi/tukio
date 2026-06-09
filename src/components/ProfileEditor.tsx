@@ -183,7 +183,8 @@ const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: Profile
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+    <div className={hideChrome ? "overflow-hidden" : "rounded-2xl border border-border bg-card shadow-sm overflow-hidden"}>
+
       {/* Cover banner with upload */}
       <div className="relative bg-gradient-to-r from-primary/30 via-accent/20 to-secondary/30" style={{ aspectRatio: "4 / 1" }}>
         {form.cover_url && (
@@ -217,12 +218,14 @@ const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: Profile
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
           <div className="flex-1 min-w-0 pt-1">
-            <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">Modifier le profil</h3>
+            {!hideChrome && <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">Modifier le profil</h3>}
             <p className="text-xs text-muted-foreground break-all">{email}</p>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setEditing(false)} aria-label="Fermer">
-            <X className="h-4 w-4" />
-          </Button>
+          {!hideChrome && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setEditing(false); onClose?.(); }} aria-label="Fermer">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <div className="mt-5 space-y-4">
