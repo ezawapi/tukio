@@ -368,7 +368,7 @@ const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: Profile
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Enregistrer
             </Button>
-            <Button variant="outline" onClick={() => setEditing(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setEditing(false); onClose?.(); }}>Annuler</Button>
           </div>
         </div>
       </div>
