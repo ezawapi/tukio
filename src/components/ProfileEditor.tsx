@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 interface ProfileEditorProps {
   userId: string;
   email: string;
+  autoEdit?: boolean;
+  onClose?: () => void;
+  hideChrome?: boolean;
 }
 
 const DEFAULT_VISIBILITY = {
@@ -24,7 +27,7 @@ const DEFAULT_VISIBILITY = {
 
 type VisibilityKey = keyof typeof DEFAULT_VISIBILITY;
 
-const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
+const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: ProfileEditorProps) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
@@ -40,7 +43,7 @@ const ProfileEditor = ({ userId, email }: ProfileEditorProps) => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!autoEdit);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => { fetchProfile(); }, [userId]);
