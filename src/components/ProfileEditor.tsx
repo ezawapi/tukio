@@ -148,7 +148,7 @@ const ProfileEditor = ({ userId, email, autoEdit, onClose, hideChrome }: Profile
       ({ error } = await supabase.from("profiles").insert({ id: userId, ...payload }));
     }
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); }
-    else { toast({ title: "Profil enregistré !" }); setEditing(false); }
+    else { toast({ title: "Profil enregistré !" }); setEditing(false); onClose?.(); }
     setSaving(false);
   };
 
