@@ -68,6 +68,8 @@ const Profile = () => {
   const { role, isAdmin } = useUserRole(user?.id);
   const [loading, setLoading] = useState(true);
   const [accountType, setAccountType] = useState<"user" | "organizer">("user");
+  const [profileInfo, setProfileInfo] = useState<any>(null);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
@@ -104,7 +106,7 @@ const Profile = () => {
     const fetchDashboard = async () => {
       const userEmail = (user.email || "").toLowerCase();
       const [profileResult, eventsResult, commentsResult, favoritesResult, notifsResult, invitationsResult] = await Promise.all([
-        supabase.from("profiles").select("account_type").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("account_type, display_name, avatar_url, phone_primary, physical_address, organization_name, organization_role").eq("id", user.id).maybeSingle(),
         supabase.from("events").select("id, title, city, date, created_at, status, is_published, attendees_count, categories(name)").eq("organizer_id", user.id).order("created_at", { ascending: false }),
         supabase.from("comments").select("id, content, created_at, event_id, events(title)").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("favorites").select("id, created_at, events(id, title, city, date, image_url)").eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -116,6 +118,7 @@ const Profile = () => {
       ]);
       const acct = (profileResult.data as any)?.account_type;
       setAccountType(acct === "organizer" ? "organizer" : "user");
+      setProfileInfo(profileResult.data || null);
       setEvents(eventsResult.data || []);
       setComments(commentsResult.data || []);
       setFavorites(favoritesResult.data || []);
