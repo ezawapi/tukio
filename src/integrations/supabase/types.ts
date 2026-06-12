@@ -337,6 +337,7 @@ export type Database = {
           scanned_by: string | null
           status: string
           updated_at: string
+          updated_by: string | null
           uses_count: number
         }
         Insert: {
@@ -358,6 +359,7 @@ export type Database = {
           scanned_by?: string | null
           status?: string
           updated_at?: string
+          updated_by?: string | null
           uses_count?: number
         }
         Update: {
@@ -379,6 +381,7 @@ export type Database = {
           scanned_by?: string | null
           status?: string
           updated_at?: string
+          updated_by?: string | null
           uses_count?: number
         }
         Relationships: [
@@ -1042,36 +1045,45 @@ export type Database = {
           body: string | null
           campaign_id: string | null
           created_at: string
+          created_by: string | null
           id: string
           is_favorite: boolean
           is_read: boolean
           related_event_id: string | null
           title: string
           type: string
+          updated_at: string
+          updated_by: string | null
           user_id: string
         }
         Insert: {
           body?: string | null
           campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_favorite?: boolean
           is_read?: boolean
           related_event_id?: string | null
           title: string
           type?: string
+          updated_at?: string
+          updated_by?: string | null
           user_id: string
         }
         Update: {
           body?: string | null
           campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_favorite?: boolean
           is_read?: boolean
           related_event_id?: string | null
           title?: string
           type?: string
+          updated_at?: string
+          updated_by?: string | null
           user_id?: string
         }
         Relationships: [
