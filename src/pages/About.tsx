@@ -118,6 +118,20 @@ const About = () => {
                 </div>
               )}
             </div>
+
+            {/* App update */}
+            <div className="rounded-2xl bg-card border border-border p-6 space-y-3">
+              <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-primary" /> Mise à jour de l'application
+              </h2>
+              <p className="text-sm">
+                Si l'application semble figée ou ne montre pas les dernières fonctionnalités, lancez une mise à jour pour récupérer la version la plus récente.
+              </p>
+              <Button onClick={handleUpdate} disabled={updating} className="gap-2">
+                <RefreshCw className={`h-4 w-4 ${updating ? "animate-spin" : ""}`} />
+                {updating ? "Mise à jour..." : "Mettre à jour l'application"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
