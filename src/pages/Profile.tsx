@@ -499,19 +499,17 @@ const Profile = () => {
 
 
           <Tabs defaultValue={tabsList[0].value} className="space-y-6">
-            <div className="-mx-4 px-4 overflow-x-auto scrollbar-none md:mx-0 md:px-0 md:overflow-visible">
-              <TabsList className="inline-flex h-auto w-max md:w-auto gap-1 p-1">
-                {tabsList.map((t) => (
-                  <TabsTrigger
-                    key={t.value}
-                    value={t.value}
-                    className="whitespace-nowrap text-xs sm:text-sm px-3 py-1.5 shrink-0"
-                  >
-                    {t.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+            <TabsList className="flex flex-wrap h-auto w-full gap-1 p-1 justify-start">
+              {tabsList.map((t) => (
+                <TabsTrigger
+                  key={t.value}
+                  value={t.value}
+                  className="whitespace-nowrap text-xs sm:text-sm px-3 py-1.5 flex-grow sm:flex-grow-0 basis-[calc(33.333%-0.25rem)] sm:basis-auto"
+                >
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
             {isOrganizer && (
               <TabsContent value="events">
