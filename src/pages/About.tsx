@@ -1,17 +1,42 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import { Facebook, Globe, Heart, Instagram, Linkedin, Mail, MapPin, Phone, Shield, Twitter, Users, Youtube } from "lucide-react";
+import { Facebook, Globe, Heart, Instagram, Linkedin, Mail, MapPin, Phone, RefreshCw, Shield, Twitter, Users, Youtube } from "lucide-react";
 import { useSiteContent } from "@/hooks/use-site-content";
 import { useTranslation } from "@/contexts/I18nContext";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const About = () => {
   const { content } = useSiteContent();
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const [updating, setUpdating] = useState(false);
   const intro = content["about_intro"] || "Tukio est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales.";
   const vision = content["about_vision"] || "";
   const contactEmail = content["footer_contact_email"] || "contact@tukio.app";
   const contactPhone = content["footer_contact_phone"] || "";
+
+  const handleUpdate = async () => {
+    setUpdating(true);
+    toast({ title: "Mise à jour en cours", description: "Recherche d'une nouvelle version..." });
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.update()));
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      // ignore
+    }
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
 
   const socials = [
     { key: "footer_facebook", icon: Facebook, label: "Facebook" },
@@ -92,6 +117,20 @@ const About = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* App update */}
+            <div className="rounded-2xl bg-card border border-border p-6 space-y-3">
+              <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-primary" /> Mise à jour de l'application
+              </h2>
+              <p className="text-sm">
+                Si l'application semble figée ou ne montre pas les dernières fonctionnalités, lancez une mise à jour pour récupérer la version la plus récente.
+              </p>
+              <Button onClick={handleUpdate} disabled={updating} className="gap-2">
+                <RefreshCw className={`h-4 w-4 ${updating ? "animate-spin" : ""}`} />
+                {updating ? "Mise à jour..." : "Mettre à jour l'application"}
+              </Button>
             </div>
           </div>
         </div>
