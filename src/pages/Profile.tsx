@@ -499,11 +499,19 @@ const Profile = () => {
 
 
           <Tabs defaultValue={tabsList[0].value} className="space-y-6">
-            <TabsList className={`grid w-full md:w-auto`} style={{ gridTemplateColumns: `repeat(${tabsList.length}, minmax(0, 1fr))` }}>
-              {tabsList.map((t) => (
-                <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="-mx-4 px-4 overflow-x-auto scrollbar-none md:mx-0 md:px-0 md:overflow-visible">
+              <TabsList className="inline-flex h-auto w-max md:w-auto gap-1 p-1">
+                {tabsList.map((t) => (
+                  <TabsTrigger
+                    key={t.value}
+                    value={t.value}
+                    className="whitespace-nowrap text-xs sm:text-sm px-3 py-1.5 shrink-0"
+                  >
+                    {t.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
 
             {isOrganizer && (
               <TabsContent value="events">
