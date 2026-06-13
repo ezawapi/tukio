@@ -11,10 +11,32 @@ import { useToast } from "@/hooks/use-toast";
 const About = () => {
   const { content } = useSiteContent();
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const [updating, setUpdating] = useState(false);
   const intro = content["about_intro"] || "Tukio est la plateforme africaine de référence pour découvrir, organiser et promouvoir des événements et activités locales.";
   const vision = content["about_vision"] || "";
   const contactEmail = content["footer_contact_email"] || "contact@tukio.app";
   const contactPhone = content["footer_contact_phone"] || "";
+
+  const handleUpdate = async () => {
+    setUpdating(true);
+    toast({ title: "Mise à jour en cours", description: "Recherche d'une nouvelle version..." });
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.update()));
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      // ignore
+    }
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
 
   const socials = [
     { key: "footer_facebook", icon: Facebook, label: "Facebook" },
