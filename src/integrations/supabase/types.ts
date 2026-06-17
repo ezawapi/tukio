@@ -861,6 +861,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          subject: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          subject: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -1186,6 +1207,18 @@ export type Database = {
     }
     Functions: {
       can_view_event: { Args: { _event_id: string }; Returns: boolean }
+      check_rate_limit: {
+        Args: {
+          _action: string
+          _max_events: number
+          _subject: string
+          _window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          retry_after_seconds: number
+        }[]
+      }
       get_invitation_preview: {
         Args: { _token: string }
         Returns: {
