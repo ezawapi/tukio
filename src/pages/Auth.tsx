@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
+
+const emailSchema = z
+  .string()
+  .trim()
+  .min(3, { message: "Email requis" })
+  .max(255, { message: "Email trop long" })
+  .email({ message: "Email invalide" });
+
+const passwordSchema = z
+  .string()
+  .min(8, { message: "Mot de passe : 8 caractères minimum" })
+  .max(128, { message: "Mot de passe trop long (max 128)" })
+  .regex(/[A-Za-z]/, { message: "Doit contenir au moins une lettre" })
+  .regex(/[0-9]/, { message: "Doit contenir au moins un chiffre" });
+
+// Lightweight client-side throttle to slow brute-force attempts before they hit Auth.
+const LOCAL_RL_KEY = "tukio_auth_attempts";
+type LocalRL = { count: number; firstAt: number };
+const LOCAL_RL_WINDOW_MS = 5 * 60_000;
+const LOCAL_RL_MAX = 8;
+const checkLocalRateLimit = (): { allowed: boolean; retryAfter: number } => {
+  try {
+    const raw = localStorage.getItem(LOCAL_RL_KEY);
+    const now = Date.now();
+    const rl: LocalRL = raw ? JSON.parse(raw) : { count: 0, firstAt: now };
+    if (now - rl.firstAt > LOCAL_RL_WINDOW_MS) {
+      localStorage.setItem(LOCAL_RL_KEY, JSON.stringify({ count: 1, firstAt: now }));
+      return { allowed: true, retryAfter: 0 };
+    }
+    if (rl.count >= LOCAL_RL_MAX) {
+      return { allowed: false, retryAfter: Math.ceil((LOCAL_RL_WINDOW_MS - (now - rl.firstAt)) / 1000) };
+    }
+    localStorage.setItem(LOCAL_RL_KEY, JSON.stringify({ count: rl.count + 1, firstAt: rl.firstAt }));
+    return { allowed: true, retryAfter: 0 };
+  } catch {
+    return { allowed: true, retryAfter: 0 };
+  }
+};
+const resetLocalRateLimit = () => {
+  try { localStorage.removeItem(LOCAL_RL_KEY); } catch { /* ignore */ }
+};
+
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,25 +83,56 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Client-side validation & sanitization
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast({ title: "Email invalide", description: emailResult.error.issues[0].message, variant: "destructive" });
+      return;
+    }
+    const cleanEmail = emailResult.data.toLowerCase();
+
+    if (!forgotMode) {
+      const pwResult = passwordSchema.safeParse(password);
+      if (!pwResult.success) {
+        toast({ title: "Mot de passe invalide", description: pwResult.error.issues[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    // Anti brute-force: local throttle for login + reset attempts
+    if (forgotMode || isLogin) {
+      const rl = checkLocalRateLimit();
+      if (!rl.allowed) {
+        toast({
+          title: "Trop de tentatives",
+          description: `Veuillez patienter ${rl.retryAfter}s avant de réessayer.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (forgotMode) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
         toast({ title: "Email envoyé !", description: "Consultez votre boîte mail pour réinitialiser votre mot de passe." });
         setForgotMode(false);
       } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
           const errorMessage = (error.message || "").toLowerCase();
 
           if (errorMessage.includes("email not confirmed")) {
             const { error: resendError } = await supabase.auth.resend({
               type: "signup",
-              email,
+              email: cleanEmail,
               options: { emailRedirectTo: window.location.origin },
             });
 
@@ -73,11 +147,12 @@ const Auth = () => {
 
           throw error;
         }
+        resetLocalRateLimit();
         toast({ title: "Connexion réussie !" });
         navigate(getPostAuthTarget(), { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
@@ -88,7 +163,7 @@ const Auth = () => {
           if (errorMessage.includes("already registered")) {
             const { error: resendError } = await supabase.auth.resend({
               type: "signup",
-              email,
+              email: cleanEmail,
               options: { emailRedirectTo: window.location.origin },
             });
 
@@ -109,6 +184,7 @@ const Auth = () => {
           description: "Vérifiez votre email puis cliquez sur le lien de confirmation pour activer votre compte.",
         });
       }
+
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
