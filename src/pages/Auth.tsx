@@ -125,14 +125,14 @@ const Auth = () => {
         toast({ title: "Email envoyé !", description: "Consultez votre boîte mail pour réinitialiser votre mot de passe." });
         setForgotMode(false);
       } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
           const errorMessage = (error.message || "").toLowerCase();
 
           if (errorMessage.includes("email not confirmed")) {
             const { error: resendError } = await supabase.auth.resend({
               type: "signup",
-              email,
+              email: cleanEmail,
               options: { emailRedirectTo: window.location.origin },
             });
 
@@ -147,11 +147,12 @@ const Auth = () => {
 
           throw error;
         }
+        resetLocalRateLimit();
         toast({ title: "Connexion réussie !" });
         navigate(getPostAuthTarget(), { replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
@@ -162,7 +163,7 @@ const Auth = () => {
           if (errorMessage.includes("already registered")) {
             const { error: resendError } = await supabase.auth.resend({
               type: "signup",
-              email,
+              email: cleanEmail,
               options: { emailRedirectTo: window.location.origin },
             });
 
@@ -183,6 +184,7 @@ const Auth = () => {
           description: "Vérifiez votre email puis cliquez sur le lien de confirmation pour activer votre compte.",
         });
       }
+
     } catch (error: any) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
