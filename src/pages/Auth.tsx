@@ -83,11 +83,42 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Client-side validation & sanitization
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast({ title: "Email invalide", description: emailResult.error.issues[0].message, variant: "destructive" });
+      return;
+    }
+    const cleanEmail = emailResult.data.toLowerCase();
+
+    if (!forgotMode) {
+      const pwResult = passwordSchema.safeParse(password);
+      if (!pwResult.success) {
+        toast({ title: "Mot de passe invalide", description: pwResult.error.issues[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    // Anti brute-force: local throttle for login + reset attempts
+    if (forgotMode || isLogin) {
+      const rl = checkLocalRateLimit();
+      if (!rl.allowed) {
+        toast({
+          title: "Trop de tentatives",
+          description: `Veuillez patienter ${rl.retryAfter}s avant de réessayer.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       if (forgotMode) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
