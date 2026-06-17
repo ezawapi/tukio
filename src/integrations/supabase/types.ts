@@ -1204,6 +1204,63 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_orders_organizer_view: {
+        Row: {
+          attendance_status: string | null
+          created_at: string | null
+          currency: string | null
+          event_id: string | null
+          id: string | null
+          payment_status: string | null
+          quantity: number | null
+          scanned_at: string | null
+          ticket_type_id: string | null
+          total_amount: number | null
+          unit_price_amount: number | null
+        }
+        Insert: {
+          attendance_status?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_id?: string | null
+          id?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          scanned_at?: string | null
+          ticket_type_id?: string | null
+          total_amount?: number | null
+          unit_price_amount?: number | null
+        }
+        Update: {
+          attendance_status?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_id?: string | null
+          id?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          scanned_at?: string | null
+          ticket_type_id?: string | null
+          total_amount?: number | null
+          unit_price_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_orders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_orders_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_view_event: { Args: { _event_id: string }; Returns: boolean }
