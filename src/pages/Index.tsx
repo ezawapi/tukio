@@ -14,6 +14,7 @@ import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
+import { safeChannel } from "@/lib/realtime-guard";
 import { toast } from "sonner";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";

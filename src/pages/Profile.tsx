@@ -20,6 +20,7 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useUserRole } from "@/hooks/use-user-role";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { safeChannel } from "@/lib/realtime-guard";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { downloadReceiptPdf } from "@/lib/receipt-pdf";

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeChannel } from "@/lib/realtime-guard";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function useUnreadNotifications() {
