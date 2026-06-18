@@ -240,8 +240,7 @@ const Index = () => {
       refreshTimer = setTimeout(() => refreshAll(), 600);
     };
     // Realtime: keep homepage data in sync across all open clients
-    const channel = supabase
-      .channel("home-events-sync")
+    const channel = safeChannel("home-events-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload: any) => {
         debouncedRefresh();
         if (Date.now() - mountedAt < 1500) return;

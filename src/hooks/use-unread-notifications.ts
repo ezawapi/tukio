@@ -20,8 +20,7 @@ export function useUnreadNotifications() {
 
     fetch();
 
-    const channel = supabase
-      .channel("unread-notifs")
+    const channel = safeChannel("unread-notifs")
       .on("postgres_changes", { event: "*", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, () => fetch())
       .subscribe();
 

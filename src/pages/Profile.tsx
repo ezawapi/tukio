@@ -152,8 +152,7 @@ const Profile = () => {
 
     // Real-time updates: just refresh first page
     if (user) {
-      const channel = supabase
-        .channel("profile-notifs")
+      const channel = safeChannel("profile-notifs")
         .on("postgres_changes", { event: "*", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, async () => {
           const { data, count } = await supabase.from("user_notifications").select("*", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }).range(0, Math.max(NOTIFS_PAGE_SIZE, notifsLoadedCount) - 1);
           setNotifications((data as UserNotification[]) || []);

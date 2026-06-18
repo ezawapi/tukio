@@ -110,8 +110,7 @@ const PublicProfile = () => {
     refreshFollows(profile.id);
 
     // Realtime updates on follows table
-    const channel = supabase
-      .channel(`follows:${profile.id}`)
+    const channel = safeChannel(`follows:${profile.id}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "follows", filter: `organizer_id=eq.${profile.id}` },

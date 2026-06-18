@@ -89,8 +89,7 @@ const AdminBannersManager = () => {
     fetchStats(statsRange);
 
     // Realtime analytics — only updates the visible aggregate (when range="all")
-    const channel = supabase
-      .channel("banner-analytics-admin")
+    const channel = safeChannel("banner-analytics-admin")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "banner_analytics" }, (payload: any) => {
         const bid = payload.new.banner_id;
         const type = payload.new.event_type;
