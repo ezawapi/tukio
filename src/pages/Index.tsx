@@ -14,6 +14,7 @@ import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
+import { safeChannel } from "@/lib/realtime-guard";
 import { toast } from "sonner";
 import { formatEventPrice } from "@/lib/format-price";
 import { getCountdown } from "@/lib/countdown";
@@ -240,8 +241,7 @@ const Index = () => {
       refreshTimer = setTimeout(() => refreshAll(), 600);
     };
     // Realtime: keep homepage data in sync across all open clients
-    const channel = supabase
-      .channel("home-events-sync")
+    const channel = safeChannel("home-events-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload: any) => {
         debouncedRefresh();
         if (Date.now() - mountedAt < 1500) return;
