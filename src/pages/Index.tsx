@@ -284,10 +284,21 @@ const Index = () => {
   }, [refreshAll]);
 
   const fetchCategories = async () => {
-    setLoadingCats(true);
+    const catCacheKey = "tukio:home-cats:v1";
+    try {
+      const raw = sessionStorage.getItem(catCacheKey);
+      if (raw) {
+        const { ts, cats, counts } = JSON.parse(raw);
+        if (Date.now() - ts < 5 * 60_000 && Array.isArray(cats)) {
+          setCategories(cats);
+          setCategoryCounts(counts || {});
+          setLoadingCats(false);
+        }
+      }
+    } catch {}
     const todayISO = startOfTodayISO();
     const [{ data: cats }, { data: evRows }] = await Promise.all([
-      supabase.from("categories").select("*").order("name"),
+      supabase.from("categories").select("id,name,slug,icon,color").order("name"),
       supabase
         .from("events")
         .select("category_id")
@@ -296,12 +307,13 @@ const Index = () => {
         .gte("date", todayISO),
     ]);
     if (cats) {
-      setCategories(cats);
       const counts: Record<string, number> = {};
       (evRows || []).forEach((row: any) => {
         if (row.category_id) counts[row.category_id] = (counts[row.category_id] || 0) + 1;
       });
+      setCategories(cats);
       setCategoryCounts(counts);
+      try { sessionStorage.setItem(catCacheKey, JSON.stringify({ ts: Date.now(), cats, counts })); } catch {}
     }
     setLoadingCats(false);
   };
@@ -320,20 +332,25 @@ const Index = () => {
 
   // Combined fetch for live + upcoming + recent (all share base filter)
   const fetchHomeEvents = async () => {
-    setLoadingRecent(true);
     const todayISO = startOfTodayISO();
     const poolSize = userCoords ? 60 : 30;
-    const cacheKey = `tukio:home-events:v2:${poolSize}`;
+    const cacheKey = `tukio:home-events:v3:${poolSize}`;
+    let hadCache = false;
     try {
       const raw = sessionStorage.getItem(cacheKey);
       if (raw) {
         const { ts, data } = JSON.parse(raw);
-        if (Date.now() - ts < 60_000 && Array.isArray(data)) splitEvents(data);
+        if (Date.now() - ts < 5 * 60_000 && Array.isArray(data)) {
+          splitEvents(data);
+          hadCache = true;
+        }
       }
     } catch {}
+    if (!hadCache) setLoadingRecent(true);
+    // Slim column list to reduce payload size (~50% smaller than SELECT *)
     const { data } = await supabase
       .from("events")
-      .select("*, categories(name)")
+      .select("id,title,date,end_date,image_url,is_live,live_url,price,currency,latitude,longitude,category_id,created_at,visibility,is_published,city,categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", todayISO)
