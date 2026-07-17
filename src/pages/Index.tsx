@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,16 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/fallback-tukio.png";
 import { useUserRole } from "@/hooks/use-user-role";
+
+const UPCOMING_PAGE_SIZE = 6;
+
+const UpcomingSkeleton = () => (
+  <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <Skeleton key={i} className="h-56 w-full rounded-xl sm:h-64" />
+    ))}
+  </div>
+);
 
 const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
@@ -181,9 +192,15 @@ const Index = () => {
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [loadingUpcoming, setLoadingUpcoming] = useState(true);
+  const [visibleUpcoming, setVisibleUpcoming] = useState(UPCOMING_PAGE_SIZE);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+  const upcomingSectionRef = useRef<HTMLElement | null>(null);
+  const upcomingSentinelRef = useRef<HTMLDivElement | null>(null);
+  const prefetchedRef = useRef(false);
   const { location: userLocation } = useUserLocation();
   const userCoords = useMemo(
     () => (userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null),
@@ -223,6 +240,58 @@ const Index = () => {
     const id = setInterval(() => setNowTick(Date.now()), 5 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Prefetch Events route + query when user scrolls near the Upcoming section
+  useEffect(() => {
+    const target = upcomingSectionRef.current;
+    if (!target || prefetchedRef.current) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !prefetchedRef.current) {
+          prefetchedRef.current = true;
+          // Warm the code-split /events route
+          import("./Events").catch(() => {});
+          // Warm a react-query entry for the events list (mirrors Events page use)
+          queryClient.prefetchQuery({
+            queryKey: ["events", "list", "home-prefetch"],
+            staleTime: 60_000,
+            queryFn: async () => {
+              const { data } = await supabase
+                .from("events")
+                .select("id,title,date,image_url,city,category_id,categories(name)")
+                .eq("is_published", true)
+                .eq("visibility", "public")
+                .gte("date", startOfTodayISO())
+                .order("date", { ascending: true })
+                .limit(30);
+              return data || [];
+            },
+          });
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(target);
+    return () => io.disconnect();
+  }, [queryClient]);
+
+  // Infinite scroll for the Upcoming grid — reveal +UPCOMING_PAGE_SIZE per tick
+  useEffect(() => {
+    const sentinel = upcomingSentinelRef.current;
+    if (!sentinel) return;
+    if (visibleUpcoming >= upcomingEvents.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleUpcoming((v) => Math.min(v + UPCOMING_PAGE_SIZE, upcomingEvents.length));
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, [visibleUpcoming, upcomingEvents.length]);
 
   const refreshAll = useCallback(() => {
     startTransition(() => {
@@ -322,12 +391,13 @@ const Index = () => {
     const filtered = data.filter((e: any) => isEventActive(e.date, e.end_date));
     setLiveEvents(filtered.filter((e: any) => e.is_live).slice(0, 8));
     const upcomingRanked = sortByProximity([...filtered], userCoords);
-    setUpcomingEvents(upcomingRanked.slice(0, 6));
+    setUpcomingEvents(upcomingRanked.slice(0, 30));
     const recentSorted = [...filtered].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
     setRecentEvents(sortByProximity(recentSorted, userCoords).slice(0, 8));
     setLoadingRecent(false);
+    setLoadingUpcoming(false);
   };
 
   // Combined fetch for live + upcoming + recent (all share base filter)
@@ -586,7 +656,7 @@ const Index = () => {
       </section>
 
       {/* Upcoming */}
-      <section className="bg-background py-5 sm:py-7">
+      <section ref={upcomingSectionRef} className="bg-background py-5 sm:py-7">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
@@ -597,27 +667,36 @@ const Index = () => {
               <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
             </div>
           </div>
-          {upcomingEvents.length === 0 ? (
+          {loadingUpcoming && upcomingEvents.length === 0 ? (
+            <UpcomingSkeleton />
+          ) : upcomingEvents.length === 0 ? (
             <div className="py-12 text-center">
               <p className="font-body text-muted-foreground">{t("home.no_upcoming")}</p>
               <Link to="/create"><Button className="mt-4 border-0 gradient-hero text-primary-foreground">{t("home.publish_first")}</Button></Link>
             </div>
           ) : (
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {upcomingEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants}>
-                  <Link to={`/events/${event.id}`}>
-                    <EventCard compact title={event.title}
-                      date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      location={event.location} category={event.categories?.name || t("home.event")}
-                      image={event.image_url || ""} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
-                      distanceKm={distanceFor(event.latitude, event.longitude)} />
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
+            <>
+              <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+                {upcomingEvents.slice(0, visibleUpcoming).map((event) => (
+                  <motion.div key={event.id} variants={itemVariants}>
+                    <Link to={`/events/${event.id}`}>
+                      <EventCard compact title={event.title}
+                        date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                        location={event.location} category={event.categories?.name || t("home.event")}
+                        image={event.image_url || ""} attendees={event.attendees_count || 0}
+                        price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
+                        distanceKm={distanceFor(event.latitude, event.longitude)} />
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+              {visibleUpcoming < upcomingEvents.length && (
+                <div ref={upcomingSentinelRef} className="flex items-center justify-center py-6">
+                  <div className="h-6 w-6 rounded-full border-2 border-primary/40 border-t-primary animate-spin" aria-label="Chargement" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
