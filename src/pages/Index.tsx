@@ -656,7 +656,7 @@ const Index = () => {
       </section>
 
       {/* Upcoming */}
-      <section className="bg-background py-5 sm:py-7">
+      <section ref={upcomingSectionRef} className="bg-background py-5 sm:py-7">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
@@ -667,27 +667,36 @@ const Index = () => {
               <Link to="/events"><Button variant="ghost" size="sm" className="font-body text-xs font-medium text-primary">{t("home.see_all")}</Button></Link>
             </div>
           </div>
-          {upcomingEvents.length === 0 ? (
+          {loadingUpcoming && upcomingEvents.length === 0 ? (
+            <UpcomingSkeleton />
+          ) : upcomingEvents.length === 0 ? (
             <div className="py-12 text-center">
               <p className="font-body text-muted-foreground">{t("home.no_upcoming")}</p>
               <Link to="/create"><Button className="mt-4 border-0 gradient-hero text-primary-foreground">{t("home.publish_first")}</Button></Link>
             </div>
           ) : (
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {upcomingEvents.map((event) => (
-                <motion.div key={event.id} variants={itemVariants}>
-                  <Link to={`/events/${event.id}`}>
-                    <EventCard compact title={event.title}
-                      date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      location={event.location} category={event.categories?.name || t("home.event")}
-                      image={event.image_url || ""} attendees={event.attendees_count || 0}
-                      price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
-                      distanceKm={distanceFor(event.latitude, event.longitude)} />
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
+            <>
+              <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+                {upcomingEvents.slice(0, visibleUpcoming).map((event) => (
+                  <motion.div key={event.id} variants={itemVariants}>
+                    <Link to={`/events/${event.id}`}>
+                      <EventCard compact title={event.title}
+                        date={new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                        location={event.location} category={event.categories?.name || t("home.event")}
+                        image={event.image_url || ""} attendees={event.attendees_count || 0}
+                        price={formatEventPrice(event.price, event.currency)} eventDate={event.date} endDate={event.end_date}
+                        distanceKm={distanceFor(event.latitude, event.longitude)} />
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+              {visibleUpcoming < upcomingEvents.length && (
+                <div ref={upcomingSentinelRef} className="flex items-center justify-center py-6">
+                  <div className="h-6 w-6 rounded-full border-2 border-primary/40 border-t-primary animate-spin" aria-label="Chargement" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
