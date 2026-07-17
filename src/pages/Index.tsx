@@ -345,6 +345,7 @@ const Index = () => {
     );
     setRecentEvents(sortByProximity(recentSorted, userCoords).slice(0, 8));
     setLoadingRecent(false);
+    setLoadingUpcoming(false);
   };
 
   // Combined fetch for live + upcoming + recent (all share base filter)
