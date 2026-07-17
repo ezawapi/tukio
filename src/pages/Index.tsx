@@ -241,6 +241,58 @@ const Index = () => {
     return () => clearInterval(id);
   }, []);
 
+  // Prefetch Events route + query when user scrolls near the Upcoming section
+  useEffect(() => {
+    const target = upcomingSectionRef.current;
+    if (!target || prefetchedRef.current) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !prefetchedRef.current) {
+          prefetchedRef.current = true;
+          // Warm the code-split /events route
+          import("./Events").catch(() => {});
+          // Warm a react-query entry for the events list (mirrors Events page use)
+          queryClient.prefetchQuery({
+            queryKey: ["events", "list", "home-prefetch"],
+            staleTime: 60_000,
+            queryFn: async () => {
+              const { data } = await supabase
+                .from("events")
+                .select("id,title,date,image_url,city,category_id,categories(name)")
+                .eq("is_published", true)
+                .eq("visibility", "public")
+                .gte("date", startOfTodayISO())
+                .order("date", { ascending: true })
+                .limit(30);
+              return data || [];
+            },
+          });
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(target);
+    return () => io.disconnect();
+  }, [queryClient]);
+
+  // Infinite scroll for the Upcoming grid — reveal +UPCOMING_PAGE_SIZE per tick
+  useEffect(() => {
+    const sentinel = upcomingSentinelRef.current;
+    if (!sentinel) return;
+    if (visibleUpcoming >= upcomingEvents.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleUpcoming((v) => Math.min(v + UPCOMING_PAGE_SIZE, upcomingEvents.length));
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, [visibleUpcoming, upcomingEvents.length]);
+
   const refreshAll = useCallback(() => {
     startTransition(() => {
       fetchCategories();
