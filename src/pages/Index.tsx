@@ -192,9 +192,15 @@ const Index = () => {
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [loadingUpcoming, setLoadingUpcoming] = useState(true);
+  const [visibleUpcoming, setVisibleUpcoming] = useState(UPCOMING_PAGE_SIZE);
   const [nowTick, setNowTick] = useState(Date.now());
   const [userId, setUserId] = useState<string | undefined>();
   const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+  const upcomingSectionRef = useRef<HTMLElement | null>(null);
+  const upcomingSentinelRef = useRef<HTMLDivElement | null>(null);
+  const prefetchedRef = useRef(false);
   const { location: userLocation } = useUserLocation();
   const userCoords = useMemo(
     () => (userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null),
