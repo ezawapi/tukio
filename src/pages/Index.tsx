@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,16 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/fallback-tukio.png";
 import { useUserRole } from "@/hooks/use-user-role";
+
+const UPCOMING_PAGE_SIZE = 6;
+
+const UpcomingSkeleton = () => (
+  <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <Skeleton key={i} className="h-56 w-full rounded-xl sm:h-64" />
+    ))}
+  </div>
+);
 
 const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
