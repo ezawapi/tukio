@@ -333,7 +333,7 @@ const Index = () => {
     const filtered = data.filter((e: any) => isEventActive(e.date, e.end_date));
     setLiveEvents(filtered.filter((e: any) => e.is_live).slice(0, 8));
     const upcomingRanked = sortByProximity([...filtered], userCoords);
-    setUpcomingEvents(upcomingRanked.slice(0, 6));
+    setUpcomingEvents(upcomingRanked.slice(0, 30));
     const recentSorted = [...filtered].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
