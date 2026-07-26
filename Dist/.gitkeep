@@ -1,3 +1,0 @@
-# Placeholder to ensure Dist directory is tracked by git
-
-This file exists so the `Dist/` directory is present in the repository. Remove this file if you add build artifacts to `Dist/`.
