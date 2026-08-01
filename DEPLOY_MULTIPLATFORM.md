@@ -6,7 +6,7 @@ L'app est un SPA React/Vite. Le backend (BD, Auth, Edge Functions, Storage) rest
 
 ### A. Variables d'environnement manquantes → login KO, contenu vide
 
-Le client Supabase lit ces 3 variables **au build** :
+Le client Supabase lit les 2 premières variables **au build**. La troisième sert de métadonnée de projet et reste recommandée pour les outils de déploiement :
 
 | Nom | Où trouver |
 |---|---|
@@ -46,6 +46,16 @@ Fichier de config déjà présent : `vercel.json` (SPA fallback + headers de sé
 ## Supabase (backend)
 - Aucun changement, la BD et les Edge Functions vivent ici quel que soit l'hébergeur front.
 - **Toujours** enregistrer chaque nouvelle URL front dans Auth Settings avant de tester le login.
+
+## Hosting.cd / cPanel (Apache)
+
+1. Installer les dépendances avec `npm ci`, puis lancer `npm run build` sur une machine disposant de Node.js.
+2. Compresser **le contenu** de `dist` (y compris le fichier caché `.htaccess`).
+3. Envoyer et extraire ce contenu directement dans `public_html`.
+4. Vérifier que cPanel conserve `.htaccess`; il fournit le fallback SPA, les en-têtes de sécurité, la compression et le cache des ressources.
+5. Ajouter `https://votre-domaine/**` dans les URL autorisées de Supabase Auth.
+
+Le serveur Hosting.cd ne nécessite ni Node.js, ni npm, ni compilation. Le frontend reste statique et communique directement avec Supabase.
 
 ---
 
