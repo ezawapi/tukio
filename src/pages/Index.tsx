@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { icons as lucideIcons, Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
+import { Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,6 @@ import MobileTabBar from "@/components/MobileTabBar";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
 import CategoryCard from "@/components/CategoryCard";
-import PartnersBlock from "@/components/PartnersBlock";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { safeChannel } from "@/lib/realtime-guard";
@@ -25,20 +24,6 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/fallback-tukio.png";
 import { useUserRole } from "@/hooks/use-user-role";
-
-
-
- className?: string }) => {
-  const Comp = (lucideIcons as any)[toPascal(name)];
-  if (!Comp) {
-    const Globe = (lucideIcons as any)["Globe"];
-    return Globe ? <Globe className={className} /> : null;
-  }
-  return <Comp className={className} />;
-};
-
-
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
@@ -154,8 +139,8 @@ const sortByProximity = <T extends { latitude?: number | null; longitude?: numbe
   const withoutCoords = events.filter((e) => e.latitude == null || e.longitude == null);
   withCoords.sort(
     (a, b) =>
-      distanceKmFn(coords.lat, coords.lng, a.latitude!, a.longitude!) -
-      distanceKmFn(coords.lat, coords.lng, b.latitude!, b.longitude!),
+      distanceKmFn(coords.lat, coords.lng, a.latitude ?? 0, a.longitude ?? 0) -
+      distanceKmFn(coords.lat, coords.lng, b.latitude ?? 0, b.longitude ?? 0),
   );
   return [...withCoords, ...withoutCoords];
 };
@@ -272,7 +257,7 @@ const Index = () => {
     };
   }, [refreshAll]);
 
-    const fetchCategories = async () => {
+  const fetchCategories = async () => {
     const catCacheKey = "tukio:home-cats:v1";
     try {
       const raw = sessionStorage.getItem(catCacheKey);
@@ -290,7 +275,7 @@ const Index = () => {
     const todayISO = startOfTodayISO();
     try {
       const [{ data: cats, error: catErr }, { data: evRows, error: evErr }] = await Promise.all([
-        supabase.from("categories").select("id,name,slug,icon,color").order("name"),
+        supabase.from("categories").select("id,name,icon,color").order("name"),
         supabase
           .from("events")
           .select("category_id")
@@ -315,29 +300,6 @@ const Index = () => {
     } finally {
       setLoadingCats(false);
     }
-  };
-      }
-    } catch {}
-    const todayISO = startOfTodayISO();
-    const [{ data: cats }, { data: evRows }] = await Promise.all([
-      supabase.from("categories").select("id,name,slug,icon,color").order("name"),
-      supabase
-        .from("events")
-        .select("category_id")
-        .eq("is_published", true)
-        .eq("visibility", "public")
-        .gte("date", todayISO),
-    ]);
-    if (cats) {
-      const counts: Record<string, number> = {};
-      (evRows || []).forEach((row: any) => {
-        if (row.category_id) counts[row.category_id] = (counts[row.category_id] || 0) + 1;
-      });
-      setCategories(cats);
-      setCategoryCounts(counts);
-      try { sessionStorage.setItem(catCacheKey, JSON.stringify({ ts: Date.now(), cats, counts })); } catch {}
-    }
-    setLoadingCats(false);
   };
 
   const splitEvents = (data: any[]) => {
@@ -654,7 +616,6 @@ const Index = () => {
           <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={simulateLiveToast}>🔴 Simuler LIVE</Button>
         </div>
       )}
-      <div className="container mx-auto px-4 max-w-6xl mb-8"><PartnersBlock /></div>
       <Footer />
       <MobileTabBar />
     </div>
