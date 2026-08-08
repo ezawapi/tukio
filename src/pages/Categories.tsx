@@ -1,39 +1,13 @@
+import CategoryCard from "@/components/CategoryCard";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { icons as lucideIcons } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/contexts/I18nContext";
-
-const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
-const DynIcon = ({ name, className }: { name: string; className?: string }) => {
-  const Comp = (lucideIcons as any)[toPascal(name)];
-  if (!Comp) {
-    const Globe = (lucideIcons as any)["Globe"];
-    return Globe ? <Globe className={className} /> : null;
-  }
-  return <Comp className={className} />;
-};
-
-const categoryColorMap: Record<string, string> = {
-  "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
-  "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
-  "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
-  "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
-  "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
-  "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
-  "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
-  "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
-  "bg-lime": "hsl(84,60%,45%)", "bg-fuchsia": "hsl(292,60%,50%)",
-  "bg-sky": "hsl(200,80%,50%)", "bg-yellow": "hsl(50,90%,50%)",
-  "bg-violet": "hsl(258,60%,55%)", "bg-stone": "hsl(30,10%,40%)",
-  "bg-zinc": "hsl(240,5%,35%)", "bg-brown": "hsl(20,50%,35%)",
-};
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
@@ -55,24 +29,29 @@ const Categories = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: cats } = await supabase.from("categories").select("*").order("name");
-    if (cats) {
-      setCategories(cats);
-      setLoading(false);
-      const counts: Record<string, number> = {};
-      await Promise.all(
-        cats.map(async (cat) => {
-          const { count } = await supabase
-            .from("events")
-            .select("*", { count: "exact", head: true })
-            .eq("category_id", cat.id)
-            .eq("is_published", true)
-            .eq("visibility", "public");
-          counts[cat.id] = count || 0;
-        }),
-      );
-      setEventCounts(counts);
-    } else {
+    try {
+      // Parallel fetch for categories and event counts
+      const [{ data: cats }, { data: evRows }] = await Promise.all([
+        supabase.from("categories").select("*").order("name"),
+        supabase
+          .from("events")
+          .select("category_id")
+          .eq("is_published", true)
+          .eq("visibility", "public")
+          .gte("date", new Date().toISOString())
+      ]);
+
+      if (cats) {
+        setCategories(cats);
+        const counts: Record<string, number> = {};
+        (evRows || []).forEach((row: any) => {
+          if (row.category_id) counts[row.category_id] = (counts[row.category_id] || 0) + 1;
+        });
+        setEventCounts(counts);
+      }
+    } catch (error) {
+      console.error("Error fetching categories data:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -100,30 +79,20 @@ const Categories = () => {
               animate="visible"
               className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4"
             >
-              {categories.map((cat) => {
-                const color = categoryColorMap[cat.color] || "hsl(205,65%,45%)";
-                const count = eventCounts[cat.id] || 0;
-                return (
-                  <motion.div key={cat.id} variants={itemVariants}>
-                    <Link to={`/events?category=${cat.id}`}>
-                      <div className="group flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-5 text-center shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 sm:gap-4 sm:p-6">
-                        <div
-                          className="flex h-12 w-12 items-center justify-center rounded-full shadow-md transition-transform group-hover:scale-110 sm:h-14 sm:w-14"
-                          style={{ backgroundColor: color }}
-                        >
-                          <DynIcon name={cat.icon} className="h-6 w-6 text-white sm:h-7 sm:w-7" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-body text-sm font-bold text-card-foreground sm:text-base">{cat.name}</p>
-                          <p className="font-body text-xs text-muted-foreground sm:text-sm">
-                            {count} {count <= 1 ? "événement" : "événements"}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+              {categories.map((cat) => (
+                <motion.div key={cat.id} variants={itemVariants}>
+                  <Link to={`/events?category=${cat.id}`}>
+                    <CategoryCard 
+                      id={cat.id}
+                      name={cat.name}
+                      icon={cat.icon}
+                      color={cat.color}
+                      count={eventCounts[cat.id] || 0}
+                      variant="grid"
+                    />
+                  </Link>
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </div>

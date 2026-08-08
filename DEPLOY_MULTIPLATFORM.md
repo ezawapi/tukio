@@ -1,4 +1,4 @@
-# Déploiement multi-plateformes (Lovable, Netlify, Vercel, Supabase)
+# Déploiement multi-plateformes (Lovable, Netlify, Vercel, Hosting.cd)
 
 L'app est un SPA React/Vite. Le backend (BD, Auth, Edge Functions, Storage) reste **toujours** sur Supabase (Lovable Cloud). Seul le front change d'hébergeur.
 
@@ -6,7 +6,7 @@ L'app est un SPA React/Vite. Le backend (BD, Auth, Edge Functions, Storage) rest
 
 ### A. Variables d'environnement manquantes → login KO, contenu vide
 
-Le client Supabase lit ces 3 variables **au build** :
+Le client backend lit ces 3 variables **au build** :
 
 | Nom | Où trouver |
 |---|---|
@@ -14,7 +14,8 @@ Le client Supabase lit ces 3 variables **au build** :
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | `.env` local (clé publique / anon, sûre à exposer) |
 | `VITE_SUPABASE_PROJECT_ID` | `.env` local |
 
-Sans elles → bundle vide, aucune requête, pas d'inscription possible.
+Sans elles → aucune donnée et aucune inscription. Si l'hébergeur ne fournit que
+`VITE_SUPABASE_ANON_KEY`, copiez sa valeur dans `VITE_SUPABASE_PUBLISHABLE_KEY`.
 
 ### B. Redirect URLs Auth non whitelistées → OAuth et magic links KO
 
@@ -30,7 +31,7 @@ Rien à faire, déploiement natif via **Publish**.
 1. Push le repo, "New site from Git", Netlify lit `netlify.toml` automatiquement.
 2. **Site settings → Environment variables** → ajouter les 3 `VITE_SUPABASE_*` ci-dessus.
 3. **Deploys → Trigger deploy → Clear cache and deploy site** (redéployer après ajout des vars, sinon le vieux build sans vars reste servi).
-4. Ajouter `https://<site>.netlify.app/**` dans Supabase Auth (Site URL + Redirect URLs).
+4. Ajouter `https://<site>.netlify.app/**` dans Cloud → Users → Auth Settings (Site URL + Redirect URLs).
 
 Fichiers de config déjà présents : `netlify.toml`, `public/_redirects`.
 
@@ -39,11 +40,18 @@ Fichiers de config déjà présents : `netlify.toml`, `public/_redirects`.
 1. Import du repo, framework détecté = Vite.
 2. **Project Settings → Environment Variables** → ajouter les 3 `VITE_SUPABASE_*` (cocher Production + Preview + Development).
 3. **Redeploy** (désactive "Use existing Build Cache").
-4. Ajouter `https://<site>.vercel.app/**` dans Supabase Auth.
+4. Ajouter `https://<site>.vercel.app/**` dans Cloud → Users → Auth Settings.
 
 Fichier de config déjà présent : `vercel.json` (SPA fallback + headers de sécurité + cache assets).
 
-## Supabase (backend)
+## Hosting.cd / hébergement Apache
+1. Construire avec `npm run build` (Node 20), puis envoyer le contenu de `dist/` dans le dossier web.
+2. Définir les 3 variables `VITE_SUPABASE_*` **avant** la construction ; un hébergement statique ne peut pas les injecter après coup.
+3. Le fichier `public/.htaccess` est copié dans `dist/` et assure le fallback SPA sur Apache.
+4. Ajouter `https://votre-domaine.cd/**` dans Cloud → Users → Auth Settings.
+5. Activer HTTPS : l'auth Google, la géolocalisation et le service worker l'exigent.
+
+## Backend
 - Aucun changement, la BD et les Edge Functions vivent ici quel que soit l'hébergeur front.
 - **Toujours** enregistrer chaque nouvelle URL front dans Auth Settings avant de tester le login.
 

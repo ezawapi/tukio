@@ -40,15 +40,13 @@ export const useUserLocation = () => {
       setGpsDenied(true);
       return;
     }
-    const watchId = navigator.geolocation.watchPosition(
+    navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        if (pos.coords.accuracy < 200) navigator.geolocation.clearWatch(watchId);
       },
       () => setGpsDenied(true),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
     );
-    return () => navigator.geolocation.clearWatch(watchId);
   }, [manual]);
 
   const setManual = useCallback((loc: UserLocation | null) => {
