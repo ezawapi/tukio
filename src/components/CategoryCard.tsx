@@ -7,6 +7,7 @@ interface CategoryCardProps {
   icon: string;
   count: number;
   color: string;
+  variant?: "pill" | "grid";
   className?: string;
 }
 
@@ -22,8 +23,7 @@ const DynIcon = ({ name, className }: { name: string; className?: string }) => {
   return <Comp className={className} />;
 };
 
-const CategoryCard = ({ name, icon, count, color, className = "" }: CategoryCardProps) => {
-  // Map Tailwind-like color names to HSL if needed, or use as-is
+const CategoryCard = ({ name, icon, count, color, variant = "pill", className = "" }: CategoryCardProps) => {
   const categoryColorMap: Record<string, string> = {
     "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
     "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
@@ -40,6 +40,29 @@ const CategoryCard = ({ name, icon, count, color, className = "" }: CategoryCard
   };
 
   const bgColor = categoryColorMap[color] || color || "hsl(205,65%,45%)";
+
+  if (variant === "grid") {
+    return (
+      <motion.div
+        whileHover={{ scale: 1.05, y: -4 }}
+        whileTap={{ scale: 0.98 }}
+        className={`group flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-5 text-center shadow-sm transition-all hover:shadow-lg sm:gap-4 sm:p-6 ${className}`}
+      >
+        <div 
+          className="flex h-12 w-12 items-center justify-center rounded-full shadow-md transition-transform group-hover:scale-110 sm:h-14 sm:w-14"
+          style={{ backgroundColor: bgColor }}
+        >
+          <DynIcon name={icon} className="h-6 w-6 text-white sm:h-7 sm:w-7" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-body text-sm font-bold text-card-foreground sm:text-base">{name}</p>
+          <p className="font-body text-xs text-muted-foreground sm:text-sm">
+            {count} {count <= 1 ? "événement" : "événements"}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
