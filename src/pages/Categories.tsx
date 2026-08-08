@@ -2,26 +2,12 @@ import CategoryCard from "@/components/CategoryCard";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { icons as lucideIcons } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/contexts/I18nContext";
-
-
- className?: string }) => {
-  const Comp = (lucideIcons as any)[toPascal(name)];
-  if (!Comp) {
-    const Globe = (lucideIcons as any)["Globe"];
-    return Globe ? <Globe className={className} /> : null;
-  }
-  return <Comp className={className} />;
-};
-
-
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
@@ -41,7 +27,7 @@ const Categories = () => {
     fetchData();
   }, []);
 
-    const fetchData = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       // Parallel fetch for categories and event counts
@@ -66,9 +52,6 @@ const Categories = () => {
     } catch (error) {
       console.error("Error fetching categories data:", error);
     } finally {
-      setLoading(false);
-    }
-  }; else {
       setLoading(false);
     }
   };

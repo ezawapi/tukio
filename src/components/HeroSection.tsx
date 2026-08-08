@@ -18,23 +18,17 @@ const HeroSection = () => {
 
   const fetchStats = async () => {
     const todayISO = startOfTodayISO();
-    const [eventsRes, usersRes, citiesRes] = await Promise.all([
+    const [eventsRes, usersRes] = await Promise.all([
       supabase
         .from("events")
-        .select("*", { count: "exact", head: true })
+        .select("city", { count: "exact" })
         .eq("is_published", true)
         .eq("visibility", "public")
         .gte("date", todayISO),
       (supabase as any).from("public_profiles").select("id", { count: "exact", head: true }),
-      supabase
-        .from("events")
-        .select("city")
-        .eq("is_published", true)
-        .eq("visibility", "public")
-        .gte("date", todayISO),
     ]);
     const uniqueCities = new Set(
-      (citiesRes.data || []).map((r: any) => (r.city || "").trim().toLowerCase()).filter(Boolean)
+      (eventsRes.data || []).map((r: any) => (r.city || "").trim().toLowerCase()).filter(Boolean)
     );
     setStats({
       events: eventsRes.count || 0,
