@@ -12,6 +12,8 @@ import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import NearbyEvents from "@/components/NearbyEvents";
+import CategoryCard from "@/components/CategoryCard";
+import PartnersBlock from "@/components/PartnersBlock";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { safeChannel } from "@/lib/realtime-guard";
@@ -24,9 +26,9 @@ import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/fallback-tukio.png";
 import { useUserRole } from "@/hooks/use-user-role";
 
-const toPascal = (kebab: string) => kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
 
-const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+
+ className?: string }) => {
   const Comp = (lucideIcons as any)[toPascal(name)];
   if (!Comp) {
     const Globe = (lucideIcons as any)["Globe"];
@@ -35,20 +37,7 @@ const DynIcon = ({ name, className }: { name: string; className?: string }) => {
   return <Comp className={className} />;
 };
 
-const categoryColorMap: Record<string, string> = {
-  "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
-  "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
-  "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
-  "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
-  "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
-  "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
-  "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
-  "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
-  "bg-lime": "hsl(84,60%,45%)", "bg-fuchsia": "hsl(292,60%,50%)",
-  "bg-sky": "hsl(200,80%,50%)", "bg-yellow": "hsl(50,90%,50%)",
-  "bg-violet": "hsl(258,60%,55%)", "bg-stone": "hsl(30,10%,40%)",
-  "bg-zinc": "hsl(240,5%,35%)", "bg-brown": "hsl(20,50%,35%)",
-};
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -283,7 +272,7 @@ const Index = () => {
     };
   }, [refreshAll]);
 
-  const fetchCategories = async () => {
+    const fetchCategories = async () => {
     const catCacheKey = "tukio:home-cats:v1";
     try {
       const raw = sessionStorage.getItem(catCacheKey);
@@ -293,7 +282,40 @@ const Index = () => {
           setCategories(cats);
           setCategoryCounts(counts || {});
           setLoadingCats(false);
+          // Don't return, still fetch fresh data in background
         }
+      }
+    } catch {}
+
+    const todayISO = startOfTodayISO();
+    try {
+      const [{ data: cats, error: catErr }, { data: evRows, error: evErr }] = await Promise.all([
+        supabase.from("categories").select("id,name,slug,icon,color").order("name"),
+        supabase
+          .from("events")
+          .select("category_id")
+          .eq("is_published", true)
+          .eq("visibility", "public")
+          .gte("date", todayISO),
+      ]);
+
+      if (catErr) throw catErr;
+
+      const counts: Record<string, number> = {};
+      (evRows || []).forEach((row: any) => {
+        if (row.category_id) counts[row.category_id] = (counts[row.category_id] || 0) + 1;
+      });
+
+      const validCats = cats || [];
+      setCategories(validCats);
+      setCategoryCounts(counts);
+      try { sessionStorage.setItem(catCacheKey, JSON.stringify({ ts: Date.now(), cats: validCats, counts })); } catch {}
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    } finally {
+      setLoadingCats(false);
+    }
+  };
       }
     } catch {}
     const todayISO = startOfTodayISO();
@@ -509,33 +531,26 @@ const Index = () => {
           {loadingCats ? <CategorySkeleton /> : (
             <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
               className="flex flex-wrap gap-2.5 sm:gap-3">
-              {categories.map((cat) => {
-                const color = categoryColorMap[cat.color] || "hsl(205,65%,45%)";
-                const count = categoryCounts[cat.id] ?? 0;
-                return (
-                  <motion.div key={cat.id} variants={itemVariants}>
-                    <Link to={`/events?category=${cat.id}`}>
-                      <div className="group flex items-center gap-2 rounded-full border border-border bg-card pl-1 pr-2.5 py-1 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 sm:pl-1.5 sm:pr-3 sm:py-1.5">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-110 sm:h-7 sm:w-7"
-                          style={{ backgroundColor: color }}>
-                          <DynIcon name={cat.icon} className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
-                        </div>
-                        <span className="font-body text-[10px] font-medium text-card-foreground whitespace-nowrap sm:text-xs">{cat.name}</span>
-                        <Badge variant="secondary" className="ml-0.5 h-4 min-w-[16px] justify-center rounded-full px-1 text-[8px] font-bold sm:h-5 sm:text-[10px]">
-                          {count}
-                        </Badge>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+              {categories.map((cat) => (
+                <motion.div key={cat.id} variants={itemVariants}>
+                  <Link to={`/events?category=${cat.id}`}>
+                    <CategoryCard 
+                      id={cat.id}
+                      name={cat.name}
+                      icon={cat.icon}
+                      color={cat.color}
+                      count={categoryCounts[cat.id] ?? 0}
+                    />
+                  </Link>
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </div>
       </section>
 
-      <section className="pb-2"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
-      <section className="pb-2"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
+      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
 
       {/* Recent — horizontal scroll carousel */}
       <section className="bg-background py-5 sm:py-7">
@@ -622,7 +637,7 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-2">
+      <section className="pb-4 sm:pb-6">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <AdSlotBanner slotCode="home-bottom-left" compact />
@@ -639,6 +654,7 @@ const Index = () => {
           <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={simulateLiveToast}>🔴 Simuler LIVE</Button>
         </div>
       )}
+      <div className="container mx-auto px-4 max-w-6xl mb-8"><PartnersBlock /></div>
       <Footer />
       <MobileTabBar />
     </div>

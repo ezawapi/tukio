@@ -1,26 +1,61 @@
 import { motion } from "framer-motion";
-import { LucideIcon } from "lucide-react";
+import { icons as lucideIcons } from "lucide-react";
 
 interface CategoryCardProps {
+  id: string;
   name: string;
-  icon: LucideIcon;
+  icon: string;
   count: number;
   color: string;
+  className?: string;
 }
 
-const CategoryCard = ({ name, icon: Icon, count, color }: CategoryCardProps) => {
+const toPascal = (kebab: string) => 
+  kebab.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+
+const DynIcon = ({ name, className }: { name: string; className?: string }) => {
+  const Comp = (lucideIcons as any)[toPascal(name)];
+  if (!Comp) {
+    const Globe = (lucideIcons as any)["Globe"];
+    return Globe ? <Globe className={className} /> : null;
+  }
+  return <Comp className={className} />;
+};
+
+const CategoryCard = ({ name, icon, count, color, className = "" }: CategoryCardProps) => {
+  // Map Tailwind-like color names to HSL if needed, or use as-is
+  const categoryColorMap: Record<string, string> = {
+    "bg-emerald": "hsl(160,60%,38%)", "bg-amber": "hsl(38,90%,50%)",
+    "bg-blue": "hsl(210,70%,50%)", "bg-green": "hsl(142,55%,38%)",
+    "bg-purple": "hsl(270,55%,50%)", "bg-pink": "hsl(330,65%,50%)",
+    "bg-orange": "hsl(25,90%,50%)", "bg-indigo": "hsl(240,50%,50%)",
+    "bg-slate": "hsl(215,20%,42%)", "bg-cyan": "hsl(190,65%,38%)",
+    "bg-red": "hsl(0,70%,50%)", "bg-rose": "hsl(350,60%,50%)",
+    "bg-teal": "hsl(170,50%,38%)", "bg-primary": "hsl(205,65%,45%)",
+    "bg-secondary": "hsl(35,70%,52%)", "bg-accent": "hsl(38,80%,50%)",
+    "bg-lime": "hsl(84,60%,45%)", "bg-fuchsia": "hsl(292,60%,50%)",
+    "bg-sky": "hsl(200,80%,50%)", "bg-yellow": "hsl(50,90%,50%)",
+    "bg-violet": "hsl(258,60%,55%)", "bg-stone": "hsl(30,10%,40%)",
+    "bg-zinc": "hsl(240,5%,35%)", "bg-brown": "hsl(20,50%,35%)",
+  };
+
+  const bgColor = categoryColorMap[color] || color || "hsl(205,65%,45%)";
+
   return (
     <motion.div
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      className="group flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 text-center shadow-card transition-all hover:shadow-warm sm:gap-2 sm:px-3 sm:py-4"
+      whileHover={{ scale: 1.05, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className={`group flex items-center gap-2 rounded-full border border-border bg-card pl-1 pr-2.5 py-1 shadow-sm transition-all hover:shadow-md sm:pl-1.5 sm:pr-3 sm:py-1.5 ${className}`}
     >
-      <div className={`flex h-9 w-9 items-center justify-center rounded-xl border border-background/30 shadow-sm transition-transform group-hover:scale-110 sm:h-11 sm:w-11 sm:rounded-2xl ${color}`}>
-        <Icon className="h-4 w-4 text-primary-foreground sm:h-5 sm:w-5" />
+      <div 
+        className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-transform group-hover:scale-110 sm:h-7 sm:w-7"
+        style={{ backgroundColor: bgColor }}
+      >
+        <DynIcon name={icon} className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
       </div>
-      <div className="space-y-0.5">
-        <p className="font-body text-[11px] font-semibold leading-tight text-card-foreground sm:text-xs">{name}</p>
-        <p className="font-body text-[10px] text-muted-foreground sm:text-xs">{count} évén.</p>
+      <span className="font-body text-[10px] font-medium text-card-foreground whitespace-nowrap sm:text-xs">{name}</span>
+      <div className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-secondary/20 px-1 text-[8px] font-bold text-secondary-foreground sm:h-5 sm:text-[10px]">
+        {count}
       </div>
     </motion.div>
   );

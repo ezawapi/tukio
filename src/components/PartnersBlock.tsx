@@ -29,7 +29,7 @@ const PartnersBlock = () => {
   if (partners.length === 0) return null;
 
   return (
-    <section className="mt-10">
+    <section className="py-4">
       <div className="relative overflow-hidden rounded-3xl bg-[#0b1220] px-6 py-10 sm:px-10 sm:py-12">
         {/* subtle radial glow */}
         <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />

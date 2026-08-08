@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
 import { useSiteContent } from "@/hooks/use-site-content";
 import { useTranslation } from "@/contexts/I18nContext";
-import PartnersBlock from "@/components/PartnersBlock";
 
 const Footer = () => {
   const { user } = useAuth();
@@ -81,7 +80,6 @@ const Footer = () => {
             </div>
           ))}
         </div>
-        <PartnersBlock />
         <div className="border-t border-border mt-8 pt-8 text-center space-y-3">
           {socials.length > 0 && (
             <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
