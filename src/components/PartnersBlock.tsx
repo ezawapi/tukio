@@ -52,7 +52,7 @@ const PartnersBlock = () => {
               href={p.website_url || undefined}
               target={p.website_url ? "_blank" : undefined}
               rel={p.website_url ? "noopener noreferrer" : undefined}
-              className="group flex h-20 items-center justify-center rounded-md bg-background px-4 shadow-sm ring-1 ring-background/10 transition-all hover:-translate-y-0.5 hover:shadow-lg sm:h-24"
+              className="group flex h-20 min-w-0 items-center justify-center overflow-hidden rounded-md bg-background p-3 shadow-sm ring-1 ring-background/10 transition-all hover:-translate-y-0.5 hover:shadow-lg sm:h-24 sm:p-4"
               title={p.name}
             >
               <img
@@ -60,7 +60,7 @@ const PartnersBlock = () => {
                 alt={p.name}
                 loading="lazy"
                 decoding="async"
-                className="max-h-12 w-auto max-w-[120px] object-contain opacity-90 transition-opacity group-hover:opacity-100 sm:max-h-14"
+                className="block h-full max-h-full w-full max-w-full object-contain opacity-90 transition-opacity group-hover:opacity-100"
               />
             </a>
           ))}

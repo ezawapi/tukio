@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -259,12 +260,11 @@ const Auth = () => {
                 className="w-full mt-4 font-body"
                 onClick={async () => {
                   sessionStorage.setItem("post_auth_redirect", getPostAuthTarget());
-                  const { error } = await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: { redirectTo: `${window.location.origin}/auth` },
+                  const result = await lovable.auth.signInWithOAuth("google", {
+                    redirect_uri: window.location.origin,
                   });
-                  if (error) {
-                    toast({ title: "Erreur", description: String(error), variant: "destructive" });
+                  if (result.error) {
+                    toast({ title: "Erreur", description: String(result.error), variant: "destructive" });
                   }
                 }}
               >
