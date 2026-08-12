@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useTransition, lazy } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Clock3, ChevronLeft, ChevronRight, Play, MapPin } from "lucide-react";
@@ -10,10 +10,11 @@ import HeroSection from "@/components/HeroSection";
 import EventCard from "@/components/EventCard";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import AdSlotBanner from "@/components/AdSlotBanner";
-import NearbyEvents from "@/components/NearbyEvents";
+const AdSlotBanner = lazy(() => import("@/components/AdSlotBanner"));
+const NearbyEvents = lazy(() => import("@/components/NearbyEvents"));
 import CategoryCard from "@/components/CategoryCard";
-import PromotionalBanner from "@/components/PromotionalBanner";
+const PromotionalBanner = lazy(() => import("@/components/PromotionalBanner"));
+import DeferVisible from "@/components/DeferVisible";
 import { supabase } from "@/integrations/supabase/client";
 import { safeChannel } from "@/lib/realtime-guard";
 import { toast } from "sonner";
@@ -511,8 +512,8 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-between-categories-live" compact /></div></section>
-      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><AdSlotBanner slotCode="home-before-latest" compact /></div></section>
+      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><DeferVisible minHeight={90}><AdSlotBanner slotCode="home-between-categories-live" compact /></DeferVisible></div></section>
+      <section className="pb-4 sm:pb-6"><div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl"><DeferVisible minHeight={90}><AdSlotBanner slotCode="home-before-latest" compact /></DeferVisible></div></section>
 
       {/* Recent — horizontal scroll carousel */}
       <section className="bg-background py-5 sm:py-7">
@@ -555,11 +556,11 @@ const Index = () => {
       )}
 
       {/* Nearby Events */}
-      <NearbyEvents />
+      <DeferVisible minHeight={280}><NearbyEvents /></DeferVisible>
 
       {/* Promotional Banner */}
       <section className="py-3 sm:py-5">
-        <PromotionalBanner />
+        <DeferVisible minHeight={120}><PromotionalBanner /></DeferVisible>
       </section>
 
       {/* Upcoming */}
@@ -602,9 +603,9 @@ const Index = () => {
       <section className="pb-4 sm:pb-6">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-            <AdSlotBanner slotCode="home-bottom-left" compact />
-            <AdSlotBanner slotCode="home-bottom-center" compact />
-            <AdSlotBanner slotCode="home-bottom-right" compact />
+            <DeferVisible minHeight={90}><AdSlotBanner slotCode="home-bottom-left" compact /></DeferVisible>
+            <DeferVisible minHeight={90}><AdSlotBanner slotCode="home-bottom-center" compact /></DeferVisible>
+            <DeferVisible minHeight={90}><AdSlotBanner slotCode="home-bottom-right" compact /></DeferVisible>
           </div>
         </div>
       </section>
