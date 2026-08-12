@@ -297,6 +297,19 @@ const Auth = () => {
               </button>
             )}
           </div>
+
+          <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
+            <p className="font-body text-sm font-semibold text-foreground">
+              Guide : se connecter avec ezawapi@gmail.com
+            </p>
+            <ol className="mt-2 list-decimal space-y-1.5 pl-5 font-body text-xs text-muted-foreground">
+              <li>Option A — Google : cliquez sur « Continuer avec Google », choisissez le compte ezawapi@gmail.com, puis autorisez l’accès. Vous revenez automatiquement sur Tukio, connecté.</li>
+              <li>Option B — Email / mot de passe : saisissez <span className="font-medium text-foreground">ezawapi@gmail.com</span> et votre mot de passe, puis « Se connecter ».</li>
+              <li>Première fois en email/mot de passe ? Cliquez sur « Pas de compte ? S’inscrire », créez un mot de passe (8 caractères min., lettres + chiffres), puis validez le lien de confirmation reçu par email.</li>
+              <li>Mot de passe oublié ? Cliquez sur « Mot de passe oublié ? », recevez le lien, définissez un nouveau mot de passe, puis reconnectez-vous.</li>
+              <li>Sur téléphone (iOS/Android) : la connexion Google ouvre une fenêtre sécurisée ; laissez-la se terminer sans revenir en arrière. Si un blocage survient, autorisez les pop-ups pour ce site.</li>
+            </ol>
+          </div>
         </CardContent>
       </Card>
     </div>
