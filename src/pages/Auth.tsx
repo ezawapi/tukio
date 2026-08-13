@@ -80,6 +80,22 @@ const Auth = () => {
   }, [user, navigate]);
 
   const [forgotMode, setForgotMode] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
+
+  const resendConfirmation = async (target: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: target,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email renvoyé", description: "Un nouveau lien de confirmation vient d’être envoyé." });
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
