@@ -112,6 +112,14 @@ const ResetPassword = () => {
     );
   }
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <p className="font-body text-sm text-muted-foreground">Vérification du lien…</p>
+      </div>
+    );
+  }
+
   if (!isRecovery) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
