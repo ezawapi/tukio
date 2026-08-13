@@ -79,8 +79,8 @@ const ResetPassword = () => {
       toast({ title: "Erreur", description: "Les mots de passe ne correspondent pas.", variant: "destructive" });
       return;
     }
-    if (password.length < 6) {
-      toast({ title: "Erreur", description: "Le mot de passe doit contenir au moins 6 caractères.", variant: "destructive" });
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      toast({ title: "Erreur", description: "8 caractères minimum, avec au moins une lettre et un chiffre.", variant: "destructive" });
       return;
     }
 
