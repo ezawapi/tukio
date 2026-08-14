@@ -198,10 +198,13 @@ const Auth = () => {
           throw error;
         }
 
+        setPendingEmail(cleanEmail);
+        setResetSent(false);
         toast({
           title: "Inscription créée",
           description: "Vérifiez votre email puis cliquez sur le lien de confirmation pour activer votre compte.",
         });
+
       }
 
     } catch (error: any) {
