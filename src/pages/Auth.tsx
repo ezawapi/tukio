@@ -214,8 +214,60 @@ const Auth = () => {
     }
   };
 
+  if (pendingEmail) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="font-display text-2xl">
+              {resetSent ? "Lien de réinitialisation envoyé" : "Vérifiez votre email"}
+            </CardTitle>
+            <CardDescription className="font-body">
+              {resetSent
+                ? "Nous avons envoyé un lien de réinitialisation à"
+                : "Nous avons envoyé un lien de confirmation à"}{" "}
+              <span className="font-medium text-foreground">{pendingEmail}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="font-body text-sm text-muted-foreground">
+              {resetSent
+                ? "Ouvrez le lien reçu pour définir un nouveau mot de passe. Pensez à vérifier vos spams."
+                : "Cliquez sur le lien reçu pour activer votre compte. Pensez à vérifier vos spams."}
+            </p>
+            {!resetSent && (
+              <Button
+                variant="outline"
+                className="w-full font-body"
+                onClick={() => resendConfirmation(pendingEmail)}
+              >
+                Renvoyer le lien
+              </Button>
+            )}
+            <Button
+              className="w-full gradient-hero text-primary-foreground border-0"
+              onClick={() => {
+                setPendingEmail(null);
+                setResetSent(false);
+                setForgotMode(false);
+                setIsLogin(true);
+                setPassword("");
+              }}
+            >
+              Retour à la connexion
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
