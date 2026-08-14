@@ -138,8 +138,11 @@ const Auth = () => {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
+        setPendingEmail(cleanEmail);
+        setResetSent(true);
         toast({ title: "Email envoyé !", description: "Consultez votre boîte mail pour réinitialiser votre mot de passe." });
         setForgotMode(false);
+
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
