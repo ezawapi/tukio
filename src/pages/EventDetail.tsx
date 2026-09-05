@@ -465,18 +465,20 @@ const EventDetail = () => {
                       <Ticket className="mr-2 h-4 w-4" /> {event.reservation_cta_label || "Réserver"}
                     </Button>
                   </a>
+                ) : canInteract ? (
+                  <ParticipationDialog eventId={event.id} eventTitle={event.title}>
+                    <Button className="w-full border-0 gradient-hero text-primary-foreground" size="lg">
+                      Participer
+                    </Button>
+                  </ParticipationDialog>
                 ) : (
                   <Button
                     className="w-full border-0 gradient-hero text-primary-foreground"
                     size="lg"
-                    aria-disabled={!canInteract}
-                    onClick={() => {
-                      if (!canInteract) {
-                        showPendingActionMessage("billetterie");
-                      }
-                    }}
+                    aria-disabled
+                    onClick={() => showPendingActionMessage("billetterie")}
                   >
-                    {canInteract ? "Participer" : "En attente d'approbation"}
+                    En attente d'approbation
                   </Button>
                 )}
               </div>
