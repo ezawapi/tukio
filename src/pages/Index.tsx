@@ -335,7 +335,7 @@ const Index = () => {
     // Slim column list to reduce payload size (~50% smaller than SELECT *)
     const { data } = await supabase
       .from("events")
-      .select("id,title,date,end_date,image_url,is_live,live_url,price,currency,latitude,longitude,category_id,created_at,visibility,is_published,city,categories(name)")
+      .select("id,title,date,end_date,image_url,is_live,live_url,price,currency,latitude,longitude,category_id,created_at,visibility,is_published,city,location,attendees_count,categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", todayISO)
