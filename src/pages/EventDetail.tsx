@@ -11,6 +11,7 @@ import ShareDialog from "@/components/ShareDialog";
 import ImageLightbox from "@/components/ImageLightbox";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import InvitationManager from "@/components/InvitationManager";
+import ParticipationDialog from "@/components/ParticipationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/use-user-role";
