@@ -476,7 +476,8 @@ const AdminDashboard = () => {
             {isVisible("ads") && <TabsContent value="ads"><AdminAdsManager userId={user?.id} /></TabsContent>}
 
             {isVisible("analytics") && (
-              <TabsContent value="analytics">
+              <TabsContent value="analytics" className="space-y-4">
+                <AdminAnalytics />
                 <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><MousePointerClick className="h-5 w-5 text-primary" /> {t("admin.analytics")}</CardTitle></CardHeader>
                   <CardContent>
                     {adAnalytics.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">Aucune donnée.</p> : (

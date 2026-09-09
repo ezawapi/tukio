@@ -176,22 +176,6 @@ const Index = () => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
   }, []);
 
-  // Simulate a brand-new public event toast (test mode, admin only)
-  const simulateInsertToast = () => {
-    toast(`✨ Événement test ${Math.floor(Math.random() * 1000)}`, {
-      description: "Nouvel événement publié (simulation)",
-      duration: 4000,
-      action: { label: "Voir", onClick: () => {} },
-    });
-  };
-  // Simulate an event going LIVE (test mode, admin only)
-  const simulateLiveToast = () => {
-    toast(`🔴 Concert test ${Math.floor(Math.random() * 1000)}`, {
-      description: "Événement en direct maintenant (simulation)",
-      duration: 5000,
-      action: { label: "Regarder", onClick: () => {} },
-    });
-  };
 
   // Tick every 5 minutes so "Nouveau" (<24h) badges update without reload
   useEffect(() => {
@@ -610,13 +594,6 @@ const Index = () => {
         </div>
       </section>
 
-      {isAdmin && (
-        <div className="fixed bottom-20 right-3 z-40 flex flex-col gap-1.5 rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur md:bottom-4">
-          <span className="px-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">Mode test</span>
-          <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={simulateInsertToast}>✨ Simuler INSERT</Button>
-          <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={simulateLiveToast}>🔴 Simuler LIVE</Button>
-        </div>
-      )}
       <Footer />
       <MobileTabBar />
     </div>
