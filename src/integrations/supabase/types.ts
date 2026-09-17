@@ -1280,44 +1280,6 @@ export type Database = {
           visibility_settings: Json | null
           website_url: string | null
         }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          facebook_url?: string | null
-          id?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
-          organization_name?: string | null
-          organization_role?: string | null
-          slug?: string | null
-          tiktok_url?: string | null
-          twitter_url?: string | null
-          video_url?: string | null
-          visibility_settings?: Json | null
-          website_url?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          facebook_url?: string | null
-          id?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
-          organization_name?: string | null
-          organization_role?: string | null
-          slug?: string | null
-          tiktok_url?: string | null
-          twitter_url?: string | null
-          video_url?: string | null
-          visibility_settings?: Json | null
-          website_url?: string | null
-        }
         Relationships: []
       }
       ticket_orders_organizer_view: {
@@ -1379,6 +1341,8 @@ export type Database = {
       }
     }
     Functions: {
+      ad_is_active: { Args: { _ad_id: string }; Returns: boolean }
+      banner_is_active: { Args: { _banner_id: string }; Returns: boolean }
       can_view_event: { Args: { _event_id: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
@@ -1426,6 +1390,28 @@ export type Database = {
       is_invited_to_event: {
         Args: { _email: string; _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_public_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          bio: string
+          cover_url: string
+          created_at: string
+          display_name: string
+          facebook_url: string
+          id: string
+          instagram_url: string
+          linkedin_url: string
+          organization_name: string
+          organization_role: string
+          slug: string
+          tiktok_url: string
+          twitter_url: string
+          video_url: string
+          visibility_settings: Json
+          website_url: string
+        }[]
       }
       log_notification_event: {
         Args: { _event_type: string; _notification_id: string }
