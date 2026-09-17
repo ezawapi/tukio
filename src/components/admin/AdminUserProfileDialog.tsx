@@ -187,6 +187,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                 <TabsTrigger value="events" className="flex-1 gap-1 text-xs"><FileText className="h-3 w-3" /> Événements ({events.length})</TabsTrigger>
                 <TabsTrigger value="comments" className="flex-1 gap-1 text-xs"><MessageSquare className="h-3 w-3" /> Commentaires ({comments.length})</TabsTrigger>
                 <TabsTrigger value="favorites" className="flex-1 gap-1 text-xs"><Heart className="h-3 w-3" /> Favoris ({favorites.length})</TabsTrigger>
+                <TabsTrigger value="logins" className="flex-1 gap-1 text-xs"><LogIn className="h-3 w-3" /> Connexions ({logins.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="events" className="max-h-48 overflow-y-auto space-y-1.5">
                 {events.length === 0 && <p className="text-center text-xs text-muted-foreground py-4">Aucun événement</p>}
@@ -215,6 +216,21 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                   <div key={f.id} className="flex items-center justify-between rounded bg-muted/30 px-3 py-2">
                     <span className="text-xs text-muted-foreground">{f.event_id}</span>
                     <span className="text-[10px] text-muted-foreground">{new Date(f.created_at).toLocaleDateString("fr-FR")}</span>
+                  </div>
+                ))}
+              </TabsContent>
+              <TabsContent value="logins" className="max-h-48 overflow-y-auto space-y-1.5">
+                {logins.length === 0 && <p className="text-center text-xs text-muted-foreground py-4">Aucune connexion enregistrée</p>}
+                {logins.map(l => (
+                  <div key={l.id} className="flex items-center justify-between rounded bg-muted/30 px-3 py-2 gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{l.provider === "google" ? "Google" : "Email"}</p>
+                      {!l.success && l.reason && <p className="text-[10px] text-muted-foreground truncate">{l.reason}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={l.success ? "default" : "destructive"} className="text-[9px]">{l.success ? "Réussie" : "Échouée"}</Badge>
+                      <span className="text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleString("fr-FR")}</span>
+                    </div>
                   </div>
                 ))}
               </TabsContent>
