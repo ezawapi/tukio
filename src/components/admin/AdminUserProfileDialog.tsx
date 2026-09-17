@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Send } from "lucide-react";
+import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Send, LogIn } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,6 +22,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [logins, setLogins] = useState<any[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
@@ -41,13 +42,15 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
       supabase.from("comments").select("id, content, created_at, event_id").eq("user_id", profileId).order("created_at", { ascending: false }).limit(20),
       supabase.from("favorites").select("id, event_id, created_at").eq("user_id", profileId).limit(20),
       supabase.from("user_roles").select("role").eq("user_id", profileId),
-    ]).then(([pRes, eRes, cRes, fRes, rRes]) => {
+      supabase.from("login_events").select("id, success, reason, provider, created_at, email").eq("user_id", profileId).order("created_at", { ascending: false }).limit(20),
+    ]).then(([pRes, eRes, cRes, fRes, rRes, lRes]) => {
       setProfile(pRes.data);
       setEvents(eRes.data || []);
       setComments(cRes.data || []);
       setFavorites(fRes.data || []);
       setRoles((rRes.data || []).map((r: any) => r.role));
-      const contactEmail = (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
+      setLogins(lRes.data || []);
+      const contactEmail = (lRes.data || [])[0]?.email || (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
       setUserEmail(contactEmail || null);
       setLoading(false);
     });
@@ -184,6 +187,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                 <TabsTrigger value="events" className="flex-1 gap-1 text-xs"><FileText className="h-3 w-3" /> Événements ({events.length})</TabsTrigger>
                 <TabsTrigger value="comments" className="flex-1 gap-1 text-xs"><MessageSquare className="h-3 w-3" /> Commentaires ({comments.length})</TabsTrigger>
                 <TabsTrigger value="favorites" className="flex-1 gap-1 text-xs"><Heart className="h-3 w-3" /> Favoris ({favorites.length})</TabsTrigger>
+                <TabsTrigger value="logins" className="flex-1 gap-1 text-xs"><LogIn className="h-3 w-3" /> Connexions ({logins.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="events" className="max-h-48 overflow-y-auto space-y-1.5">
                 {events.length === 0 && <p className="text-center text-xs text-muted-foreground py-4">Aucun événement</p>}
@@ -212,6 +216,21 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                   <div key={f.id} className="flex items-center justify-between rounded bg-muted/30 px-3 py-2">
                     <span className="text-xs text-muted-foreground">{f.event_id}</span>
                     <span className="text-[10px] text-muted-foreground">{new Date(f.created_at).toLocaleDateString("fr-FR")}</span>
+                  </div>
+                ))}
+              </TabsContent>
+              <TabsContent value="logins" className="max-h-48 overflow-y-auto space-y-1.5">
+                {logins.length === 0 && <p className="text-center text-xs text-muted-foreground py-4">Aucune connexion enregistrée</p>}
+                {logins.map(l => (
+                  <div key={l.id} className="flex items-center justify-between rounded bg-muted/30 px-3 py-2 gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{l.provider === "google" ? "Google" : "Email"}</p>
+                      {!l.success && l.reason && <p className="text-[10px] text-muted-foreground truncate">{l.reason}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={l.success ? "default" : "destructive"} className="text-[9px]">{l.success ? "Réussie" : "Échouée"}</Badge>
+                      <span className="text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleString("fr-FR")}</span>
+                    </div>
                   </div>
                 ))}
               </TabsContent>

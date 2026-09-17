@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,12 +54,49 @@ const resetLocalRateLimit = () => {
   try { localStorage.removeItem(LOCAL_RL_KEY); } catch { /* ignore */ }
 };
 
+// Server-side rate limit (shared across devices/sessions)
+const serverRateLimit = async (action: string, subject: string, max: number, windowSeconds: number) => {
+  try {
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      _action: action,
+      _subject: subject,
+      _max_events: max,
+      _window_seconds: windowSeconds,
+    });
+    if (error) return { allowed: true, retryAfter: 0 };
+    const row: any = Array.isArray(data) ? data[0] : data;
+    return { allowed: row?.allowed !== false, retryAfter: row?.retry_after_seconds ?? 0 };
+  } catch {
+    return { allowed: true, retryAfter: 0 };
+  }
+};
+
+const logLoginEvent = async (payload: { email: string; success: boolean; reason?: string | null; provider?: string; userId?: string | null }) => {
+  try {
+    await supabase.from("login_events").insert({
+      user_id: payload.userId ?? null,
+      email: payload.email,
+      success: payload.success,
+      reason: payload.reason ?? null,
+      provider: payload.provider ?? "email",
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+    });
+  } catch { /* ignore */ }
+};
+
+// Bots submit instantly: require a minimum human delay on the form.
+const MIN_HUMAN_DELAY_MS = 2500;
+
+
+
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [website, setWebsite] = useState(""); // honeypot: must stay empty
+  const formStartedAt = useRef<number>(Date.now());
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -85,6 +122,11 @@ const Auth = () => {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
+  useEffect(() => {
+    formStartedAt.current = Date.now();
+  }, [isLogin, forgotMode]);
+
+
   const resendConfirmation = async (target: string) => {
     const { error } = await supabase.auth.resend({
       type: "signup",
@@ -101,6 +143,22 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Anti-bot #1: honeypot field (invisible to humans)
+    if (website.trim() !== "") {
+      toast({ title: "Vérification échouée", description: "Requête bloquée par la protection anti-robot.", variant: "destructive" });
+      return;
+    }
+
+    // Anti-bot #2: minimum human delay before submitting
+    if (Date.now() - formStartedAt.current < MIN_HUMAN_DELAY_MS) {
+      toast({
+        title: "Un instant",
+        description: "Merci de patienter quelques secondes avant de valider le formulaire.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Client-side validation & sanitization
     const emailResult = emailSchema.safeParse(email);
@@ -131,7 +189,22 @@ const Auth = () => {
       }
     }
 
+    // Anti-bot #3: server-side rate limit, shared across devices
+    const action = forgotMode ? "auth_reset" : isLogin ? "auth_login" : "auth_signup";
+    const limits = forgotMode ? { max: 3, window: 900 } : isLogin ? { max: 8, window: 300 } : { max: 3, window: 3600 };
+    const srl = await serverRateLimit(action, cleanEmail, limits.max, limits.window);
+    if (!srl.allowed) {
+      if (isLogin) await logLoginEvent({ email: cleanEmail, success: false, reason: "rate_limited" });
+      toast({
+        title: "Trop de tentatives",
+        description: `Réessayez dans ${Math.max(srl.retryAfter, 1)} seconde(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
+
 
     try {
       if (forgotMode) {
@@ -146,9 +219,10 @@ const Auth = () => {
         setForgotMode(false);
 
       } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
           const errorMessage = (error.message || "").toLowerCase();
+          await logLoginEvent({ email: cleanEmail, success: false, reason: error.message?.slice(0, 200) });
 
           if (errorMessage.includes("email not confirmed")) {
             const { error: resendError } = await supabase.auth.resend({
@@ -169,6 +243,7 @@ const Auth = () => {
           throw error;
         }
         resetLocalRateLimit();
+        await logLoginEvent({ email: cleanEmail, success: true, userId: signInData?.user?.id ?? null });
         toast({ title: "Connexion réussie !" });
         navigate(getPostAuthTarget(), { replace: true });
       } else {
@@ -286,6 +361,19 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Honeypot anti-robot : invisible pour les humains */}
+            <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
+              <label htmlFor="website">Ne pas remplir</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="font-body">Email</Label>
               <Input
