@@ -216,6 +216,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
           const errorMessage = (error.message || "").toLowerCase();
+          await logLoginEvent({ email: cleanEmail, success: false, reason: error.message?.slice(0, 200) });
 
           if (errorMessage.includes("email not confirmed")) {
             const { error: resendError } = await supabase.auth.resend({
@@ -236,6 +237,7 @@ const Auth = () => {
           throw error;
         }
         resetLocalRateLimit();
+        await logLoginEvent({ email: cleanEmail, success: true });
         toast({ title: "Connexion réussie !" });
         navigate(getPostAuthTarget(), { replace: true });
       } else {
