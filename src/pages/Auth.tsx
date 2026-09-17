@@ -54,6 +54,40 @@ const resetLocalRateLimit = () => {
   try { localStorage.removeItem(LOCAL_RL_KEY); } catch { /* ignore */ }
 };
 
+// Server-side rate limit (shared across devices/sessions)
+const serverRateLimit = async (action: string, subject: string, max: number, windowSeconds: number) => {
+  try {
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      _action: action,
+      _subject: subject,
+      _max_events: max,
+      _window_seconds: windowSeconds,
+    });
+    if (error) return { allowed: true, retryAfter: 0 };
+    const row: any = Array.isArray(data) ? data[0] : data;
+    return { allowed: row?.allowed !== false, retryAfter: row?.retry_after_seconds ?? 0 };
+  } catch {
+    return { allowed: true, retryAfter: 0 };
+  }
+};
+
+const logLoginEvent = async (payload: { email: string; success: boolean; reason?: string | null; provider?: string }) => {
+  try {
+    await supabase.from("login_events").insert({
+      email: payload.email,
+      success: payload.success,
+      reason: payload.reason ?? null,
+      provider: payload.provider ?? "email",
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+    });
+  } catch { /* ignore */ }
+};
+
+// Bots submit instantly: require a minimum human delay on the form.
+const MIN_HUMAN_DELAY_MS = 2500;
+
+
+
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
