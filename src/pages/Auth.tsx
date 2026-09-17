@@ -219,7 +219,7 @@ const Auth = () => {
         setForgotMode(false);
 
       } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) {
           const errorMessage = (error.message || "").toLowerCase();
           await logLoginEvent({ email: cleanEmail, success: false, reason: error.message?.slice(0, 200) });
@@ -243,7 +243,7 @@ const Auth = () => {
           throw error;
         }
         resetLocalRateLimit();
-        await logLoginEvent({ email: cleanEmail, success: true });
+        await logLoginEvent({ email: cleanEmail, success: true, userId: signInData?.user?.id ?? null });
         toast({ title: "Connexion réussie !" });
         navigate(getPostAuthTarget(), { replace: true });
       } else {
