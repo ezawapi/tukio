@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Send } from "lucide-react";
+import { User, Calendar, MessageSquare, Heart, FileText, Video, Mail, Phone, MapPin, Building2, Globe, Facebook, Instagram, Linkedin, Send, LogIn } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,6 +22,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
   const [comments, setComments] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [logins, setLogins] = useState<any[]>([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
