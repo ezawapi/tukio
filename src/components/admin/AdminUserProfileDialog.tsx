@@ -42,13 +42,15 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
       supabase.from("comments").select("id, content, created_at, event_id").eq("user_id", profileId).order("created_at", { ascending: false }).limit(20),
       supabase.from("favorites").select("id, event_id, created_at").eq("user_id", profileId).limit(20),
       supabase.from("user_roles").select("role").eq("user_id", profileId),
-    ]).then(([pRes, eRes, cRes, fRes, rRes]) => {
+      supabase.from("login_events").select("id, success, reason, provider, created_at, email").eq("user_id", profileId).order("created_at", { ascending: false }).limit(20),
+    ]).then(([pRes, eRes, cRes, fRes, rRes, lRes]) => {
       setProfile(pRes.data);
       setEvents(eRes.data || []);
       setComments(cRes.data || []);
       setFavorites(fRes.data || []);
       setRoles((rRes.data || []).map((r: any) => r.role));
-      const contactEmail = (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
+      setLogins(lRes.data || []);
+      const contactEmail = (lRes.data || [])[0]?.email || (eRes.data || []).find((e: any) => e.contact_email)?.contact_email;
       setUserEmail(contactEmail || null);
       setLoading(false);
     });
