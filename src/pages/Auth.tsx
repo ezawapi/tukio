@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +94,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [website, setWebsite] = useState(""); // honeypot: must stay empty
+  const formStartedAt = useRef<number>(Date.now());
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
