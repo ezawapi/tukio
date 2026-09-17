@@ -138,6 +138,22 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Anti-bot #1: honeypot field (invisible to humans)
+    if (website.trim() !== "") {
+      toast({ title: "Vérification échouée", description: "Requête bloquée par la protection anti-robot.", variant: "destructive" });
+      return;
+    }
+
+    // Anti-bot #2: minimum human delay before submitting
+    if (Date.now() - formStartedAt.current < MIN_HUMAN_DELAY_MS) {
+      toast({
+        title: "Un instant",
+        description: "Merci de patienter quelques secondes avant de valider le formulaire.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Client-side validation & sanitization
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
@@ -167,7 +183,22 @@ const Auth = () => {
       }
     }
 
+    // Anti-bot #3: server-side rate limit, shared across devices
+    const action = forgotMode ? "auth_reset" : isLogin ? "auth_login" : "auth_signup";
+    const limits = forgotMode ? { max: 3, window: 900 } : isLogin ? { max: 8, window: 300 } : { max: 3, window: 3600 };
+    const srl = await serverRateLimit(action, cleanEmail, limits.max, limits.window);
+    if (!srl.allowed) {
+      if (isLogin) await logLoginEvent({ email: cleanEmail, success: false, reason: "rate_limited" });
+      toast({
+        title: "Trop de tentatives",
+        description: `Réessayez dans ${Math.max(srl.retryAfter, 1)} seconde(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
+
 
     try {
       if (forgotMode) {
