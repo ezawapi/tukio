@@ -121,6 +121,11 @@ const Auth = () => {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
+  useEffect(() => {
+    formStartedAt.current = Date.now();
+  }, [isLogin, forgotMode]);
+
+
   const resendConfirmation = async (target: string) => {
     const { error } = await supabase.auth.resend({
       type: "signup",
