@@ -71,9 +71,10 @@ const serverRateLimit = async (action: string, subject: string, max: number, win
   }
 };
 
-const logLoginEvent = async (payload: { email: string; success: boolean; reason?: string | null; provider?: string }) => {
+const logLoginEvent = async (payload: { email: string; success: boolean; reason?: string | null; provider?: string; userId?: string | null }) => {
   try {
     await supabase.from("login_events").insert({
+      user_id: payload.userId ?? null,
       email: payload.email,
       success: payload.success,
       reason: payload.reason ?? null,
