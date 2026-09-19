@@ -26,6 +26,8 @@ import AdminUsersManager from "@/components/admin/AdminUsersManager";
 import AdminBannersManager from "@/components/admin/AdminBannersManager";
 import AdminRolesManager from "@/components/admin/AdminRolesManager";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminAccountsManager from "@/components/admin/AdminAccountsManager";
+import AdminEventsManager from "@/components/admin/AdminEventsManager";
 import PaginationControls from "@/components/PaginationControls";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
