@@ -191,6 +191,8 @@ const AdminDashboard = () => {
   const tabConfig: { value: string; label: string; show: boolean }[] = [
     { value: "pending", label: t("admin.pending"), show: can("events.moderate") },
     { value: "all", label: t("admin.all"), show: can("events.moderate") || can("events.delete") },
+    { value: "events-manage", label: "Gestion événements", show: can("events.moderate") || can("events.delete") },
+    { value: "accounts", label: "Comptes & connexions", show: can("users.manage") },
     { value: "notifications", label: t("admin.notifs"), show: can("notifications.view") },
     { value: "ads", label: t("admin.ads"), show: can("ads.manage") },
     { value: "banners", label: "Bannières", show: can("banners.manage") },
@@ -504,6 +506,8 @@ const AdminDashboard = () => {
             {isVisible("content") && <TabsContent value="content"><AdminContentManager /></TabsContent>}
             {isVisible("categories") && <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>}
             {isVisible("users") && <TabsContent value="users"><AdminUsersManager /></TabsContent>}
+            {isVisible("events-manage") && <TabsContent value="events-manage"><AdminEventsManager userId={user?.id} /></TabsContent>}
+            {isVisible("accounts") && <TabsContent value="accounts"><AdminAccountsManager /></TabsContent>}
             {isVisible("roles") && <TabsContent value="roles"><AdminRolesManager /></TabsContent>}
           </Tabs>
         </div>

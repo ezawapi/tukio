@@ -15,6 +15,7 @@ const NearbyEvents = lazy(() => import("@/components/NearbyEvents"));
 import CategoryCard from "@/components/CategoryCard";
 const PromotionalBanner = lazy(() => import("@/components/PromotionalBanner"));
 import DeferVisible from "@/components/DeferVisible";
+const OfficialHolidays = lazy(() => import("@/components/OfficialHolidays"));
 import { supabase } from "@/integrations/supabase/client";
 import { safeChannel } from "@/lib/realtime-guard";
 import { toast } from "sonner";
@@ -541,6 +542,9 @@ const Index = () => {
 
       {/* Nearby Events */}
       <DeferVisible minHeight={280}><NearbyEvents /></DeferVisible>
+
+      {/* Jours officiels / fêtes du pays de l'utilisateur */}
+      <DeferVisible minHeight={200}><OfficialHolidays /></DeferVisible>
 
       {/* Promotional Banner */}
       <section className="py-3 sm:py-5">
