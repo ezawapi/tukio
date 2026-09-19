@@ -81,7 +81,8 @@ const AdSlotBanner = ({ slotCode, className, compact = false }: AdSlotBannerProp
   };
 
   const content = (
-    <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow hover:shadow-warm", className)}
+    <div role="button" tabIndex={0} onClick={!ad.target_url ? handleClick : undefined}
+      className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow hover:shadow-warm cursor-pointer", className)}
       style={hasTextContent ? bannerStyle : undefined}>
       {ad.image_url && (
         <AdMedia src={ad.image_url} title={ad.title || "Publicité"} className={cn(compact ? "h-36 sm:h-44" : "h-44 sm:h-56 md:h-64")} />
