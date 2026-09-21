@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, Flag, Globe2 } from "lucide-react";
+import { CalendarDays, Flag, Globe2, ExternalLink, Info, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Holiday {
   date: string; // ISO yyyy-mm-dd
   name: string;
   type?: string;
+  /** true = observé dans tout le pays / international, false = régional */
+  global?: boolean;
+  counties?: string[] | null;
+  /** libellé anglais si disponible (utile pour la source) */
+  internationalName?: string;
 }
 
 const FALLBACK: Record<string, { country: string; days: { md: string; name: string; type: string }[] }> = {
@@ -54,7 +67,7 @@ const buildFallback = (code: string): Holiday[] => {
     .map((d) => {
       let iso = `${year}-${d.md}`;
       if (new Date(`${iso}T23:59:59`) < now) iso = `${year + 1}-${d.md}`;
-      return { date: iso, name: d.name, type: d.type };
+      return { date: iso, name: d.name, type: d.type, global: true };
     })
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 6);
@@ -69,9 +82,25 @@ const COUNTRY_NAMES: Record<string, string> = {
   US: "États-Unis",
 };
 
+const formatFullDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const wikiSource = (h: Holiday) =>
+  `https://fr.wikipedia.org/wiki/Sp%C3%A9cial:Recherche?search=${encodeURIComponent(h.name)}`;
+
+const officialSource = (code: string, iso: string) =>
+  `https://date.nager.at/PublicHoliday/Country/${code}/${iso.slice(0, 4)}`;
+
 const OfficialHolidays = () => {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [countryName, setCountryName] = useState<string>("");
+  const [countryCode, setCountryCode] = useState<string>("CD");
+  const [selected, setSelected] = useState<Holiday | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,7 +115,10 @@ const OfficialHolidays = () => {
           list = (Array.isArray(data) ? data : []).slice(0, 6).map((h: any) => ({
             date: h.date,
             name: h.localName || h.name,
+            internationalName: h.name,
             type: guessType(`${h.localName} ${h.name}`),
+            global: h.global !== false,
+            counties: h.counties ?? null,
           }));
         }
       } catch {
@@ -94,6 +126,7 @@ const OfficialHolidays = () => {
       }
       if (list.length === 0) list = buildFallback(upper);
       if (cancelled) return;
+      setCountryCode(upper);
       setCountryName(name || COUNTRY_NAMES[upper] || upper);
       setHolidays(list);
     };
@@ -129,6 +162,21 @@ const OfficialHolidays = () => {
 
   if (holidays.length === 0) return null;
 
+  const daysLeft = (iso: string) =>
+    Math.ceil((new Date(`${iso}T00:00:00`).getTime() - Date.now()) / 86400000);
+
+  const countdownLabel = (iso: string) => {
+    const d = daysLeft(iso);
+    return d <= 0 ? "Aujourd'hui" : d === 1 ? "Demain" : `J-${d}`;
+  };
+
+  const scopeLabel = (h: Holiday) =>
+    h.type === "Fête religieuse" || h.global === false
+      ? h.global === false
+        ? "Locale / régionale"
+        : "Internationale"
+      : "Nationale";
+
   return (
     <section className="py-5 sm:py-7">
       <div className="container mx-auto w-full max-w-6xl px-4 md:w-[80%] md:px-0">
@@ -148,28 +196,88 @@ const OfficialHolidays = () => {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {holidays.map((h) => {
               const d = new Date(`${h.date}T00:00:00`);
-              const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
               return (
-                <div key={`${h.date}-${h.name}`} className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
+                <button
+                  key={`${h.date}-${h.name}`}
+                  type="button"
+                  onClick={() => setSelected(h)}
+                  className="flex w-full items-center gap-3 rounded-xl bg-muted/40 p-3 text-left transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/10">
                     <span className="font-display text-sm font-bold leading-none text-primary">{d.getDate()}</span>
                     <span className="font-body text-[9px] uppercase text-primary/80">
                       {d.toLocaleDateString("fr-FR", { month: "short" })}
                     </span>
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-body text-sm font-medium text-foreground">{h.name}</p>
+                    <p className="font-body text-[11px] text-muted-foreground">{formatFullDate(h.date)}</p>
                     <p className="flex items-center gap-1 font-body text-[11px] text-muted-foreground">
                       <CalendarDays className="h-3 w-3" />
-                      {h.type} · {days <= 0 ? "Aujourd'hui" : days === 1 ? "Demain" : `J-${days}`}
+                      {h.type} · {countdownLabel(h.date)}
                     </p>
                   </div>
-                </div>
+                  <Info className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                </button>
               );
             })}
           </div>
         </div>
       </div>
+
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-md">
+          {selected && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl leading-snug">{selected.name}</DialogTitle>
+                <DialogDescription className="font-body">
+                  {formatFullDate(selected.date)} · {countdownLabel(selected.date)}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="font-body text-[11px]">{selected.type}</Badge>
+                  <Badge variant="outline" className="flex items-center gap-1 font-body text-[11px]">
+                    <MapPin className="h-3 w-3" /> {scopeLabel(selected)}
+                  </Badge>
+                  {countryName && (
+                    <Badge variant="outline" className="flex items-center gap-1 font-body text-[11px]">
+                      <Globe2 className="h-3 w-3" /> {countryName}
+                    </Badge>
+                  )}
+                </div>
+
+                {selected.internationalName && selected.internationalName !== selected.name && (
+                  <p className="font-body text-sm text-muted-foreground">
+                    Nom international : <span className="text-foreground">{selected.internationalName}</span>
+                  </p>
+                )}
+
+                {selected.counties?.length ? (
+                  <p className="font-body text-sm text-muted-foreground">
+                    Régions concernées : <span className="text-foreground">{selected.counties.join(", ")}</span>
+                  </p>
+                ) : null}
+
+                <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+                  <Button asChild variant="default" className="flex-1">
+                    <a href={officialSource(countryCode, selected.date)} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" /> Source officielle
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" className="flex-1">
+                    <a href={wikiSource(selected)} target="_blank" rel="noopener noreferrer">
+                      <Info className="mr-2 h-4 w-4" /> En savoir plus
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
