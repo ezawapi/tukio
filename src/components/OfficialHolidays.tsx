@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, Flag, Globe2, ExternalLink, Info, MapPin } from "lucide-react";
+import { CalendarDays, Flag, Globe2, ExternalLink, Info, MapPin, Share2, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
+import ShareDialog from "@/components/ShareDialog";
+import AddToCalendar from "@/components/AddToCalendar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -101,6 +103,30 @@ const OfficialHolidays = () => {
   const [countryName, setCountryName] = useState<string>("");
   const [countryCode, setCountryCode] = useState<string>("CD");
   const [selected, setSelected] = useState<Holiday | null>(null);
+  const [source, setSource] = useState<"api" | "fallback">("api");
+  const [verifiedAt, setVerifiedAt] = useState<Date | null>(null);
+  const [sourceOk, setSourceOk] = useState<boolean | null>(null);
+
+  // Lien public : /?holiday=CD-2026-06-30 ouvre la fiche
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("holiday");
+    if (!q || holidays.length === 0) return;
+    const date = q.slice(3);
+    const h = holidays.find((x) => x.date === date);
+    if (h) setSelected(h);
+  }, [holidays]);
+
+  useEffect(() => {
+    if (!selected) return;
+    setSourceOk(null);
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    fetch(`https://date.nager.at/api/v3/PublicHolidays/${selected.date.slice(0, 4)}/${countryCode}`, { signal: ctrl.signal })
+      .then((r) => setSourceOk(r.ok))
+      .catch(() => setSourceOk(false))
+      .finally(() => clearTimeout(t));
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [selected, countryCode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,8 +150,11 @@ const OfficialHolidays = () => {
       } catch {
         /* réseau indisponible */
       }
-      if (list.length === 0) list = buildFallback(upper);
+      const fromApi = list.length > 0;
+      if (!fromApi) list = buildFallback(upper);
       if (cancelled) return;
+      setSource(fromApi ? "api" : "fallback");
+      setVerifiedAt(new Date());
       setCountryCode(upper);
       setCountryName(name || COUNTRY_NAMES[upper] || upper);
       setHolidays(list);
@@ -255,11 +284,38 @@ const OfficialHolidays = () => {
                   </p>
                 )}
 
+                <div className="rounded-lg border border-border bg-muted/40 p-3 font-body text-xs">
+                  <div className="flex items-center gap-1.5 font-medium text-foreground">
+                    {source === "api" && sourceOk !== false ? (
+                      <><ShieldCheck className="h-4 w-4 text-primary" /> Fiabilité élevée — source officielle en ligne</>
+                    ) : (
+                      <><ShieldAlert className="h-4 w-4 text-secondary" /> Fiabilité moyenne — données de référence Tukio</>
+                    )}
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    Dernière vérification : {verifiedAt ? verifiedAt.toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+                    {sourceOk === null && " · vérification de la source…"}
+                  </p>
+                  {sourceOk === false && (
+                    <p className="mt-1 flex items-start gap-1 text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      La source officielle est momentanément inaccessible. La date affichée provient de notre référentiel et peut varier (fêtes mobiles, décrets). Consultez « En savoir plus ».
+                    </p>
+                  )}
+                </div>
+
                 {selected.counties?.length ? (
                   <p className="font-body text-sm text-muted-foreground">
                     Régions concernées : <span className="text-foreground">{selected.counties.join(", ")}</span>
                   </p>
                 ) : null}
+
+                <div className="flex gap-2">
+                  <AddToCalendar className="flex-1" item={{ title: selected.name, description: `${selected.type ?? ""} — ${countryName}`, location: countryName, start: new Date(`${selected.date}T00:00:00`), allDay: true, url: `${window.location.origin}/?holiday=${countryCode}-${selected.date}` }} />
+                  <ShareDialog heading="Partager cette fête" title={`${selected.name} — ${formatFullDate(selected.date)}`} url={`${window.location.origin}/?holiday=${countryCode}-${selected.date}`}>
+                    <Button variant="outline" className="flex-1"><Share2 className="mr-2 h-4 w-4" /> Partager</Button>
+                  </ShareDialog>
+                </div>
 
                 <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                   <Button asChild variant="default" className="flex-1">
