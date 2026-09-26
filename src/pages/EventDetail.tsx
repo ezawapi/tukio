@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -266,8 +267,52 @@ const EventDetail = () => {
     : null;
 
 
+  const eventUrl = `https://tukio.cd/events/${event.id}`;
+  const categoryName = event.categories?.name;
+  const placeLabel = [event.venue, event.city || event.location].filter(Boolean).join(", ");
+  const seoTitle = `${event.title}${categoryName ? ` - ${categoryName}` : ""}${placeLabel ? ` à ${placeLabel}` : ""} | Tukio`;
+  const dateLabel = event.event_date ? format(new Date(event.event_date), "d MMMM yyyy 'à' HH:mm", { locale: fr }) : "";
+  const seoDescription = (
+    `${event.description ? `${event.description.slice(0, 140)}${event.description.length > 140 ? "…" : ""}` : event.title}` +
+    `${dateLabel ? ` — ${dateLabel}` : ""}${placeLabel ? ` — ${placeLabel}` : ""}`
+  ).slice(0, 300);
+  const seoImage = event.image_url || "https://tukio.cd/og-image.jpg";
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    startDate: event.event_date ? new Date(event.event_date).toISOString() : undefined,
+    endDate: event.end_date ? new Date(event.end_date).toISOString() : undefined,
+    description: seoDescription,
+    image: seoImage,
+    url: eventUrl,
+    location: {
+      "@type": "Place",
+      name: event.venue || event.location || event.city || "À définir",
+      address: [event.address, event.city, event.country].filter(Boolean).join(", ") || undefined,
+    },
+    ...(organizerProfile?.display_name
+      ? { organizer: { "@type": "Organization", name: organizerProfile.display_name } }
+      : {}),
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <link rel="canonical" href={eventUrl} />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={eventUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={seoImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+        <script type="application/ld+json">{JSON.stringify(eventJsonLd)}</script>
+      </Helmet>
       <Navbar />
       <div className="pb-16 pt-20">
         <div className="container mx-auto px-4">
