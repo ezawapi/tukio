@@ -269,9 +269,9 @@ const EventDetail = () => {
 
   const eventUrl = `https://tukio.cd/events/${event.id}`;
   const categoryName = event.categories?.name;
-  const placeLabel = [event.venue, event.city || event.location].filter(Boolean).join(", ");
+  const placeLabel = [event.venue_name, event.city || event.location].filter(Boolean).join(", ");
   const seoTitle = `${event.title}${categoryName ? ` - ${categoryName}` : ""}${placeLabel ? ` à ${placeLabel}` : ""} | Tukio`;
-  const dateLabel = event.event_date ? format(new Date(event.event_date), "d MMMM yyyy 'à' HH:mm", { locale: fr }) : "";
+  const dateLabel = event.date ? format(new Date(event.date), "d MMMM yyyy 'à' HH:mm", { locale: fr }) : "";
   const seoDescription = (
     `${event.description ? `${event.description.slice(0, 140)}${event.description.length > 140 ? "…" : ""}` : event.title}` +
     `${dateLabel ? ` — ${dateLabel}` : ""}${placeLabel ? ` — ${placeLabel}` : ""}`
@@ -281,18 +281,18 @@ const EventDetail = () => {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
-    startDate: event.event_date ? new Date(event.event_date).toISOString() : undefined,
+    startDate: event.date ? new Date(event.date).toISOString() : undefined,
     endDate: event.end_date ? new Date(event.end_date).toISOString() : undefined,
     description: seoDescription,
     image: seoImage,
     url: eventUrl,
     location: {
       "@type": "Place",
-      name: event.venue || event.location || event.city || "À définir",
-      address: [event.address, event.city, event.country].filter(Boolean).join(", ") || undefined,
+      name: event.venue_name || event.location || event.city || "À définir",
+      address: [event.location, event.city].filter(Boolean).join(", ") || undefined,
     },
-    ...(organizerProfile?.display_name
-      ? { organizer: { "@type": "Organization", name: organizerProfile.display_name } }
+    ...(event.organizer_name || organizerProfile?.display_name
+      ? { organizer: { "@type": "Organization", name: event.organizer_name || organizerProfile?.display_name } }
       : {}),
   };
 
