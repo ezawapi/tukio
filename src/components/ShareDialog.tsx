@@ -11,11 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ShareDialogProps {
   title: string;
+  heading?: string;
   url?: string;
   children: React.ReactNode;
 }
 
-const ShareDialog = ({ title, url, children }: ShareDialogProps) => {
+const ShareDialog = ({ title, url, children, heading = "Partager l'événement" }: ShareDialogProps) => {
   const { toast } = useToast();
   const shareUrl = url || window.location.href;
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -58,7 +59,7 @@ const ShareDialog = ({ title, url, children }: ShareDialogProps) => {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">Partager l'événement</DialogTitle>
+          <DialogTitle className="font-display">{heading}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3 py-4">
           {shareOptions.map((opt) => (
