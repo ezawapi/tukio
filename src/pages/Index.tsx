@@ -16,6 +16,7 @@ import CategoryCard from "@/components/CategoryCard";
 const PromotionalBanner = lazy(() => import("@/components/PromotionalBanner"));
 import DeferVisible from "@/components/DeferVisible";
 const OfficialHolidays = lazy(() => import("@/components/OfficialHolidays"));
+const AiRecommendations = lazy(() => import("@/components/AiRecommendations"));
 import { supabase } from "@/integrations/supabase/client";
 import { safeChannel } from "@/lib/realtime-guard";
 import { toast } from "sonner";
@@ -545,6 +546,9 @@ const Index = () => {
 
       {/* Jours officiels / fêtes du pays de l'utilisateur */}
       <DeferVisible minHeight={200}><OfficialHolidays /></DeferVisible>
+
+      {/* Recommandations IA */}
+      <DeferVisible minHeight={200}><AiRecommendations /></DeferVisible>
 
       {/* Promotional Banner */}
       <section className="py-3 sm:py-5">

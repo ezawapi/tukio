@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import ShareDialog from "@/components/ShareDialog";
+import AddToCalendar from "@/components/AddToCalendar";
 import ImageLightbox from "@/components/ImageLightbox";
 import AdSlotBanner from "@/components/AdSlotBanner";
 import InvitationManager from "@/components/InvitationManager";
@@ -441,8 +442,9 @@ const EventDetail = () => {
                     <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
+                  <AddToCalendar iconOnly item={{ title: event.title, description: event.description ?? "", location: [event.venue_name, event.location, event.city].filter(Boolean).join(", "), start: new Date(event.date), end: event.end_date ? new Date(event.end_date) : null, url: `${window.location.origin}/events/${event.id}` }} />
                   {canInteract ? (
-                    <ShareDialog title={event.title}>
+                    <ShareDialog title={event.title} url={`${window.location.origin}/events/${event.id}`}>
                       <Button variant="outline" size="icon">
                         <Share2 className="h-4 w-4" />
                       </Button>
@@ -759,8 +761,9 @@ const EventDetail = () => {
                     <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                     {isFavorite ? "Favori" : "Ajouter"}
                   </Button>
+                  <AddToCalendar iconOnly item={{ title: event.title, description: event.description ?? "", location: [event.venue_name, event.location, event.city].filter(Boolean).join(", "), start: new Date(event.date), end: event.end_date ? new Date(event.end_date) : null, url: `${window.location.origin}/events/${event.id}` }} />
                   {canInteract ? (
-                    <ShareDialog title={event.title}>
+                    <ShareDialog title={event.title} url={`${window.location.origin}/events/${event.id}`}>
                       <Button variant="outline" size="icon">
                         <Share2 className="h-4 w-4" />
                       </Button>
