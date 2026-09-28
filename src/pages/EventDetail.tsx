@@ -1,3 +1,4 @@
+import { isExternalLink } from "@/lib/organizer-link";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -24,6 +25,13 @@ import LeafletMap from "@/components/LeafletMap";
 import { formatEventPrice } from "@/lib/format-price";
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
 
+const OrganizerAnchor = ({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) =>
+  isExternalLink(href) ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>
+  ) : (
+    <Link to={href} className={className}>{children}</Link>
+  );
+
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -33,6 +41,7 @@ const EventDetail = () => {
   const { toast } = useToast();
   const { location: userLocation } = useUserLocation();
   const [event, setEvent] = useState<any>(null);
+  const [organizerAccountType, setOrganizerAccountType] = useState<string>("user");
   const [organizerProfile, setOrganizerProfile] = useState<{ slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [authorProfile, setAuthorProfile] = useState<{ id: string; slug: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -98,6 +107,8 @@ const EventDetail = () => {
         .eq("id", data.organizer_id)
         .maybeSingle();
       setOrganizerProfile(prof as any);
+      const { data: acct } = await (supabase as any).rpc("get_account_type", { _user_id: data.organizer_id });
+      setOrganizerAccountType((acct as string) || "user");
       // Prefetch full public profile into cache for fast nav
       const ident = (prof as any)?.slug || data.organizer_id;
       if (ident) {
@@ -265,6 +276,10 @@ const EventDetail = () => {
   const organizerHref = event.organizer_id
     ? `/u/${organizerProfile?.slug || event.organizer_id}`
     : null;
+  const organizerLink: string | null = (event as any).organizer_url || organizerHref;
+  const isOrganizerRole = organizerAccountType === "organizer" || !!(event as any).organizer_url;
+  const organizerLabel = isOrganizerRole ? "Organisateur" : "Auteur";
+  const displayOrganizerName = event.organizer_name || organizerProfile?.display_name || null;
 
 
   const eventUrl = `https://tukio.cd/events/${event.id}`;
@@ -441,10 +456,10 @@ const EventDetail = () => {
                       <p className="font-body text-foreground">{event.attendees_count} participants</p>
                     </div>
                   )}
-                  {event.organizer_name && (
+                  {displayOrganizerName && (
                     <div className="flex items-center gap-3 text-sm">
-                      {organizerHref ? (
-                        <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
+                      {organizerLink ? (
+                        <OrganizerAnchor href={organizerLink} className="flex items-center gap-3 hover:text-primary">
                           {event.organizer_logo_url ? (
                             <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
                           ) : organizerProfile?.avatar_url ? (
@@ -454,8 +469,8 @@ const EventDetail = () => {
                               <User className="h-4 w-4 text-primary" />
                             </span>
                           )}
-                          <span className="font-body text-foreground underline-offset-2 hover:underline">{event.organizer_name}</span>
-                        </Link>
+                          <span className="font-body text-foreground"><span className="text-muted-foreground">{organizerLabel} : </span><span className="underline-offset-2 hover:underline">{displayOrganizerName}</span></span>
+                        </OrganizerAnchor>
                       ) : (
                         <>
                           {event.organizer_logo_url ? (
@@ -463,7 +478,7 @@ const EventDetail = () => {
                           ) : (
                             <User className="h-5 w-5 flex-shrink-0 text-primary" />
                           )}
-                          <p className="font-body text-foreground">{event.organizer_name}</p>
+                          <p className="font-body text-foreground"><span className="text-muted-foreground">{organizerLabel} : </span>{displayOrganizerName}</p>
                         </>
                       )}
                     </div>
@@ -759,10 +774,10 @@ const EventDetail = () => {
                       <p className="font-body text-foreground">{event.attendees_count} participants</p>
                     </div>
                   )}
-                  {event.organizer_name && (
+                  {displayOrganizerName && (
                     <div className="flex items-center gap-3 text-sm">
-                      {organizerHref ? (
-                        <Link to={organizerHref} className="flex items-center gap-3 hover:text-primary">
+                      {organizerLink ? (
+                        <OrganizerAnchor href={organizerLink} className="flex items-center gap-3 hover:text-primary">
                           {event.organizer_logo_url ? (
                             <img src={event.organizer_logo_url} alt={event.organizer_name} className="h-8 w-8 shrink-0 rounded-md object-cover bg-muted" />
                           ) : organizerProfile?.avatar_url ? (
@@ -772,8 +787,8 @@ const EventDetail = () => {
                               <User className="h-4 w-4 text-primary" />
                             </span>
                           )}
-                          <span className="font-body text-foreground underline-offset-2 hover:underline">{event.organizer_name}</span>
-                        </Link>
+                          <span className="font-body text-foreground"><span className="text-muted-foreground">{organizerLabel} : </span><span className="underline-offset-2 hover:underline">{displayOrganizerName}</span></span>
+                        </OrganizerAnchor>
                       ) : (
                         <>
                           {event.organizer_logo_url ? (
@@ -781,7 +796,7 @@ const EventDetail = () => {
                           ) : (
                             <User className="h-5 w-5 flex-shrink-0 text-primary" />
                           )}
-                          <p className="font-body text-foreground">{event.organizer_name}</p>
+                          <p className="font-body text-foreground"><span className="text-muted-foreground">{organizerLabel} : </span>{displayOrganizerName}</p>
                         </>
                       )}
                     </div>
