@@ -18,6 +18,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
 import AdminAdsManager from "@/components/admin/AdminAdsManager";
+import AdminPartnershipRequests from "@/components/admin/AdminPartnershipRequests";
 import AdminPartnersManager from "@/components/admin/AdminPartnersManager";
 import AdminContentManager from "@/components/admin/AdminContentManager";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
@@ -502,7 +503,7 @@ const AdminDashboard = () => {
             )}
 
             {isVisible("banners") && <TabsContent value="banners"><AdminBannersManager /></TabsContent>}
-            {isVisible("partners") && <TabsContent value="partners"><AdminPartnersManager /></TabsContent>}
+            {isVisible("partners") && <TabsContent value="partners" className="space-y-6"><AdminPartnershipRequests /><AdminPartnersManager /></TabsContent>}
             {isVisible("content") && <TabsContent value="content"><AdminContentManager /></TabsContent>}
             {isVisible("categories") && <TabsContent value="categories"><AdminCategoriesManager /></TabsContent>}
             {isVisible("users") && <TabsContent value="users"><AdminUsersManager /></TabsContent>}

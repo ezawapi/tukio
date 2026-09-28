@@ -1,5 +1,6 @@
 import { isExternalLink } from "@/lib/organizer-link";
 import { useState, useEffect, useMemo } from "react";
+import type { ReactNode } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Calendar, MapPin, Users, Heart, Share2, ArrowLeft, Phone, Mail, Globe, Facebook, Instagram, Twitter, User, MessageCircle, Expand, Lock, Ticket, Navigation, Video, Pencil, Clock3, Trash2 } from "lucide-react";
@@ -25,7 +26,7 @@ import LeafletMap from "@/components/LeafletMap";
 import { formatEventPrice } from "@/lib/format-price";
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
 
-const OrganizerAnchor = ({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) =>
+const OrganizerAnchor = ({ href, className, children }: { href: string; className?: string; children: ReactNode }) =>
   isExternalLink(href) ? (
     <a href={href} target="_blank" rel="noopener noreferrer" className={className}>{children}</a>
   ) : (

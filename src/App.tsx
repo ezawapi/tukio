@@ -32,6 +32,8 @@ const MyEvents = lazy(() => import("./pages/MyEvents.tsx"));
 const InvitePage = lazy(() => import("./pages/InvitePage.tsx"));
 const InvitationDetail = lazy(() => import("./pages/InvitationDetail.tsx"));
 const AdminRoles = lazy(() => import("./pages/AdminRoles.tsx"));
+const Contact = lazy(() => import("./pages/Contact.tsx"));
+const Partners = lazy(() => import("./pages/Partners.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -79,6 +81,8 @@ const App = () => {
               <Route path="/u/:userId" element={<PublicProfile />} />
               <Route path="/o/:slug" element={<PublicProfile />} />
               <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/partners" element={<Partners />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/history" element={<History />} />
