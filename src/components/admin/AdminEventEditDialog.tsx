@@ -1,3 +1,4 @@
+import { normalizeOrganizerUrl } from "@/lib/organizer-link";
 import { useEffect, useMemo, useState } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
       category_id: event.category_id || "",
       organizer_name: event.organizer_name || "",
       organizer_logo_url: event.organizer_logo_url || "",
+      organizer_url: event.organizer_url || "",
       date: toDateTimeLocal(event.date),
       end_date: toDateTimeLocal(event.end_date),
       location: event.location || "",
@@ -94,6 +96,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
         category_id: form.category_id || null,
         organizer_name: form.organizer_name || null,
         organizer_logo_url: form.organizer_logo_url || null,
+        organizer_url: normalizeOrganizerUrl(form.organizer_url),
         date: new Date(form.date).toISOString(),
         end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
         location: form.location,

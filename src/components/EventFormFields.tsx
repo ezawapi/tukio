@@ -68,6 +68,10 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
           <Label className="font-body">Nom de l'organisateur</Label>
           <Input value={form.organizer_name || ""} onChange={(e) => onChange("organizer_name", e.target.value)} placeholder="Votre nom ou organisation" />
         </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label className="font-body">Lien de l'organisateur (site, page ou profil Tukio)</Label>
+          <Input value={form.organizer_url || ""} onChange={(e) => onChange("organizer_url", e.target.value.trim())} placeholder="https://… ou /u/mon-profil" />
+        </div>
       </div>
 
       <div className="space-y-2">

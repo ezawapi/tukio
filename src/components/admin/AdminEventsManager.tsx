@@ -1,3 +1,4 @@
+import { normalizeOrganizerUrl } from "@/lib/organizer-link";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Plus, Trash2, Eye, Users, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +23,7 @@ import PaginationControls from "@/components/PaginationControls";
 const PER_PAGE = 15;
 
 const emptyForm = {
-  title: "", description: "", category_id: "", organizer_name: "", organizer_logo_url: "",
+  title: "", description: "", category_id: "", organizer_name: "", organizer_logo_url: "", organizer_url: "",
   date: "", end_date: "", location: "", venue_name: "", city: "", price: "Gratuit", currency: "CDF",
   capacity: "", visibility: "public", status: "approved", is_published: true, is_live: false, live_url: "",
   image_url: "", image_url2: "", ticketing_mode: "none", external_ticket_url: "", reservation_cta_label: "Réserver",
@@ -87,6 +88,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
       image_url2: form.image_url2 || null,
       organizer_name: form.organizer_name || null,
       organizer_logo_url: form.organizer_logo_url || null,
+      organizer_url: normalizeOrganizerUrl(form.organizer_url),
       organizer_id: userId || null,
       author_id: userId || null,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
