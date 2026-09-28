@@ -92,6 +92,7 @@ const MIN_HUMAN_DELAY_MS = 2500;
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [accountType, setAccountType] = useState<"user" | "organizer">("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -250,7 +251,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: window.location.origin, data: { account_type: accountType } },
         });
 
         if (error) {
@@ -374,6 +375,28 @@ const Auth = () => {
                 onChange={(e) => setWebsite(e.target.value)}
               />
             </div>
+            {!isLogin && !forgotMode && (
+              <div className="space-y-2">
+                <Label className="font-body">Type de compte</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { v: "user", t: "Utilisateur", d: "Découvrir et participer" },
+                    { v: "organizer", t: "Organisateur", d: "Publier des événements" },
+                  ] as const).map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setAccountType(o.v)}
+                      aria-pressed={accountType === o.v}
+                      className={`rounded-lg border p-3 text-left transition-colors ${accountType === o.v ? "border-primary bg-primary/10" : "border-border hover:bg-muted"}`}
+                    >
+                      <p className="font-body text-sm font-semibold text-foreground">{o.t}</p>
+                      <p className="font-body text-[11px] text-muted-foreground">{o.d}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email" className="font-body">Email</Label>
               <Input
