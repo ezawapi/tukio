@@ -1,3 +1,4 @@
+import { normalizeOrganizerUrl } from "@/lib/organizer-link";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
@@ -67,6 +68,7 @@ const EditEvent = () => {
       longitude: data.longitude?.toString() || "",
       organizer_name: data.organizer_name || "",
       organizer_logo_url: data.organizer_logo_url || "",
+      organizer_url: (data as any).organizer_url || "",
       phone1: data.phone1 || "",
       phone2: data.phone2 || "",
       contact_email: data.contact_email || "",
@@ -125,6 +127,7 @@ const EditEvent = () => {
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         organizer_name: form.organizer_name || null,
         organizer_logo_url: logo || null,
+        organizer_url: normalizeOrganizerUrl(form.organizer_url),
         phone1: form.phone1 || null,
         phone2: form.phone2 || null,
         contact_email: form.contact_email || null,
@@ -283,6 +286,10 @@ const EditEvent = () => {
               <div>
                 <label className="font-body text-sm font-medium text-foreground mb-1 block">Organisateur</label>
                 <Input value={form.organizer_name} onChange={(e) => handleChange("organizer_name", e.target.value)} />
+              </div>
+              <div>
+                <label className="font-body text-sm font-medium text-foreground mb-1 block">Lien de l'organisateur</label>
+                <Input value={form.organizer_url || ""} onChange={(e) => handleChange("organizer_url", e.target.value.trim())} placeholder="https://… ou /u/mon-profil" />
               </div>
               <div>
                 <label className="font-body text-sm font-medium text-foreground mb-1 block">Email</label>

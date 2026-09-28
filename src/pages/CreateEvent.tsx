@@ -1,3 +1,4 @@
+import { normalizeOrganizerUrl } from "@/lib/organizer-link";
 import { useState, useEffect } from "react";
 import MobileTabBar from "@/components/MobileTabBar";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +61,7 @@ const CreateEvent = () => {
     image_url2: "",
     organizer_name: "",
     organizer_logo_url: "",
+    organizer_url: "",
     latitude: "",
     longitude: "",
     phone1: "",
@@ -126,6 +128,7 @@ const CreateEvent = () => {
       image_url2: form.image_url2 || null,
       organizer_name: form.organizer_name,
       organizer_logo_url: logo || null,
+      organizer_url: normalizeOrganizerUrl(form.organizer_url),
       organizer_id: user.id,
       author_id: user.id,
       latitude: form.latitude ? parseFloat(form.latitude) : null,
@@ -197,6 +200,10 @@ const CreateEvent = () => {
                   <div className="space-y-2">
                     <Label className="font-body">Nom de l'organisateur</Label>
                     <Input value={form.organizer_name} onChange={(e) => handleChange("organizer_name", e.target.value)} placeholder="Votre nom ou organisation" />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="font-body">Lien de l'organisateur (site, page, réseau ou profil Tukio)</Label>
+                    <Input value={form.organizer_url || ""} onChange={(e) => handleChange("organizer_url", e.target.value.trim())} placeholder="https://… ou /u/mon-profil" />
                   </div>
                 </div>
 

@@ -21,6 +21,8 @@ const Footer = () => {
         { label: t("nav.agenda"), href: "/agenda" },
         { label: t("nav.map"), href: "/explorer" },
         { label: t("nav.about"), href: "/about" },
+        { label: "Partenaires", href: "/partners" },
+        { label: "Contact", href: "/contact" },
       ],
     },
     {
