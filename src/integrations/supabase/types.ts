@@ -350,6 +350,39 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean
+          message: string
+          name: string
+          subject: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean
+          message: string
+          name: string
+          subject?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          name?: string
+          subject?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       event_invitations: {
         Row: {
           attendance_status: string
@@ -508,6 +541,7 @@ export type Database = {
           organizer_id: string | null
           organizer_logo_url: string | null
           organizer_name: string | null
+          organizer_url: string | null
           phone1: string | null
           phone2: string | null
           price: string | null
@@ -554,6 +588,7 @@ export type Database = {
           organizer_id?: string | null
           organizer_logo_url?: string | null
           organizer_name?: string | null
+          organizer_url?: string | null
           phone1?: string | null
           phone2?: string | null
           price?: string | null
@@ -600,6 +635,7 @@ export type Database = {
           organizer_id?: string | null
           organizer_logo_url?: string | null
           organizer_name?: string | null
+          organizer_url?: string | null
           phone1?: string | null
           phone2?: string | null
           price?: string | null
@@ -817,6 +853,48 @@ export type Database = {
           logo_url?: string
           name?: string
           updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      partnership_requests: {
+        Row: {
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          message: string | null
+          organization_name: string
+          phone: string | null
+          status: string
+          user_id: string | null
+          website_url: string | null
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          logo_url?: string | null
+          message?: string | null
+          organization_name: string
+          phone?: string | null
+          status?: string
+          user_id?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          message?: string | null
+          organization_name?: string
+          phone?: string | null
+          status?: string
+          user_id?: string | null
           website_url?: string | null
         }
         Relationships: []
@@ -1356,6 +1434,7 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      get_account_type: { Args: { _user_id: string }; Returns: string }
       get_invitation_preview: {
         Args: { _token: string }
         Returns: {
