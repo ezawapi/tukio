@@ -255,22 +255,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                 ))}
               </TabsContent>
             </Tabs>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{events.length}</p>
-                <p className="text-[10px] text-muted-foreground">Événements</p>
-              </div>
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{comments.length}</p>
-                <p className="text-[10px] text-muted-foreground">Commentaires</p>
-              </div>
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{favorites.length}</p>
-                <p className="text-[10px] text-muted-foreground">Favoris</p>
-              </div>
-            </div>
+          </div>
           </div>
         ) : (
           <p className="py-8 text-center text-sm text-muted-foreground">Profil introuvable.</p>
