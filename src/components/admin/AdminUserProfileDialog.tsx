@@ -97,15 +97,16 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[min(96vw,72rem)] p-4 sm:p-5 gap-3 max-h-[96vh] overflow-y-auto lg:overflow-visible">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display"><User className="h-5 w-5 text-primary" /> Profil utilisateur</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 font-display text-base"><User className="h-5 w-5 text-primary" /> Profil utilisateur</DialogTitle>
         </DialogHeader>
 
         {loading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Chargement...</div>
         ) : profile ? (
-          <div className="space-y-4">
+          <div className="grid gap-3 lg:grid-cols-3 [&>*]:min-w-0">
+          <div className="space-y-3">
             {/* Header */}
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
