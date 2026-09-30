@@ -904,6 +904,8 @@ export type Database = {
           account_type: string
           avatar_url: string | null
           bio: string | null
+          blog_url: string | null
+          contact_email: string | null
           cover_url: string | null
           created_at: string
           display_name: string | null
@@ -912,6 +914,7 @@ export type Database = {
           instagram_url: string | null
           is_blocked: boolean
           linkedin_url: string | null
+          onboarding_completed: boolean
           organization_name: string | null
           organization_role: string | null
           phone_primary: string | null
@@ -929,6 +932,8 @@ export type Database = {
           account_type?: string
           avatar_url?: string | null
           bio?: string | null
+          blog_url?: string | null
+          contact_email?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -937,6 +942,7 @@ export type Database = {
           instagram_url?: string | null
           is_blocked?: boolean
           linkedin_url?: string | null
+          onboarding_completed?: boolean
           organization_name?: string | null
           organization_role?: string | null
           phone_primary?: string | null
@@ -954,6 +960,8 @@ export type Database = {
           account_type?: string
           avatar_url?: string | null
           bio?: string | null
+          blog_url?: string | null
+          contact_email?: string | null
           cover_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -962,6 +970,7 @@ export type Database = {
           instagram_url?: string | null
           is_blocked?: boolean
           linkedin_url?: string | null
+          onboarding_completed?: boolean
           organization_name?: string | null
           organization_role?: string | null
           phone_primary?: string | null

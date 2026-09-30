@@ -97,15 +97,16 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[min(96vw,72rem)] p-4 sm:p-5 gap-3 max-h-[96vh] overflow-y-auto lg:overflow-visible">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display"><User className="h-5 w-5 text-primary" /> Profil utilisateur</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 font-display text-base"><User className="h-5 w-5 text-primary" /> Profil utilisateur</DialogTitle>
         </DialogHeader>
 
         {loading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Chargement...</div>
         ) : profile ? (
-          <div className="space-y-4">
+          <div className="grid gap-3 lg:grid-cols-3 [&>*]:min-w-0">
+          <div className="space-y-3">
             {/* Header */}
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
@@ -140,50 +141,69 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
               </div>
             )}
 
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-lg bg-muted/50 p-2">
+                <p className="text-muted-foreground text-xs">Inscrit le</p>
+                <p className="font-medium">{new Date(profile.created_at).toLocaleDateString("fr-FR")}</p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-2">
+                <p className="text-muted-foreground text-xs">Dernière MàJ</p>
+                <p className="font-medium">{new Date(profile.updated_at).toLocaleDateString("fr-FR")}</p>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {[[events.length, "Événements"], [comments.length, "Commentaires"], [favorites.length, "Favoris"]].map(([n, l]) => (
+                <div key={l as string} className="rounded-lg bg-primary/10 p-2">
+                  <p className="font-display text-lg font-bold text-primary">{n}</p>
+                  <p className="text-[10px] text-muted-foreground">{l}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
             {/* Contact Info */}
             <div className="rounded-lg border border-border p-3 space-y-2">
-              <p className="font-display text-xs font-semibold text-foreground mb-2">Coordonnées</p>
-              {userEmail && <InfoRow icon={Mail} label="Email" value={userEmail} />}
-              <InfoRow icon={Phone} label="Téléphone principal" value={profile.phone_primary} />
-              <InfoRow icon={Phone} label="Téléphone secondaire" value={profile.phone_secondary} />
+              <p className="font-display text-xs font-semibold text-foreground mb-1">Coordonnées · {profile.account_type === "organizer" ? "Organisateur" : "Utilisateur"}</p>
+              <InfoRow icon={Mail} label="Email" value={profile.contact_email || userEmail} />
+              <div className="grid grid-cols-2 gap-2">
+                <InfoRow icon={Phone} label="Téléphone principal" value={profile.phone_primary} />
+                <InfoRow icon={Phone} label="Téléphone secondaire" value={profile.phone_secondary} />
+              </div>
               <InfoRow icon={MapPin} label="Adresse physique" value={profile.physical_address} />
-              <InfoRow icon={Building2} label="Organisation" value={profile.organization_name} />
-              {profile.organization_role && <InfoRow icon={User} label="Fonction" value={profile.organization_role} />}
+              <div className="grid grid-cols-2 gap-2">
+                <InfoRow icon={Building2} label="Organisation" value={profile.organization_name} />
+                {profile.organization_role && <InfoRow icon={User} label="Fonction" value={profile.organization_role} />}
+              </div>
               <InfoRow icon={Video} label="Vidéo" value={profile.video_url} isLink />
-              {!userEmail && !profile.phone_primary && !profile.physical_address && !profile.organization_name && !profile.video_url && (
+              {!(profile.contact_email || userEmail) && !profile.phone_primary && !profile.physical_address && !profile.organization_name && !profile.video_url && (
                 <p className="text-xs text-muted-foreground italic">Aucune coordonnée renseignée</p>
               )}
             </div>
 
             {/* Social */}
             <div className="rounded-lg border border-border p-3 space-y-2">
-              <p className="font-display text-xs font-semibold text-foreground mb-2">Réseaux sociaux</p>
+              <p className="font-display text-xs font-semibold text-foreground mb-1">Liens & réseaux</p>
               <InfoRow icon={Facebook} label="Facebook" value={profile.facebook_url} isLink />
               <InfoRow icon={Instagram} label="Instagram" value={profile.instagram_url} isLink />
               <InfoRow icon={Globe} label="Twitter / X" value={profile.twitter_url} isLink />
               <InfoRow icon={Globe} label="TikTok" value={profile.tiktok_url} isLink />
               <InfoRow icon={Linkedin} label="LinkedIn" value={profile.linkedin_url} isLink />
               <InfoRow icon={Globe} label="Site web" value={profile.website_url} isLink />
-              {!profile.facebook_url && !profile.instagram_url && !profile.twitter_url && !profile.tiktok_url && !profile.linkedin_url && !profile.website_url && (
-                <p className="text-xs text-muted-foreground italic">Aucun réseau social renseigné</p>
+              <InfoRow icon={Globe} label="Blog" value={profile.blog_url} isLink />
+              {!profile.facebook_url && !profile.instagram_url && !profile.twitter_url && !profile.tiktok_url && !profile.linkedin_url && !profile.website_url && !profile.blog_url && (
+                <p className="text-xs text-muted-foreground italic">Aucun lien renseigné</p>
               )}
             </div>
+          </div>
 
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-muted-foreground text-xs">Inscrit le</p>
-                <p className="font-medium">{new Date(profile.created_at).toLocaleDateString("fr-FR")}</p>
-              </div>
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-muted-foreground text-xs">Dernière MàJ</p>
-                <p className="font-medium">{new Date(profile.updated_at).toLocaleDateString("fr-FR")}</p>
-              </div>
-            </div>
-
+          <div>
             {/* Contributions */}
             <Tabs defaultValue="events" className="w-full">
-              <TabsList className="w-full">
+              <TabsList className="w-full grid grid-cols-2 h-auto">
                 <TabsTrigger value="events" className="flex-1 gap-1 text-xs"><FileText className="h-3 w-3" /> Événements ({events.length})</TabsTrigger>
                 <TabsTrigger value="comments" className="flex-1 gap-1 text-xs"><MessageSquare className="h-3 w-3" /> Commentaires ({comments.length})</TabsTrigger>
                 <TabsTrigger value="favorites" className="flex-1 gap-1 text-xs"><Heart className="h-3 w-3" /> Favoris ({favorites.length})</TabsTrigger>
@@ -235,22 +255,7 @@ const AdminUserProfileDialog = ({ profileId, open, onOpenChange }: Props) => {
                 ))}
               </TabsContent>
             </Tabs>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{events.length}</p>
-                <p className="text-[10px] text-muted-foreground">Événements</p>
-              </div>
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{comments.length}</p>
-                <p className="text-[10px] text-muted-foreground">Commentaires</p>
-              </div>
-              <div className="rounded-lg bg-primary/10 p-2">
-                <p className="font-display text-lg font-bold text-primary">{favorites.length}</p>
-                <p className="text-[10px] text-muted-foreground">Favoris</p>
-              </div>
-            </div>
+          </div>
           </div>
         ) : (
           <p className="py-8 text-center text-sm text-muted-foreground">Profil introuvable.</p>
