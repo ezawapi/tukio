@@ -145,7 +145,24 @@ const EventDetail = () => {
         .in("id", userIds);
       (profs || []).forEach((p: any) => { profilesMap[p.id] = p; });
     }
-    setComments(rows.map((c: any) => ({ ...c, author: profilesMap[c.user_id] || null })));
+    const ids = rows.map((c: any) => c.id);
+    const likes: any[] = ids.length
+      ? ((await (supabase as any).from("comment_likes").select("comment_id, user_id").in("comment_id", ids)).data || [])
+      : [];
+    setComments(rows.map((c: any) => {
+      const l = likes.filter((x) => x.comment_id === c.id);
+      return { ...c, author: profilesMap[c.user_id] || null, likes_count: l.length, liked: !!user && l.some((x) => x.user_id === user.id) };
+    }));
+  };
+
+  const toggleLike = async (commentId: string, liked: boolean) => {
+    if (!user) { toast({ title: "Connectez-vous pour aimer un commentaire" }); return; }
+    setComments((cs: any[]) => cs.map((c) => c.id === commentId ? { ...c, liked: !liked, likes_count: c.likes_count + (liked ? -1 : 1) } : c));
+    const q = (supabase as any).from("comment_likes");
+    const { error } = liked
+      ? await q.delete().eq("comment_id", commentId).eq("user_id", user.id)
+      : await q.insert({ comment_id: commentId, user_id: user.id });
+    if (error) { toast({ title: "Action impossible", description: error.message, variant: "destructive" }); fetchComments(); }
   };
 
   const deleteComment = async (commentId: string) => {
@@ -727,6 +744,17 @@ const EventDetail = () => {
                             )}
                           </div>
                           <p className="font-body text-sm text-foreground pl-8">{comment.content}</p>
+                          <div className="pl-8 mt-1">
+                            <button
+                              type="button"
+                              onClick={() => toggleLike(comment.id, comment.liked)}
+                              className={`inline-flex items-center gap-1 text-xs ${comment.liked ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+                              aria-label={comment.liked ? "Je n'aime plus" : "J'aime"}
+                            >
+                              <Heart className={`h-3.5 w-3.5 ${comment.liked ? "fill-current" : ""}`} />
+                              {comment.likes_count > 0 ? comment.likes_count : ""} J'aime
+                            </button>
+                          </div>
                         </div>
                       );
                     })

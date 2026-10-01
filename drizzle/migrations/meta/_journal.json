@@ -29,6 +29,13 @@
       "when": 1790805321400,
       "tag": "0003_profile_onboarding_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790835273690,
+      "tag": "0004_comment_likes",
+      "breakpoints": true
     }
   ]
 }
