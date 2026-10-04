@@ -295,7 +295,7 @@ const EventDetail = () => {
     ? `/u/${organizerProfile?.slug || event.organizer_id}`
     : null;
   const organizerLink: string | null = (event as any).organizer_url || organizerHref;
-  const isOrganizerRole = organizerAccountType === "organizer" || !!(event as any).organizer_url;
+  const isOrganizerRole = organizerAccountType === "organizer" || !!(event as any).organizer_url || !!event.organizer_name;
   const organizerLabel = isOrganizerRole ? "Organisateur" : "Auteur";
   const displayOrganizerName = event.organizer_name || organizerProfile?.display_name || null;
 
@@ -501,9 +501,9 @@ const EventDetail = () => {
                       )}
                     </div>
                   )}
-                  {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
+                  {authorProfile && authorProfile.display_name && isOrganizerRole && authorProfile.display_name !== displayOrganizerName && (
                     <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
-                      <span>Par</span>
+                      <span>Ajouté par :</span>
                       <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
                         {authorProfile.avatar_url ? (
                           <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
@@ -830,9 +830,9 @@ const EventDetail = () => {
                       )}
                     </div>
                   )}
-                  {authorProfile && authorProfile.id !== event.organizer_id && authorProfile.display_name && (
+                  {authorProfile && authorProfile.display_name && isOrganizerRole && authorProfile.display_name !== displayOrganizerName && (
                     <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
-                      <span>Par</span>
+                      <span>Ajouté par :</span>
                       <Link to={`/u/${authorProfile.slug || authorProfile.id}`} className="inline-flex items-center gap-1.5 hover:text-primary">
                         {authorProfile.avatar_url ? (
                           <img src={authorProfile.avatar_url} alt={authorProfile.display_name} className="h-5 w-5 rounded-full object-cover" />
