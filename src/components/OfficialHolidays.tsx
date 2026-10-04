@@ -52,6 +52,31 @@ const FALLBACK: Record<string, { country: string; days: { md: string; name: stri
   },
 };
 
+const FR_NAMES: Record<string, string> = {
+  "new year's day": "Jour de l'An", "good friday": "Vendredi saint", "easter sunday": "Dimanche de Pâques",
+  "easter monday": "Lundi de Pâques", "easter": "Pâques", "labour day": "Fête du Travail", "labor day": "Fête du Travail",
+  "may day": "Fête du Travail", "ascension day": "Ascension", "whit monday": "Lundi de Pentecôte", "whit sunday": "Pentecôte",
+  "pentecost": "Pentecôte", "assumption day": "Assomption", "assumption of mary": "Assomption", "all saints' day": "Toussaint",
+  "all saints day": "Toussaint", "armistice day": "Armistice 1918", "christmas day": "Noël", "christmas eve": "Réveillon de Noël",
+  "boxing day": "Lendemain de Noël", "st. stephen's day": "Saint-Étienne", "new year's eve": "Saint-Sylvestre",
+  "independence day": "Fête de l'Indépendance", "national day": "Fête nationale", "heroes' day": "Journée des Héros",
+  "martyrs' day": "Journée des Martyrs", "liberation day": "Journée de la Libération", "parents' day": "Fête des Parents",
+  "victory day": "Jour de la Victoire", "women's day": "Journée de la Femme", "international women's day": "Journée internationale des droits des femmes",
+  "eid al-fitr": "Aïd el-Fitr", "eid al-adha": "Aïd el-Kébir", "mawlid": "Mawlid (naissance du Prophète)",
+  "martyrs of independence day": "Journée des Martyrs de l'Indépendance", "laurent-désiré kabila day": "Journée L.-D. Kabila",
+  "patrice lumumba day": "Journée Patrice Emery Lumumba", "reconciliation day": "Fête de la Réconciliation",
+  "republic day": "Jour de la République", "memorial day": "Jour du Souvenir", "thanksgiving day": "Action de grâce",
+  "veterans day": "Jour des Anciens combattants", "canada day": "Fête du Canada", "belgian national day": "Fête nationale belge",
+  "bastille day": "Fête nationale (14 juillet)", "whit monday (pentecost monday)": "Lundi de Pentecôte",
+};
+
+const toFrench = (localName: string, name: string): string => {
+  const hit = FR_NAMES[(name || "").toLowerCase().trim()] || FR_NAMES[(localName || "").toLowerCase().trim()];
+  if (hit) return hit;
+  // garder le nom local s'il semble déjà français, sinon le nom anglais
+  return localName || name;
+};
+
 const guessType = (name: string): string => {
   const n = name.toLowerCase();
   if (/(noël|noel|christmas|pâques|paques|easter|ascension|pentecôte|assomption|toussaint|aïd|aid|eid|ramadan|good friday|all saints)/.test(n)) return "Fête religieuse";
@@ -140,7 +165,7 @@ const OfficialHolidays = () => {
           const data = await res.json();
           list = (Array.isArray(data) ? data : []).slice(0, 6).map((h: any) => ({
             date: h.date,
-            name: h.localName || h.name,
+            name: toFrench(h.localName, h.name),
             internationalName: h.name,
             type: guessType(`${h.localName} ${h.name}`),
             global: h.global !== false,
