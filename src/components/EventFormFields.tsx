@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image, Ticket, Link2, Video, MapPin, Lock } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import OrganizerAccountPicker from "@/components/OrganizerAccountPicker";
 
 const CURRENCIES = [
   { value: "FCFA", label: "FCFA" },
@@ -68,6 +69,11 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
           <Label className="font-body">Nom de l'organisateur</Label>
           <Input value={form.organizer_name || ""} onChange={(e) => onChange("organizer_name", e.target.value)} placeholder="Votre nom ou organisation" />
         </div>
+        <OrganizerAccountPicker
+          organizerUrl={form.organizer_url}
+          onPick={(name, url) => { onChange("organizer_name", name); onChange("organizer_url", url); }}
+          onClear={() => onChange("organizer_url", "")}
+        />
         <div className="space-y-2 sm:col-span-2">
           <Label className="font-body">Lien de l'organisateur (site, page ou profil Tukio)</Label>
           <Input value={form.organizer_url || ""} onChange={(e) => onChange("organizer_url", e.target.value.trim())} placeholder="https://… ou /u/mon-profil" />
