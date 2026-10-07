@@ -36,6 +36,13 @@
       "when": 1790835273690,
       "tag": "0004_comment_likes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791354674845,
+      "tag": "0005_grant_can_view_event_to_anon",
+      "breakpoints": true
     }
   ]
 }
