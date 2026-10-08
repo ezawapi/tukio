@@ -98,7 +98,7 @@ const HorizontalCarousel = ({ events, renderCard }: { events: any[]; renderCard:
           <ChevronRight className="h-5 w-5" />
         </button>
       )}
-      <motion.div ref={scrollRef} variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+      <motion.div ref={scrollRef} variants={containerVariants} initial={false} animate="visible"
         className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide sm:gap-4"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         {events.map((event) => (
@@ -478,7 +478,7 @@ const Index = () => {
             </Link>
           </div>
           {loadingCats ? <CategorySkeleton /> : (
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
+            <motion.div variants={containerVariants} initial={false} animate="visible"
               className="flex flex-wrap gap-2.5 sm:gap-3">
               {categories.map((cat) => (
                 <motion.div key={cat.id} variants={itemVariants}>
@@ -573,7 +573,7 @@ const Index = () => {
               <Link to="/create"><Button className="mt-4 border-0 gradient-hero text-primary-foreground">{t("home.publish_first")}</Button></Link>
             </div>
           ) : (
-            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            <motion.div variants={containerVariants} initial={false} animate="visible"
               className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {upcomingEvents.map((event) => (
                 <motion.div key={event.id} variants={itemVariants}>
