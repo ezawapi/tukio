@@ -102,7 +102,7 @@ const NearbyEvents = () => {
           {events.map((event) => {
             const countdown = getCountdown(event.date, event.end_date);
             return (
-              <motion.div key={event.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              <motion.div key={event.id} initial={false}
                 className="min-w-[260px] max-w-[280px] flex-shrink-0 snap-start md:min-w-0 md:max-w-none">
                 <Link to={`/events/${event.id}`} className="group flex gap-3 rounded-xl bg-background p-2.5 shadow-card transition-shadow hover:shadow-warm sm:gap-4 sm:p-3">
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-32">
