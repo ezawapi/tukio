@@ -99,15 +99,22 @@ const OnboardingGate = () => {
     setSaving(true);
     const d = r.data;
     const n = (v?: string) => (v ? v : null);
-    const { error } = await supabase.from("profiles").update({
+    // Upsert so accounts without a profile row actually get saved
+    // (a plain update on a missing row silently changes nothing).
+    const { data: saved, error } = await supabase.from("profiles").upsert({
+      id: user.id,
       account_type: d.account_type, display_name: d.display_name, contact_email: d.contact_email,
       phone_primary: d.phone_primary, organization_name: n(d.organization_name),
       facebook_url: n(d.facebook_url), instagram_url: n(d.instagram_url), linkedin_url: n(d.linkedin_url),
       tiktok_url: n(d.tiktok_url), website_url: n(d.website_url), blog_url: n(d.blog_url),
       onboarding_completed: true,
-    }).eq("id", user.id);
+    }, { onConflict: "id" }).select("onboarding_completed").maybeSingle();
     setSaving(false);
-    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
+    if (error || !saved?.onboarding_completed) {
+      toast({ title: "Erreur", description: error?.message || "Enregistrement impossible, réessayez.", variant: "destructive" });
+      return;
+    }
+    try { localStorage.setItem(DONE_KEY(user.id), "1"); } catch { /* ignore */ }
     toast({ title: "Profil complété", description: "Bienvenue sur Tukio !" });
     setOpen(false);
   };
