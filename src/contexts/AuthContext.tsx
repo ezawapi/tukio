@@ -32,10 +32,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Read the locally stored session (no network round-trip, short lock).
+    // A network getUser() here held the auth lock for seconds on slow mobile
+    // connections, making every other request fail ("Lock broken").
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
