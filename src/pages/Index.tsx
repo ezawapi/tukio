@@ -27,6 +27,7 @@ import { useFavoriteAlerts } from "@/hooks/use-favorite-alerts";
 import { useTranslation } from "@/contexts/I18nContext";
 import defaultEventImg from "@/assets/fallback-tukio.png";
 import { useUserRole } from "@/hooks/use-user-role";
+import { useAuth } from "@/contexts/AuthContext";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
@@ -174,9 +175,10 @@ const Index = () => {
     return distanceKmFn(userCoords.lat, userCoords.lng, lat, lng);
   };
 
+  const { user: authUser } = useAuth();
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
-  }, []);
+    setUserId(authUser?.id);
+  }, [authUser?.id]);
 
 
   // Tick every 5 minutes so "Nouveau" (<24h) badges update without reload

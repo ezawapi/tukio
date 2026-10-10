@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const SKIP = ["/auth", "/reset-password", "/terms", "/invite"];
+const DONE_KEY = (id: string) => `tukio:onboarding-done:${id}`;
 const url = z.string().trim().max(500).refine((v) => !v || /^https?:\/\/[^\s]+\.[^\s]+/i.test(v), "Lien invalide (https://…)");
 
 const schema = z.object({
@@ -46,11 +47,26 @@ const OnboardingGate = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  const userId = user?.id;
   useEffect(() => {
     if (!user) { setOpen(false); return; }
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => {
+    // Already completed on this device: never ask again, even if the network is flaky.
+    try { if (localStorage.getItem(DONE_KEY(user.id)) === "1") return; } catch { /* ignore */ }
+
+    let cancelled = false;
+    const check = async (attempt = 0): Promise<void> => {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      if (cancelled) return;
+      // Network / auth error: never assume the profile is incomplete. Retry a few times.
+      if (error) {
+        if (attempt < 3) { setTimeout(() => { if (!cancelled) void check(attempt + 1); }, 2000 * (attempt + 1)); }
+        return;
+      }
       const p: any = data || {};
-      if (p.onboarding_completed) return;
+      if (p.onboarding_completed) {
+        try { localStorage.setItem(DONE_KEY(user.id), "1"); } catch { /* ignore */ }
+        return;
+      }
       setForm({
         ...empty,
         account_type: p.account_type === "organizer" ? "organizer" : (user.user_metadata?.account_type === "organizer" ? "organizer" : "user"),
@@ -62,8 +78,11 @@ const OnboardingGate = () => {
         tiktok_url: p.tiktok_url || "", website_url: p.website_url || "", blog_url: p.blog_url || "",
       });
       setOpen(true);
-    });
-  }, [user]);
+    };
+    void check();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   if (!user || SKIP.some((s) => pathname.startsWith(s))) return null;
 
@@ -80,15 +99,22 @@ const OnboardingGate = () => {
     setSaving(true);
     const d = r.data;
     const n = (v?: string) => (v ? v : null);
-    const { error } = await supabase.from("profiles").update({
+    // Upsert so accounts without a profile row actually get saved
+    // (a plain update on a missing row silently changes nothing).
+    const { data: saved, error } = await supabase.from("profiles").upsert({
+      id: user.id,
       account_type: d.account_type, display_name: d.display_name, contact_email: d.contact_email,
       phone_primary: d.phone_primary, organization_name: n(d.organization_name),
       facebook_url: n(d.facebook_url), instagram_url: n(d.instagram_url), linkedin_url: n(d.linkedin_url),
       tiktok_url: n(d.tiktok_url), website_url: n(d.website_url), blog_url: n(d.blog_url),
       onboarding_completed: true,
-    }).eq("id", user.id);
+    }, { onConflict: "id" }).select("onboarding_completed").maybeSingle();
     setSaving(false);
-    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
+    if (error || !saved?.onboarding_completed) {
+      toast({ title: "Erreur", description: error?.message || "Enregistrement impossible, réessayez.", variant: "destructive" });
+      return;
+    }
+    try { localStorage.setItem(DONE_KEY(user.id), "1"); } catch { /* ignore */ }
     toast({ title: "Profil complété", description: "Bienvenue sur Tukio !" });
     setOpen(false);
   };
