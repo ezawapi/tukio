@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState, useEffect, useRef, useCallback, useMemo, useTransition, lazy } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -120,13 +121,14 @@ const CategorySkeleton = () => (
   </div>
 );
 
-const CarouselSkeleton = () => (
-  <div className="flex gap-3 overflow-hidden">
+const CarouselSkeleton = React.forwardRef<HTMLDivElement>((_props, ref) => (
+  <div ref={ref} className="flex gap-3 overflow-hidden">
     {Array.from({ length: 4 }).map((_, i) => (
       <Skeleton key={i} className="h-64 w-[220px] shrink-0 rounded-2xl sm:w-[260px] sm:h-72" />
     ))}
   </div>
-);
+));
+CarouselSkeleton.displayName = "CarouselSkeleton";
 
 import { useUserLocation, distanceKm as distanceKmFn, formatDistance } from "@/hooks/use-user-location";
 
