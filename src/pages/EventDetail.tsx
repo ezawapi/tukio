@@ -430,7 +430,7 @@ const EventDetail = () => {
                 </div>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{event.title}</h1>
-                  {isOrganizer && (
+                  {(isOrganizer || isAdmin || (user && event?.author_id === user.id)) && (
                     <Link to={`/events/${id}/edit`}>
                       <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
                         <Pencil className="h-3.5 w-3.5" /> Modifier

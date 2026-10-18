@@ -43,7 +43,7 @@ const TICKETING_OPTIONS = [
 ];
 
 const CreateEvent = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -85,7 +85,6 @@ const CreateEvent = () => {
     live_url: "",
   });
 
-  const { loading: authLoading } = useAuth();
   const draft = useEventDraft({ draftKey: "create", userId: user?.id, form, setForm, ready: !!user });
 
   useEffect(() => {
