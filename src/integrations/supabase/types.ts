@@ -1472,6 +1472,13 @@ export type Database = {
           retry_after_seconds: number
         }[]
       }
+      comment_like_counts: {
+        Args: { _comment_ids: string[] }
+        Returns: {
+          comment_id: string
+          likes_count: number
+        }[]
+      }
       get_account_type: { Args: { _user_id: string }; Returns: string }
       get_invitation_preview: {
         Args: { _token: string }
