@@ -195,6 +195,7 @@ const AdminDashboard = () => {
     { value: "events-manage", label: "Gestion événements", show: can("events.moderate") || can("events.delete") },
     { value: "accounts", label: "Comptes & connexions", show: can("users.manage") },
     { value: "notifications", label: t("admin.notifs"), show: can("notifications.view") },
+    { value: "messages", label: "Messagerie", show: can("notifications.view") || can("users.manage") },
     { value: "ads", label: t("admin.ads"), show: can("ads.manage") },
     { value: "banners", label: "Bannières", show: can("banners.manage") },
     { value: "analytics", label: t("admin.analytics"), show: can("analytics.view") },
@@ -479,6 +480,7 @@ const AdminDashboard = () => {
               </TabsContent>
             )}
 
+            {isVisible("messages") && <TabsContent value="messages"><AdminMessagesManager /></TabsContent>}
             {isVisible("ads") && <TabsContent value="ads"><AdminAdsManager userId={user?.id} /></TabsContent>}
 
             {isVisible("analytics") && (
