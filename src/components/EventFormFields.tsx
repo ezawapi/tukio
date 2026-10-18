@@ -72,6 +72,11 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
             </SelectContent>
           </Select>
         </div>
+        <SubCategoryPicker
+          categoryId={form.category_id}
+          value={form.sub_category_ids}
+          onChange={(ids) => onChange("sub_category_ids", ids)}
+        />
         <div className="space-y-2">
           <Label className="font-body">Nom de l'organisateur</Label>
           <Input value={form.organizer_name || ""} onChange={(e) => onChange("organizer_name", e.target.value)} placeholder="Votre nom ou organisation" />
