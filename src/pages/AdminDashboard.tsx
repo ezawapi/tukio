@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags, SendHorizonal } from "lucide-react";
+import { Shield, Trash2, Eye, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags, SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const ITEMS_PER_PAGE = 15;
-const NOTIF_PER_PAGE = 15;
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -52,7 +51,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [pendingEvents, setPendingEvents] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [adStats, setAdStats] = useState({ total: 0, active: 0 });
   const [adAnalytics, setAdAnalytics] = useState<any[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -60,7 +58,6 @@ const AdminDashboard = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [allEventsPage, setAllEventsPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
-  const [notifPage, setNotifPage] = useState(1);
   const [promoEventId, setPromoEventId] = useState<string>("all");
   const [promoTarget, setPromoTarget] = useState<"all" | "favorites">("all");
   const [promoTitle, setPromoTitle] = useState("");
@@ -85,7 +82,7 @@ const AdminDashboard = () => {
   }, [user, navigate, permLoading, role]);
 
 
-  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchNotifications(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); fetchCampaigns(); };
+  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); fetchCampaigns(); };
   const fetchCampaigns = async () => {
     const { data: camps } = await supabase
       .from("notification_campaigns")
@@ -109,7 +106,6 @@ const AdminDashboard = () => {
   const fetchCategories = async () => { const { data } = await supabase.from("categories").select("id, name").order("name"); setCategories(data || []); };
   const fetchEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").order("created_at", { ascending: false }); setEvents(data || []); };
   const fetchPendingEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").eq("status", "pending").order("created_at", { ascending: false }); setPendingEvents(data || []); };
-  const fetchNotifications = async () => { const { data } = await supabase.from("admin_notifications").select("*, events(title, organizer_name)").eq("is_read", false).order("created_at", { ascending: false }); setNotifications(data || []); };
   const fetchAdStats = async () => { const { count: total } = await supabase.from("ads").select("*", { count: "exact", head: true }); const { count: active } = await supabase.from("ads").select("*", { count: "exact", head: true }).eq("is_active", true); setAdStats({ total: total || 0, active: active || 0 }); };
   const fetchAdAnalytics = async () => {
     const { data } = await supabase.from("ad_analytics").select("ad_id, event_type, created_at, ads(title)").order("created_at", { ascending: false }).limit(200);
@@ -120,7 +116,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const markAsRead = async (notifId: string) => { await supabase.from("admin_notifications").update({ is_read: true }).eq("id", notifId); fetchNotifications(); };
   const deleteEvent = async (eventId: string) => { const { error } = await supabase.from("events").delete().eq("id", eventId); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: "Événement supprimé" }); fetchAll(); } };
   const approveEvent = async (eventId: string) => { await supabase.from("events").update({ status: "approved", is_published: true, last_reviewed_at: new Date().toISOString(), updated_by_admin: true }).eq("id", eventId); toast({ title: "Événement approuvé !" }); fetchAll(); };
   const rejectEvent = async (eventId: string) => { await supabase.from("events").update({ status: "rejected", is_published: false, last_reviewed_at: new Date().toISOString(), updated_by_admin: true }).eq("id", eventId); toast({ title: "Événement rejeté" }); fetchAll(); };
@@ -181,8 +176,6 @@ const AdminDashboard = () => {
   const paginatedAll = filteredAllEvents.slice((allEventsPage - 1) * ITEMS_PER_PAGE, allEventsPage * ITEMS_PER_PAGE);
   const pendingTotalPages = Math.ceil(filteredPendingEvents.length / ITEMS_PER_PAGE);
   const paginatedPending = filteredPendingEvents.slice((pendingPage - 1) * ITEMS_PER_PAGE, pendingPage * ITEMS_PER_PAGE);
-  const notifTotalPages = Math.ceil(notifications.length / NOTIF_PER_PAGE);
-  const paginatedNotifs = notifications.slice((notifPage - 1) * NOTIF_PER_PAGE, notifPage * NOTIF_PER_PAGE);
 
   if (loading) return (
     <div className="min-h-screen bg-background"><Navbar /><div className="container mx-auto px-4 pt-20"><div className="animate-pulse space-y-4"><div className="h-8 w-1/3 rounded bg-card" /><div className="h-64 rounded-xl bg-card" /></div></div></div>
@@ -461,23 +454,7 @@ const AdminDashboard = () => {
                     })()}
                   </CardContent>
                 </Card>
-                <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
-                  <CardContent>
-                    {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
-                      <div className="space-y-2 sm:space-y-3">
-                        {paginatedNotifs.map(notif => (
-                          <div key={notif.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                            <div><p className="font-body text-sm text-foreground"><span className="font-semibold">{notif.type === "event_modified" ? "Modifié :" : "Nouveau :"}</span> {notif.events?.title || "Supprimé"}</p>
-                              <p className="font-body text-xs text-muted-foreground">{notif.events?.organizer_name || "Inconnu"} • {format(new Date(notif.created_at), "d MMM yyyy HH:mm", { locale: fr })}</p></div>
-                            <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)} className="h-8 w-8 p-0"><BellOff className="h-4 w-4" /></Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <PaginationControls currentPage={notifPage} totalPages={notifTotalPages} totalItems={notifications.length} itemsPerPage={NOTIF_PER_PAGE} onPageChange={setNotifPage} label="notifications" />
-                  </CardContent>
-                </Card>
-                </div>
+                 </div>
               </TabsContent>
             )}
 

@@ -43,6 +43,13 @@
       "when": 1791354674845,
       "tag": "0005_grant_can_view_event_to_anon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792319383570,
+      "tag": "0006_restrict_comment_likes_select",
+      "breakpoints": true
     }
   ]
 }

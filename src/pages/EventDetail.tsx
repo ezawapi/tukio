@@ -146,13 +146,18 @@ const EventDetail = () => {
       (profs || []).forEach((p: any) => { profilesMap[p.id] = p; });
     }
     const ids = rows.map((c: any) => c.id);
-    const likes: any[] = ids.length
-      ? ((await (supabase as any).from("comment_likes").select("comment_id, user_id").in("comment_id", ids)).data || [])
+    const counts: any[] = ids.length
+      ? ((await (supabase as any).rpc("comment_like_counts", { _comment_ids: ids })).data || [])
       : [];
-    setComments(rows.map((c: any) => {
-      const l = likes.filter((x) => x.comment_id === c.id);
-      return { ...c, author: profilesMap[c.user_id] || null, likes_count: l.length, liked: !!user && l.some((x) => x.user_id === user.id) };
-    }));
+    const myLikes: any[] = ids.length && user
+      ? ((await (supabase as any).from("comment_likes").select("comment_id").eq("user_id", user.id).in("comment_id", ids)).data || [])
+      : [];
+    setComments(rows.map((c: any) => ({
+      ...c,
+      author: profilesMap[c.user_id] || null,
+      likes_count: counts.find((x) => x.comment_id === c.id)?.likes_count ?? 0,
+      liked: myLikes.some((x) => x.comment_id === c.id),
+    })));
   };
 
   const toggleLike = async (commentId: string, liked: boolean) => {
