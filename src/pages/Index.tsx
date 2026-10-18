@@ -551,14 +551,6 @@ const Index = () => {
       {/* Jours officiels / fêtes du pays de l'utilisateur */}
       <DeferVisible minHeight={200}><OfficialHolidays /></DeferVisible>
 
-      {/* Recommandations IA */}
-      <DeferVisible minHeight={200}><AiRecommendations /></DeferVisible>
-
-      {/* Promotional Banner */}
-      <section className="py-3 sm:py-5">
-        <DeferVisible minHeight={120}><PromotionalBanner /></DeferVisible>
-      </section>
-
       {/* Upcoming */}
       <section className="bg-background py-5 sm:py-7">
         <div className="container mx-auto w-full px-4 md:w-[80%] md:px-0 max-w-6xl">
@@ -604,6 +596,14 @@ const Index = () => {
             <DeferVisible minHeight={90}><AdSlotBanner slotCode="home-bottom-right" compact /></DeferVisible>
           </div>
         </div>
+      </section>
+
+      {/* Recommandations IA */}
+      <DeferVisible minHeight={200}><AiRecommendations /></DeferVisible>
+
+      {/* Promotional Banner */}
+      <section className="py-3 sm:py-5">
+        <DeferVisible minHeight={120}><PromotionalBanner /></DeferVisible>
       </section>
 
       <Footer />
