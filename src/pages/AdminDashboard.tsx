@@ -461,23 +461,7 @@ const AdminDashboard = () => {
                     })()}
                   </CardContent>
                 </Card>
-                <Card><CardHeader><CardTitle className="flex items-center gap-2 font-display text-base sm:text-lg"><Bell className="h-5 w-5 text-primary" /> {t("admin.notifs")} ({notifications.length})</CardTitle></CardHeader>
-                  <CardContent>
-                    {paginatedNotifs.length === 0 ? <p className="py-8 text-center font-body text-sm text-muted-foreground">{t("notif.empty")}</p> : (
-                      <div className="space-y-2 sm:space-y-3">
-                        {paginatedNotifs.map(notif => (
-                          <div key={notif.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                            <div><p className="font-body text-sm text-foreground"><span className="font-semibold">{notif.type === "event_modified" ? "Modifié :" : "Nouveau :"}</span> {notif.events?.title || "Supprimé"}</p>
-                              <p className="font-body text-xs text-muted-foreground">{notif.events?.organizer_name || "Inconnu"} • {format(new Date(notif.created_at), "d MMM yyyy HH:mm", { locale: fr })}</p></div>
-                            <Button variant="ghost" size="sm" onClick={() => markAsRead(notif.id)} className="h-8 w-8 p-0"><BellOff className="h-4 w-4" /></Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <PaginationControls currentPage={notifPage} totalPages={notifTotalPages} totalItems={notifications.length} itemsPerPage={NOTIF_PER_PAGE} onPageChange={setNotifPage} label="notifications" />
-                  </CardContent>
-                </Card>
-                </div>
+                 </div>
               </TabsContent>
             )}
 
