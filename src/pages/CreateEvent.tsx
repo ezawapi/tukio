@@ -15,6 +15,9 @@ import Footer from "@/components/Footer";
 import ImageUpload from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import SubCategoryPicker from "@/components/SubCategoryPicker";
+import DraftStatus from "@/components/DraftStatus";
+import { useEventDraft } from "@/hooks/use-event-draft";
 import { useToast } from "@/hooks/use-toast";
 
 const CURRENCIES = [
@@ -46,6 +49,7 @@ const CreateEvent = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
+    sub_category_ids: [] as string[],
     title: "",
     description: "",
     category_id: "",
@@ -81,17 +85,23 @@ const CreateEvent = () => {
     live_url: "",
   });
 
+  const { loading: authLoading } = useAuth();
+  const draft = useEventDraft({ draftKey: "create", userId: user?.id, form, setForm, ready: !!user });
+
   useEffect(() => {
-    if (!user) navigate("/auth");
+    if (!authLoading && !user) navigate("/auth");
+  }, [authLoading, user, navigate]);
+
+  useEffect(() => {
     fetchCategories();
-  }, [user, navigate]);
+  }, []);
 
   const fetchCategories = async () => {
     const { data } = await supabase.from("public_categories").select("id, name").order("name");
     if (data) setCategories(data);
   };
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -116,6 +126,7 @@ const CreateEvent = () => {
       title: form.title,
       description: form.description,
       category_id: form.category_id || null,
+      sub_category_ids: form.category_id ? form.sub_category_ids : [],
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
       venue_name: form.venue_name || null,
@@ -155,6 +166,7 @@ const CreateEvent = () => {
     if (error) {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
+      await draft.clear();
       toast({ title: "Événement soumis !", description: "Il sera visible après validation par l'administrateur." });
       if (window.history.length > 1) navigate(-1);
       else navigate("/my-events");
@@ -174,6 +186,7 @@ const CreateEvent = () => {
               </p>
             </CardHeader>
             <CardContent>
+              <div className="mb-5"><DraftStatus draft={draft} /></div>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label className="font-body">Titre *</Label>
@@ -188,7 +201,7 @@ const CreateEvent = () => {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="font-body">Catégorie</Label>
-                    <Select value={form.category_id} onValueChange={(v) => handleChange("category_id", v)}>
+                    <Select value={form.category_id} onValueChange={(v) => { if (v !== form.category_id) handleChange("sub_category_ids", []); handleChange("category_id", v); }}>
                       <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
@@ -197,6 +210,7 @@ const CreateEvent = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <SubCategoryPicker categoryId={form.category_id} value={form.sub_category_ids} onChange={(ids) => handleChange("sub_category_ids", ids)} />
                   <div className="space-y-2">
                     <Label className="font-body">Nom de l'organisateur</Label>
                     <Input value={form.organizer_name} onChange={(e) => handleChange("organizer_name", e.target.value)} placeholder="Votre nom ou organisation" />
