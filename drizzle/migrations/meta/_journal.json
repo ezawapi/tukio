@@ -57,6 +57,13 @@
       "when": 1792320235416,
       "tag": "0007_restrict_public_reads_via_views",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792322993754,
+      "tag": "0008_subcategories_and_event_drafts",
+      "breakpoints": true
     }
   ]
 }
