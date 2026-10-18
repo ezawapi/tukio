@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, DollarSign, Image, Ticket, Link2, Video, MapPin, Lock } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import OrganizerAccountPicker from "@/components/OrganizerAccountPicker";
+import SubCategoryPicker from "@/components/SubCategoryPicker";
 
 const CURRENCIES = [
   { value: "FCFA", label: "FCFA" },
