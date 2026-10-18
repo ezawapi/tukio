@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PaginationControls from "@/components/PaginationControls";
+import MyDrafts from "@/components/MyDrafts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -87,7 +88,7 @@ const MyEvents = () => {
       setLoading(false);
     };
     load();
-  }, [user, tab, page]);
+  }, [user?.id, tab, page]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -123,6 +124,8 @@ const MyEvents = () => {
           <h1 className="mb-6 font-display text-2xl sm:text-3xl font-bold text-foreground">
             Mes événements
           </h1>
+
+          <MyDrafts userId={user.id} />
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="space-y-4">
             <TabsList className="w-full sm:w-auto">
