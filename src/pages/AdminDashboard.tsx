@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Trash2, Eye, Bell, BellOff, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags, SendHorizonal } from "lucide-react";
+import { Shield, Trash2, Eye, AlertTriangle, CheckCircle, XCircle, BarChart3, Calendar, TrendingUp, Video, MousePointerClick, Search, Users, Tags, SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const ITEMS_PER_PAGE = 15;
-const NOTIF_PER_PAGE = 15;
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -52,7 +51,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [pendingEvents, setPendingEvents] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [adStats, setAdStats] = useState({ total: 0, active: 0 });
   const [adAnalytics, setAdAnalytics] = useState<any[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -60,7 +58,6 @@ const AdminDashboard = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [allEventsPage, setAllEventsPage] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
-  const [notifPage, setNotifPage] = useState(1);
   const [promoEventId, setPromoEventId] = useState<string>("all");
   const [promoTarget, setPromoTarget] = useState<"all" | "favorites">("all");
   const [promoTitle, setPromoTitle] = useState("");
@@ -85,7 +82,7 @@ const AdminDashboard = () => {
   }, [user, navigate, permLoading, role]);
 
 
-  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchNotifications(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); fetchCampaigns(); };
+  const fetchAll = () => { fetchEvents(); fetchPendingEvents(); fetchAdStats(); fetchAdAnalytics(); fetchCategories(); fetchCampaigns(); };
   const fetchCampaigns = async () => {
     const { data: camps } = await supabase
       .from("notification_campaigns")
@@ -181,8 +178,6 @@ const AdminDashboard = () => {
   const paginatedAll = filteredAllEvents.slice((allEventsPage - 1) * ITEMS_PER_PAGE, allEventsPage * ITEMS_PER_PAGE);
   const pendingTotalPages = Math.ceil(filteredPendingEvents.length / ITEMS_PER_PAGE);
   const paginatedPending = filteredPendingEvents.slice((pendingPage - 1) * ITEMS_PER_PAGE, pendingPage * ITEMS_PER_PAGE);
-  const notifTotalPages = Math.ceil(notifications.length / NOTIF_PER_PAGE);
-  const paginatedNotifs = notifications.slice((notifPage - 1) * NOTIF_PER_PAGE, notifPage * NOTIF_PER_PAGE);
 
   if (loading) return (
     <div className="min-h-screen bg-background"><Navbar /><div className="container mx-auto px-4 pt-20"><div className="animate-pulse space-y-4"><div className="h-8 w-1/3 rounded bg-card" /><div className="h-64 rounded-xl bg-card" /></div></div></div>
