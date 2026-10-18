@@ -32,7 +32,7 @@ const Categories = () => {
     try {
       // Parallel fetch for categories and event counts
       const [{ data: cats }, { data: evRows }] = await Promise.all([
-        supabase.from("categories").select("*").order("name"),
+        supabase.from("public_categories").select("*").order("name"),
         supabase
           .from("events")
           .select("category_id")

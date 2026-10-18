@@ -67,7 +67,7 @@ const Events = () => {
   }, [searchParams]);
 
   const fetchCategories = async () => {
-    const { data } = await supabase.from("categories").select("id, name").order("name");
+    const { data } = await supabase.from("public_categories").select("id, name").order("name");
     if (data) setCategories(data);
   };
 

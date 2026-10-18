@@ -266,7 +266,7 @@ const Index = () => {
     const todayISO = startOfTodayISO();
     try {
       const [{ data: cats, error: catErr }, { data: evRows, error: evErr }] = await Promise.all([
-        supabase.from("categories").select("id,name,icon,color").order("name"),
+        supabase.from("public_categories").select("id,name,icon,color").order("name"),
         supabase
           .from("events")
           .select("category_id")

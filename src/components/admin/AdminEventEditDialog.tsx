@@ -75,7 +75,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
     if (!open) return;
     setForm(initialForm);
     const fetchCategories = async () => {
-      const { data } = await supabase.from("categories").select("id, name").order("name");
+      const { data } = await supabase.from("public_categories").select("id, name").order("name");
       setCategories(data || []);
     };
     fetchCategories();
