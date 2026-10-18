@@ -114,6 +114,7 @@ const Events = () => {
       if (showFreeOnly) return !event.price || event.price === "Gratuit";
       const numPrice = parseFloat((event.price || "0").replace(/[^\d]/g, ""));
       if (!event.price || event.price === "Gratuit") return priceRange[0] === 0;
+      if (Number.isNaN(numPrice)) return true; // prix libre (« Sur place », « Payant »…) : toujours visible
       return numPrice >= priceRange[0] && numPrice <= priceRange[1];
     });
   }, [events, priceRange, showFreeOnly]);
