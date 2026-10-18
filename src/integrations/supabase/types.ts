@@ -689,6 +689,13 @@ export type Database = {
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "public_categories"
+            referencedColumns: ["id"]
+          },
         ]
       }
       favorites: {
@@ -1376,6 +1383,30 @@ export type Database = {
       }
     }
     Views: {
+      public_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null
@@ -1395,6 +1426,21 @@ export type Database = {
           video_url: string | null
           visibility_settings: Json | null
           website_url: string | null
+        }
+        Relationships: []
+      }
+      public_site_content: {
+        Row: {
+          key: string | null
+          value: string | null
+        }
+        Insert: {
+          key?: string | null
+          value?: string | null
+        }
+        Update: {
+          key?: string | null
+          value?: string | null
         }
         Relationships: []
       }
