@@ -1,4 +1,5 @@
 import { isExternalLink } from "@/lib/organizer-link";
+import { useSubCategories } from "@/hooks/use-sub-categories";
 import { useState, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
@@ -38,6 +39,7 @@ const EventDetail = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { isAdmin, role } = useUserRole(user?.id);
+  const { data: subCategories = [] } = useSubCategories();
   const isModerator = role === "moderator";
   const { toast } = useToast();
   const { location: userLocation } = useUserLocation();
@@ -415,6 +417,11 @@ const EventDetail = () => {
                   <Badge className="border-0 bg-primary text-primary-foreground">
                     {event.categories?.name || "Événement"}
                   </Badge>
+                  {subCategories
+                    .filter((sc) => (event.sub_category_ids || []).includes(sc.id))
+                    .map((sc) => (
+                      <Badge key={sc.id} variant="outline" className="border-primary/30 text-primary">{sc.name}</Badge>
+                    ))}
                   {event.visibility === "private" && (
                     <Badge variant="outline" className="gap-1">
                       <Lock className="h-3.5 w-3.5 text-primary" /> Privé
@@ -430,7 +437,7 @@ const EventDetail = () => {
                 </div>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">{event.title}</h1>
-                  {isOrganizer && (
+                  {(isOrganizer || isAdmin || (user && event?.author_id === user.id)) && (
                     <Link to={`/events/${id}/edit`}>
                       <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
                         <Pencil className="h-3.5 w-3.5" /> Modifier

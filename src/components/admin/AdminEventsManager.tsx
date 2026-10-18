@@ -19,10 +19,13 @@ import { useToast } from "@/hooks/use-toast";
 import EventFormFields from "@/components/EventFormFields";
 import AdminEventEditDialog from "@/components/admin/AdminEventEditDialog";
 import PaginationControls from "@/components/PaginationControls";
+import DraftStatus from "@/components/DraftStatus";
+import { useEventDraft } from "@/hooks/use-event-draft";
 
 const PER_PAGE = 15;
 
 const emptyForm = {
+  sub_category_ids: [] as string[],
   title: "", description: "", category_id: "", organizer_name: "", organizer_logo_url: "", organizer_url: "",
   date: "", end_date: "", location: "", venue_name: "", city: "", price: "Gratuit", currency: "CDF",
   capacity: "", visibility: "public", status: "approved", is_published: true, is_live: false, live_url: "",
@@ -49,6 +52,15 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
   const [form, setForm] = useState<any>(emptyForm);
   const [partEvent, setPartEvent] = useState<any | null>(null);
 
+  const draft = useEventDraft({
+    draftKey: "admin-create",
+    userId,
+    form,
+    setForm,
+    ready: createOpen,
+    enabled: createOpen,
+  });
+
   const fetchAll = async () => {
     const [{ data: ev }, { data: cats }, { data: parts }] = await Promise.all([
       supabase.from("events").select("*").order("date", { ascending: false }),
@@ -62,7 +74,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
 
   useEffect(() => { fetchAll(); }, []);
 
-  const handleChange = (field: string, value: string | boolean) =>
+  const handleChange = (field: string, value: any) =>
     setForm((prev: any) => ({ ...prev, [field]: value }));
 
   const createEvent = async () => {
@@ -76,6 +88,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
       title: form.title,
       description: form.description || null,
       category_id: form.category_id || null,
+      sub_category_ids: form.category_id ? form.sub_category_ids || [] : [],
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
       venue_name: form.venue_name || null,
@@ -114,6 +127,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
     } as any);
     setSaving(false);
     if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
+    await draft.clear();
     toast({ title: "Événement créé" });
     setCreateOpen(false);
     setForm(emptyForm);
@@ -154,6 +168,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
                 <DialogTitle>Créer un événement</DialogTitle>
                 <DialogDescription>Publié directement au nom de l'administration.</DialogDescription>
               </DialogHeader>
+              <DraftStatus draft={draft} />
               <EventFormFields form={form} categories={categories} userId={userId} onChange={handleChange} showAdminFields />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>Annuler</Button>

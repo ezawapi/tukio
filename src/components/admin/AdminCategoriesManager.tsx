@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { icons as lucideIcons } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,12 +63,42 @@ const AdminCategoriesManager = () => {
   const [iconSearch, setIconSearch] = useState("");
   const [customIcon, setCustomIcon] = useState("");
 
+  const queryClient = useQueryClient();
+  const [subs, setSubs] = useState<{ id: string; category_id: string; name: string }[]>([]);
+  const [newSub, setNewSub] = useState<Record<string, string>>({});
+
   const fetchCategories = async () => {
-    const { data } = await supabase.from("categories").select("*").order("name");
+    const [{ data }, { data: subData }] = await Promise.all([
+      supabase.from("categories").select("*").order("name"),
+      supabase.from("sub_categories").select("id, category_id, name").order("name"),
+    ]);
     setCategories(data || []);
+    setSubs(subData || []);
   };
 
   useEffect(() => { fetchCategories(); }, []);
+
+  const addSub = async (categoryId: string) => {
+    const name = (newSub[categoryId] || "").trim();
+    if (!name) return;
+    const { error } = await supabase.from("sub_categories").insert({ category_id: categoryId, name });
+    if (error) {
+      toast({ title: "Erreur", description: error.code === "23505" ? "Cette sous-catégorie existe déjà." : error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Sous-catégorie ajoutée" });
+    setNewSub((p) => ({ ...p, [categoryId]: "" }));
+    fetchCategories();
+    queryClient.invalidateQueries({ queryKey: ["sub-categories"] });
+  };
+
+  const deleteSub = async (id: string) => {
+    const { error } = await supabase.from("sub_categories").delete().eq("id", id);
+    if (error) { toast({ title: "Erreur", description: error.message, variant: "destructive" }); return; }
+    setSubs((p) => p.filter((x) => x.id !== id));
+    queryClient.invalidateQueries({ queryKey: ["sub-categories"] });
+    toast({ title: "Sous-catégorie supprimée" });
+  };
 
   const filteredIcons = useMemo(() => {
     const q = iconSearch.toLowerCase().trim();
@@ -220,7 +251,8 @@ const AdminCategoriesManager = () => {
       <CardContent>
         <div className="space-y-2">
           {categories.map((cat) => (
-            <div key={cat.id} className="flex items-center justify-between rounded-lg bg-muted/30 p-3">
+            <div key={cat.id} className="rounded-lg bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground"
@@ -241,7 +273,7 @@ const AdminCategoriesManager = () => {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Supprimer « {cat.name} » ?</AlertDialogTitle>
-                      <AlertDialogDescription>Les événements liés à cette catégorie ne seront pas supprimés mais n'auront plus de catégorie.</AlertDialogDescription>
+                      <AlertDialogDescription>Les événements liés à cette catégorie ne seront pas supprimés mais n'auront plus de catégorie. Ses sous-catégories seront supprimées.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
@@ -250,6 +282,31 @@ const AdminCategoriesManager = () => {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-11">
+              {subs.filter((sc) => sc.category_id === cat.id).map((sc) => (
+                <Badge key={sc.id} variant="outline" className="gap-1 pr-1 font-body text-[11px]">
+                  {sc.name}
+                  <button type="button" onClick={() => deleteSub(sc.id)} aria-label={`Supprimer ${sc.name}`} className="rounded-full p-0.5 hover:bg-destructive/10">
+                    <X className="h-3 w-3 text-destructive" />
+                  </button>
+                </Badge>
+              ))}
+              <form
+                className="flex items-center gap-1"
+                onSubmit={(e) => { e.preventDefault(); addSub(cat.id); }}
+              >
+                <Input
+                  value={newSub[cat.id] || ""}
+                  onChange={(e) => setNewSub((p) => ({ ...p, [cat.id]: e.target.value }))}
+                  placeholder="+ Sous-catégorie"
+                  className="h-7 w-36 text-xs"
+                />
+                <Button type="submit" size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Ajouter la sous-catégorie">
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </form>
+            </div>
             </div>
           ))}
         </div>

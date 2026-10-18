@@ -1,52 +1,75 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import ImageUpload from "@/components/ImageUpload";
+import EventFormFields from "@/components/EventFormFields";
+import DraftStatus from "@/components/DraftStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useEventDraft } from "@/hooks/use-event-draft";
 
-const CURRENCIES = ["FCFA", "USD", "EUR", "XAF", "XOF"];
+const toDateTimeLocal = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  const normalized = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+  return normalized.toISOString().slice(0, 16);
+};
 
 const EditEvent = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState<Record<string, any>>({});
+  const loadedFor = useRef<string | null>(null);
+
+  const draft = useEventDraft({
+    draftKey: `edit:${id}`,
+    userId,
+    form,
+    setForm,
+    ready: !loading,
+    eventId: id,
+  });
 
   useEffect(() => {
-    if (!user) { navigate("/auth"); return; }
-    fetchEvent();
-    fetchCategories();
-  }, [id, user]);
+    if (authLoading) return;
+    if (!userId) { navigate("/auth"); return; }
+    // Load once per event: auth refreshes must never reset the form.
+    const key = `${id}:${userId}`;
+    if (loadedFor.current === key) return;
+    loadedFor.current = key;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, userId, authLoading]);
 
-  const fetchEvent = async () => {
-    if (!id) return;
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+  const load = async () => {
+    if (!id || !userId) return;
+    const [{ data, error }, { data: roles }, { data: cats }] = await Promise.all([
+      supabase.from("events").select("*").eq("id", id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", userId),
+      supabase.from("public_categories").select("id, name").order("name"),
+    ]);
+    setCategories((cats as any) || []);
+    const admin = (roles || []).some((r) => r.role === "admin");
+    setIsAdmin(admin);
 
     if (error || !data) {
       toast({ title: "Événement introuvable", variant: "destructive" });
       navigate("/profile");
       return;
     }
-    if (data.organizer_id !== user?.id) {
+    if (data.organizer_id !== userId && (data as any).author_id !== userId && !admin) {
       toast({ title: "Accès refusé", description: "Vous ne pouvez modifier que vos propres événements.", variant: "destructive" });
       navigate("/profile");
       return;
@@ -55,113 +78,128 @@ const EditEvent = () => {
     setForm({
       title: data.title || "",
       description: data.description || "",
-      date: data.date ? data.date.slice(0, 16) : "",
-      end_date: data.end_date ? data.end_date.slice(0, 16) : "",
-      location: data.location || "",
-      city: data.city || "",
       category_id: data.category_id || "",
-      price: data.price || "Gratuit",
-      currency: data.currency || "FCFA",
-      image_url: data.image_url || "",
-      image_url2: data.image_url2 || "",
-      latitude: data.latitude?.toString() || "",
-      longitude: data.longitude?.toString() || "",
+      sub_category_ids: (data as any).sub_category_ids || [],
       organizer_name: data.organizer_name || "",
       organizer_logo_url: data.organizer_logo_url || "",
       organizer_url: (data as any).organizer_url || "",
+      date: toDateTimeLocal(data.date),
+      end_date: toDateTimeLocal(data.end_date),
+      venue_name: data.venue_name || "",
+      location: data.location || "",
+      city: data.city || "",
+      price: data.price || "Gratuit",
+      currency: data.currency || "FCFA",
+      capacity: data.capacity?.toString() || "",
+      visibility: data.visibility || "public",
+      status: data.status || "pending",
+      is_published: !!data.is_published,
+      is_live: !!data.is_live,
+      live_url: data.live_url || "",
+      image_url: data.image_url || "",
+      image_url2: data.image_url2 || "",
+      ticketing_mode: data.ticketing_mode || "none",
+      external_ticket_url: data.external_ticket_url || "",
+      reservation_cta_label: data.reservation_cta_label || "Réserver",
       phone1: data.phone1 || "",
       phone2: data.phone2 || "",
+      whatsapp: data.whatsapp || "",
       contact_email: data.contact_email || "",
       website_url: data.website_url || "",
       facebook_url: data.facebook_url || "",
       instagram_url: data.instagram_url || "",
       twitter_url: data.twitter_url || "",
       tiktok_url: data.tiktok_url || "",
-      whatsapp: data.whatsapp || "",
-      is_live: data.is_live || false,
-      external_ticket_url: data.external_ticket_url || "",
-      ticketing_mode: data.ticketing_mode || "none",
-      capacity: data.capacity?.toString() || "",
+      latitude: data.latitude?.toString() || "",
+      longitude: data.longitude?.toString() || "",
     });
     setLoading(false);
   };
 
-  const fetchCategories = async () => {
-    const { data } = await supabase.from("public_categories").select("id, name").order("name");
-    setCategories(data || []);
+  const handleChange = (field: string, value: any) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
-
-  const handleChange = (field: string, value: string | boolean) => {
-    setForm((prev: Record<string, any>) => ({ ...prev, [field]: value }));
-  };
-
-  const isFree = !form.price || form.price === "Gratuit" || form.price === "0";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !user) return;
+    if (!id || !userId) return;
 
     const logo = (form.organizer_logo_url || "").trim();
     if (logo && !/^https?:\/\/.+/i.test(logo)) {
       toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
       return;
     }
+    if (form.ticketing_mode === "external" && !(form.external_ticket_url || "").trim()) {
+      toast({ title: "Lien requis", description: "Ajoutez un lien vers votre plateforme de réservation.", variant: "destructive" });
+      return;
+    }
 
     setSaving(true);
+    const isFree = !form.price || /^(gratuit|0)$/i.test(form.price);
+    const payload: Record<string, any> = {
+      title: form.title,
+      description: form.description || null,
+      category_id: form.category_id || null,
+      sub_category_ids: form.category_id ? form.sub_category_ids || [] : [],
+      date: new Date(form.date).toISOString(),
+      end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
+      venue_name: form.venue_name || null,
+      location: form.location,
+      city: form.city,
+      price: isFree ? "Gratuit" : form.price,
+      currency: isFree ? "FCFA" : form.currency,
+      capacity: form.capacity ? parseInt(form.capacity, 10) : null,
+      visibility: form.visibility,
+      image_url: form.image_url || null,
+      image_url2: form.image_url2 || null,
+      latitude: form.latitude ? parseFloat(form.latitude) : null,
+      longitude: form.longitude ? parseFloat(form.longitude) : null,
+      organizer_name: form.organizer_name || null,
+      organizer_logo_url: logo || null,
+      organizer_url: normalizeOrganizerUrl(form.organizer_url),
+      phone1: form.phone1 || null,
+      phone2: form.phone2 || null,
+      contact_email: form.contact_email || null,
+      website_url: form.website_url || null,
+      facebook_url: form.facebook_url || null,
+      instagram_url: form.instagram_url || null,
+      twitter_url: form.twitter_url || null,
+      tiktok_url: form.tiktok_url || null,
+      whatsapp: form.whatsapp || null,
+      is_live: !!form.is_live,
+      live_url: form.is_live ? form.live_url || null : null,
+      ticketing_mode: form.ticketing_mode,
+      external_ticket_url: form.ticketing_mode === "external" ? form.external_ticket_url.trim() : null,
+      reservation_cta_label: form.ticketing_mode === "external" ? form.reservation_cta_label || "Réserver" : "Réserver",
+      updated_at: new Date().toISOString(),
+    };
+    if (isAdmin) {
+      payload.status = form.status;
+      payload.is_published = form.is_published === true || form.is_published === "true";
+      payload.updated_by_admin = true;
+      payload.last_reviewed_at = new Date().toISOString();
+    } else {
+      // Modifying an event sends it back for admin review
+      payload.status = "pending";
+      payload.is_published = false;
+    }
 
-    const { error } = await supabase
-      .from("events")
-      .update({
-        title: form.title,
-        description: form.description || null,
-        date: new Date(form.date).toISOString(),
-        end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
-        location: form.location,
-        city: form.city,
-        category_id: form.category_id || null,
-        price: isFree ? "Gratuit" : form.price,
-        currency: isFree ? "FCFA" : form.currency,
-        image_url: form.image_url || null,
-        image_url2: form.image_url2 || null,
-        latitude: form.latitude ? parseFloat(form.latitude) : null,
-        longitude: form.longitude ? parseFloat(form.longitude) : null,
-        organizer_name: form.organizer_name || null,
-        organizer_logo_url: logo || null,
-        organizer_url: normalizeOrganizerUrl(form.organizer_url),
-        phone1: form.phone1 || null,
-        phone2: form.phone2 || null,
-        contact_email: form.contact_email || null,
-        website_url: form.website_url || null,
-        facebook_url: form.facebook_url || null,
-        instagram_url: form.instagram_url || null,
-        twitter_url: form.twitter_url || null,
-        tiktok_url: form.tiktok_url || null,
-        whatsapp: form.whatsapp || null,
-        is_live: form.is_live,
-        external_ticket_url: form.ticketing_mode === "external" ? form.external_ticket_url : null,
-        ticketing_mode: form.ticketing_mode,
-        capacity: form.capacity ? parseInt(form.capacity) : null,
-        updated_at: new Date().toISOString(),
-        // Reset to pending so admin re-validates
-        status: "pending",
-        is_published: false,
-      })
-      .eq("id", id);
+    const { error } = await supabase.from("events").update(payload as any).eq("id", id);
 
     if (error) {
+      setSaving(false);
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
-    } else {
-      // Create admin notification for the modification
-      await supabase.from("admin_notifications").insert({
-        event_id: id,
-        type: "event_modified",
-      });
-
-      toast({ title: "Modification soumise !", description: "Votre modification sera revue par l'administrateur." });
-      if (window.history.length > 1) navigate(-1);
-      else navigate(`/events/${id}`);
+      return;
+    }
+    await draft.clear();
+    if (!isAdmin) {
+      await supabase.from("admin_notifications").insert({ event_id: id, type: "event_modified" });
     }
     setSaving(false);
+    toast(isAdmin
+      ? { title: "Activité mise à jour" }
+      : { title: "Modification soumise !", description: "Votre modification sera revue par l'administrateur." });
+    navigate(`/events/${id}`);
   };
 
   if (loading) {
@@ -178,143 +216,25 @@ const EditEvent = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-3xl px-4 pt-20 pb-16">
+      <div className="container mx-auto max-w-3xl px-4 pt-20 pb-24">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 gap-2">
           <ArrowLeft className="h-4 w-4" /> Retour
         </Button>
 
-        <h1 className="font-display text-2xl font-bold text-foreground mb-6">Modifier l'activité</h1>
-        <p className="font-body text-sm text-muted-foreground mb-6">
-          Après modification, votre activité sera soumise à validation par l'administrateur.
+        <h1 className="mb-2 font-display text-2xl font-bold text-foreground">Modifier l'activité</h1>
+        <p className="mb-4 font-body text-sm text-muted-foreground">
+          {isAdmin
+            ? "En tant qu'administrateur, vos modifications sont publiées directement."
+            : "Après modification, votre activité sera soumise à validation par l'administrateur."}
         </p>
+        <div className="mb-6"><DraftStatus draft={draft} /></div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic info */}
-          <div className="space-y-4 rounded-xl border border-border p-4">
-            <h2 className="font-display text-lg font-semibold text-foreground">Informations générales</h2>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Titre *</label>
-              <Input value={form.title} onChange={(e) => handleChange("title", e.target.value)} required />
-            </div>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Description</label>
-              <Textarea value={form.description} onChange={(e) => handleChange("description", e.target.value)} rows={4} />
-            </div>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Catégorie</label>
-              <Select value={form.category_id} onValueChange={(v) => handleChange("category_id", v)}>
-                <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Date/Location */}
-          <div className="space-y-4 rounded-xl border border-border p-4">
-            <h2 className="font-display text-lg font-semibold text-foreground">Date & Lieu</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Date de début *</label>
-                <Input type="datetime-local" value={form.date} onChange={(e) => handleChange("date", e.target.value)} required />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Date de fin</label>
-                <Input type="datetime-local" value={form.end_date} onChange={(e) => handleChange("end_date", e.target.value)} />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Lieu *</label>
-                <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} required />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Ville *</label>
-                <Input value={form.city} onChange={(e) => handleChange("city", e.target.value)} required />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Latitude</label>
-                <Input value={form.latitude} onChange={(e) => handleChange("latitude", e.target.value)} placeholder="-4.3250" />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Longitude</label>
-                <Input value={form.longitude} onChange={(e) => handleChange("longitude", e.target.value)} placeholder="15.3222" />
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing */}
-          <div className="space-y-4 rounded-xl border border-border p-4">
-            <h2 className="font-display text-lg font-semibold text-foreground">Tarification</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Prix</label>
-                <Input value={form.price} onChange={(e) => handleChange("price", e.target.value)} placeholder="Gratuit" />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Devise</label>
-                <Select value={isFree ? "" : form.currency} onValueChange={(v) => handleChange("currency", v)} disabled={isFree}>
-                  <SelectTrigger><SelectValue placeholder={isFree ? "—" : "Devise"} /></SelectTrigger>
-                  <SelectContent>{CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Capacité</label>
-              <Input type="number" value={form.capacity} onChange={(e) => handleChange("capacity", e.target.value)} placeholder="Illimitée" />
-            </div>
-          </div>
-
-          {/* Images */}
-          <div className="space-y-4 rounded-xl border border-border p-4">
-            <h2 className="font-display text-lg font-semibold text-foreground">Images</h2>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Image principale</label>
-              <ImageUpload value={form.image_url} onChange={(url) => handleChange("image_url", url)} userId={user?.id || ""} />
-            </div>
-            <div>
-              <label className="font-body text-sm font-medium text-foreground mb-1 block">Image secondaire</label>
-              <ImageUpload value={form.image_url2} onChange={(url) => handleChange("image_url2", url)} userId={user?.id || ""} />
-            </div>
-          </div>
-
-          {/* Contact */}
-          <div className="space-y-4 rounded-xl border border-border p-4">
-            <h2 className="font-display text-lg font-semibold text-foreground">Contact</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Organisateur</label>
-                <Input value={form.organizer_name} onChange={(e) => handleChange("organizer_name", e.target.value)} />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Lien de l'organisateur</label>
-                <Input value={form.organizer_url || ""} onChange={(e) => handleChange("organizer_url", e.target.value.trim())} placeholder="https://… ou /u/mon-profil" />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Email</label>
-                <Input value={form.contact_email} onChange={(e) => handleChange("contact_email", e.target.value)} />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">Téléphone 1</label>
-                <Input value={form.phone1} onChange={(e) => handleChange("phone1", e.target.value)} />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-foreground mb-1 block">WhatsApp</label>
-                <Input value={form.whatsapp} onChange={(e) => handleChange("whatsapp", e.target.value)} />
-              </div>
-            </div>
-          </div>
-
-          {/* Live */}
-          <div className="flex items-center gap-3 rounded-xl border border-border p-4">
-            <Switch checked={form.is_live} onCheckedChange={(v) => handleChange("is_live", v)} />
-            <label className="font-body text-sm font-medium text-foreground">Événement en direct (Live)</label>
-          </div>
+          <EventFormFields form={form} categories={categories} userId={userId} onChange={handleChange} showAdminFields={isAdmin} />
 
           <Button type="submit" disabled={saving} className="w-full gap-2 gradient-hero text-primary-foreground border-0">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Soumettre la modification
+            {isAdmin ? "Enregistrer" : "Soumettre la modification"}
           </Button>
         </form>
       </div>

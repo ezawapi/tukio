@@ -412,6 +412,42 @@ export type Database = {
         }
         Relationships: []
       }
+      event_drafts: {
+        Row: {
+          created_at: string
+          data: Json
+          draft_key: string
+          event_id: string | null
+          expires_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          draft_key: string
+          event_id?: string | null
+          expires_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          draft_key?: string
+          event_id?: string | null
+          expires_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_invitations: {
         Row: {
           attendance_status: string
@@ -576,6 +612,7 @@ export type Database = {
           price: string | null
           reservation_cta_label: string
           status: string
+          sub_category_ids: string[]
           ticketing_mode: string
           tiktok_url: string | null
           title: string
@@ -623,6 +660,7 @@ export type Database = {
           price?: string | null
           reservation_cta_label?: string
           status?: string
+          sub_category_ids?: string[]
           ticketing_mode?: string
           tiktok_url?: string | null
           title: string
@@ -670,6 +708,7 @@ export type Database = {
           price?: string | null
           reservation_cta_label?: string
           status?: string
+          sub_category_ids?: string[]
           ticketing_mode?: string
           tiktok_url?: string | null
           title?: string
@@ -1163,6 +1202,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "public_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_orders: {
         Row: {
           attendance_status: string
@@ -1595,6 +1670,7 @@ export type Database = {
           wait_seconds: number
         }[]
       }
+      purge_expired_event_drafts: { Args: never; Returns: number }
       redeem_invitation: {
         Args: { _token: string }
         Returns: {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSubCategories } from "@/hooks/use-sub-categories";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, MapPin, Calendar, Filter, Grid3X3, List, SlidersHorizontal } from "lucide-react";
@@ -49,6 +50,15 @@ const Events = () => {
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const isMobile = useIsMobile();
+  const { data: allSubCategories = [] } = useSubCategories();
+  const activeSub = searchParams.get("sub") || "";
+  const urlCategory = searchParams.get("category") || "all";
+  const visibleSubs = allSubCategories.filter((sc) => sc.category_id === urlCategory);
+  const pickSub = (id: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (id) params.set("sub", id); else params.delete("sub");
+    setSearchParams(params);
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -75,7 +85,7 @@ const Events = () => {
     setLoading(true);
     let query = supabase
       .from("events")
-      .select("id, title, date, end_date, location, city, image_url, price, currency, attendees_count, is_live, visibility, categories(name)")
+      .select("id, title, date, end_date, location, city, image_url, price, currency, attendees_count, is_live, visibility, sub_category_ids, categories(name)")
       .eq("is_published", true)
       .eq("visibility", "public")
       .gte("date", startOfTodayISO())
@@ -88,6 +98,8 @@ const Events = () => {
 
     if (category && category !== "all") {
       query = query.eq("category_id", category);
+      const sub = searchParams.get("sub");
+      if (sub) query = query.contains("sub_category_ids", [sub]);
     }
     if (city) {
       query = query.ilike("city", `%${city}%`);
@@ -127,6 +139,7 @@ const Events = () => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("q", search.trim());
     if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (selectedCategory !== "all" && selectedCategory === urlCategory && activeSub) params.set("sub", activeSub);
     if (selectedCity.trim()) params.set("city", selectedCity.trim());
     if (selectedDate) params.set("date", selectedDate);
     setSearchParams(params);
@@ -231,6 +244,19 @@ const Events = () => {
               </div>
             )}
           </div>
+
+          {visibleSubs.length > 0 && (
+            <div className="-mt-4 mb-6 flex items-center gap-2 overflow-x-auto pb-2">
+              <Badge variant={!activeSub ? "default" : "outline"} className="shrink-0 cursor-pointer text-xs" onClick={() => pickSub("")}>
+                Toutes
+              </Badge>
+              {visibleSubs.map((sc) => (
+                <Badge key={sc.id} variant={activeSub === sc.id ? "default" : "outline"} className="shrink-0 cursor-pointer text-xs" onClick={() => pickSub(sc.id)}>
+                  {sc.name}
+                </Badge>
+              ))}
+            </div>
+          )}
 
           {loading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
