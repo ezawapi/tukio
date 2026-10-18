@@ -4,6 +4,6 @@
 - [x] Vérifier les fiches publiées et les images dans l’application.
 
 # Modification & brouillons
-- [ ] Page de modification qui se réinitialise seule (corriger)
-- [ ] Brouillon automatique par utilisateur, supprimé après 48 h
-- [ ] Sous-catégories liées aux catégories (admin, formulaires, fiche, filtre)
+- [x] Page de modification qui se réinitialise seule (corriger)
+- [x] Brouillon automatique par utilisateur, supprimé après 48 h
+- [x] Sous-catégories liées aux catégories (admin, formulaires, fiche, filtre)
