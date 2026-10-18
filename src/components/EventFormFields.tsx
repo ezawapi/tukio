@@ -33,7 +33,7 @@ interface EventFormFieldsProps {
   form: Record<string, any>;
   categories: { id: string; name: string }[];
   userId?: string;
-  onChange: (field: string, value: string | boolean) => void;
+  onChange: (field: string, value: any) => void;
   showAdminFields?: boolean;
 }
 
@@ -55,7 +55,14 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label className="font-body">Catégorie</Label>
-          <Select value={form.category_id || "none"} onValueChange={(v) => onChange("category_id", v === "none" ? "" : v)}>
+          <Select
+            value={form.category_id || "none"}
+            onValueChange={(v) => {
+              const next = v === "none" ? "" : v;
+              if (next !== form.category_id) onChange("sub_category_ids", []);
+              onChange("category_id", next);
+            }}
+          >
             <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Aucune</SelectItem>

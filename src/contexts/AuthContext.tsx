@@ -24,10 +24,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Keep the same `user` object when nothing meaningful changed. Supabase
+    // re-emits the session on token refresh and when the tab regains focus;
+    // a new object identity there re-ran page effects and wiped open forms.
+    const applyUser = (next: User | null) =>
+      setUser((prev) => {
+        if (prev && next && prev.id === next.id && JSON.stringify(prev) === JSON.stringify(next)) return prev;
+        return next;
+      });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        applyUser(session?.user ?? null);
         setLoading(false);
       }
     );
@@ -38,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        applyUser(session?.user ?? null);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
