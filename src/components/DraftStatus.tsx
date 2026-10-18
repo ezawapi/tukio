@@ -1,4 +1,4 @@
-import { CloudCheck, History, Loader2, RotateCcw } from "lucide-react";
+import { Check, History, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DraftState } from "@/hooks/use-event-draft";
 
@@ -22,7 +22,7 @@ const DraftStatus = ({ draft }: { draft: DraftState }) => {
           <><Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Enregistrement du brouillon…</>
         ) : (
           <>
-            <CloudCheck className="h-3.5 w-3.5 text-primary" />
+            <Check className="h-3.5 w-3.5 text-primary" />
             {draft.restoredAt ? "Brouillon restauré" : "Brouillon enregistré"}
             {draft.savedAt && <> · {fmt(draft.savedAt)}</>}
             {draft.expiresAt && <span className="text-muted-foreground"> · supprimé le {fmt(draft.expiresAt)}</span>}
