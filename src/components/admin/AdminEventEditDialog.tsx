@@ -1,5 +1,8 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import DraftStatus from "@/components/DraftStatus";
+import { useEventDraft } from "@/hooks/use-event-draft";
+import { useAuth } from "@/contexts/AuthContext";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +36,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
       title: event.title || "",
       description: event.description || "",
       category_id: event.category_id || "",
+      sub_category_ids: event.sub_category_ids || [],
       organizer_name: event.organizer_name || "",
       organizer_logo_url: event.organizer_logo_url || "",
       organizer_url: event.organizer_url || "",
@@ -69,19 +73,36 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
     [event],
   );
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<Record<string, any>>(initialForm);
+  const [formReady, setFormReady] = useState(false);
+  const { user } = useAuth();
+  const wasOpen = useRef(false);
 
+  // Reset the form only when the dialog opens — never while the admin is typing,
+  // even if the events list refreshes in the background.
   useEffect(() => {
-    if (!open) return;
-    setForm(initialForm);
-    const fetchCategories = async () => {
-      const { data } = await supabase.from("public_categories").select("id, name").order("name");
-      setCategories(data || []);
-    };
-    fetchCategories();
-  }, [initialForm, open]);
+    if (open && !wasOpen.current) {
+      setForm(initialForm);
+      setFormReady(true);
+      supabase.from("public_categories").select("id, name").order("name")
+        .then(({ data }) => setCategories(data || []));
+    }
+    if (!open) setFormReady(false);
+    wasOpen.current = open;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const draft = useEventDraft({
+    draftKey: `edit:${event.id}`,
+    userId: user?.id,
+    form,
+    setForm,
+    ready: formReady,
+    eventId: event.id,
+    enabled: open,
+  });
+
+  const handleChange = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -94,11 +115,13 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
         title: form.title,
         description: form.description || null,
         category_id: form.category_id || null,
+        sub_category_ids: form.category_id ? form.sub_category_ids || [] : [],
         organizer_name: form.organizer_name || null,
         organizer_logo_url: form.organizer_logo_url || null,
         organizer_url: normalizeOrganizerUrl(form.organizer_url),
         date: new Date(form.date).toISOString(),
         end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
+        venue_name: form.venue_name || null,
         location: form.location,
         city: form.city,
         price: isFree ? "Gratuit" : form.price,
@@ -108,6 +131,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
         status: form.status,
         is_published: form.is_published === true || form.is_published === "true",
         is_live: form.is_live === true || form.is_live === "true",
+        live_url: form.is_live ? form.live_url || null : null,
         image_url: form.image_url || null,
         image_url2: form.image_url2 || null,
         ticketing_mode: form.ticketing_mode,
@@ -135,6 +159,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
       return;
     }
 
+    await draft.clear();
     toast({ title: "Activité mise à jour" });
     setOpen(false);
     onSaved();
@@ -155,9 +180,12 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
           </DialogDescription>
         </DialogHeader>
 
+        <DraftStatus draft={draft} />
+
         <EventFormFields
           form={form}
           categories={categories}
+          userId={user?.id}
           onChange={handleChange}
           showAdminFields
         />
