@@ -106,7 +106,6 @@ const AdminDashboard = () => {
   const fetchCategories = async () => { const { data } = await supabase.from("categories").select("id, name").order("name"); setCategories(data || []); };
   const fetchEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").order("created_at", { ascending: false }); setEvents(data || []); };
   const fetchPendingEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").eq("status", "pending").order("created_at", { ascending: false }); setPendingEvents(data || []); };
-  const fetchNotifications = async () => { const { data } = await supabase.from("admin_notifications").select("*, events(title, organizer_name)").eq("is_read", false).order("created_at", { ascending: false }); setNotifications(data || []); };
   const fetchAdStats = async () => { const { count: total } = await supabase.from("ads").select("*", { count: "exact", head: true }); const { count: active } = await supabase.from("ads").select("*", { count: "exact", head: true }).eq("is_active", true); setAdStats({ total: total || 0, active: active || 0 }); };
   const fetchAdAnalytics = async () => {
     const { data } = await supabase.from("ad_analytics").select("ad_id, event_type, created_at, ads(title)").order("created_at", { ascending: false }).limit(200);
@@ -117,7 +116,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const markAsRead = async (notifId: string) => { await supabase.from("admin_notifications").update({ is_read: true }).eq("id", notifId); fetchNotifications(); };
   const deleteEvent = async (eventId: string) => { const { error } = await supabase.from("events").delete().eq("id", eventId); if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" }); else { toast({ title: "Événement supprimé" }); fetchAll(); } };
   const approveEvent = async (eventId: string) => { await supabase.from("events").update({ status: "approved", is_published: true, last_reviewed_at: new Date().toISOString(), updated_by_admin: true }).eq("id", eventId); toast({ title: "Événement approuvé !" }); fetchAll(); };
   const rejectEvent = async (eventId: string) => { await supabase.from("events").update({ status: "rejected", is_published: false, last_reviewed_at: new Date().toISOString(), updated_by_admin: true }).eq("id", eventId); toast({ title: "Événement rejeté" }); fetchAll(); };
