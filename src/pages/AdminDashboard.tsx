@@ -103,7 +103,7 @@ const AdminDashboard = () => {
     });
     setCampaigns(camps.map((c: any) => ({ ...c, stats: stats.get(c.id) || { sent: 0, opened: 0, clicked: 0, failed: 0 } })));
   };
-  const fetchCategories = async () => { const { data } = await supabase.from("categories").select("id, name").order("name"); setCategories(data || []); };
+  const fetchCategories = async () => { const { data } = await supabase.from("public_categories").select("id, name").order("name"); setCategories(data || []); };
   const fetchEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").order("created_at", { ascending: false }); setEvents(data || []); };
   const fetchPendingEvents = async () => { const { data } = await supabase.from("events").select("*, categories(name)").eq("status", "pending").order("created_at", { ascending: false }); setPendingEvents(data || []); };
   const fetchAdStats = async () => { const { count: total } = await supabase.from("ads").select("*", { count: "exact", head: true }); const { count: active } = await supabase.from("ads").select("*", { count: "exact", head: true }).eq("is_active", true); setAdStats({ total: total || 0, active: active || 0 }); };

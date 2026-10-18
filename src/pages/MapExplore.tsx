@@ -69,7 +69,7 @@ const MapExplore = () => {
       setLoading(false);
     };
     const fetchCategories = async () => {
-      const { data } = await supabase.from("categories").select("id, name").order("name");
+      const { data } = await supabase.from("public_categories").select("id, name").order("name");
       setCategories(data || []);
     };
     fetchEvents();

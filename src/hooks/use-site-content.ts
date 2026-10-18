@@ -26,7 +26,7 @@ const saveToStorage = (data: ContentMap) => {
 const fetchFromNetwork = async (): Promise<ContentMap> => {
   if (inflight) return inflight;
   inflight = (async () => {
-    const { data } = await supabase.from("site_content").select("key, value");
+    const { data } = await supabase.from("public_site_content").select("key, value");
     const map: ContentMap = {};
     (data || []).forEach((row: any) => { map[row.key] = row.value; });
     memoryCache = map;

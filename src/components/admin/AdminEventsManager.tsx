@@ -52,7 +52,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
   const fetchAll = async () => {
     const [{ data: ev }, { data: cats }, { data: parts }] = await Promise.all([
       supabase.from("events").select("*").order("date", { ascending: false }),
-      supabase.from("categories").select("id, name").order("name"),
+      supabase.from("public_categories").select("id, name").order("name"),
       supabase.from("event_participations").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
     setEvents(ev || []);
