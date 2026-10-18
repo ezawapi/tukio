@@ -65,6 +65,11 @@ export function useEventDraft<T extends Record<string, any>>({
     setExpiresAt(null);
   }, [draftKey, userId]);
 
+  // Closing a dialog (ready=false) allows the draft to be re-read on reopen.
+  useEffect(() => {
+    if (!ready) loadedRef.current = false;
+  }, [ready]);
+
   // Load an existing draft once the base form is ready.
   useEffect(() => {
     if (!ready || !enabled || !userId || loadedRef.current) return;
