@@ -20,7 +20,7 @@
 - [ ] Soumettre le sitemap à Google Search Console : le compte accessible possède EzaWapi, mais aucune propriété Tukio vérifiée ; autorisation/vérification Tukio nécessaire après publication.
 
 # Installation native
-- [ ] Préparer Capacitor pour Android et iOS, et Electron pour Windows, macOS et Linux.
-- [ ] Adapter Installer au système, avec uniquement des liens de versions réellement disponibles.
-- [ ] Vérifier la détection des appareils et le parcours de téléchargement.
+- [x] Préparer Capacitor pour Android et iOS, et Electron pour Windows, macOS et Linux.
+- [x] Adapter Installer au système, avec uniquement des liens de versions réellement disponibles.
+- [x] Vérifier la détection et l'ouverture du dialogue sur Android et Windows ; 9 tests passent, aucun téléchargement fictif.
 - [ ] Distribuer les versions signées : comptes boutiques, certificats et compilation sur les outils natifs requis.
