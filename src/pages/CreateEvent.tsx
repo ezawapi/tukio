@@ -1,4 +1,6 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
+import { normalizeVenueUrl, VENUE_URL_ERROR } from "@/lib/venue-link";
+import VenueLinkField from "@/components/VenueLinkField";
 import { useState, useEffect } from "react";
 import MobileTabBar from "@/components/MobileTabBar";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +58,7 @@ const CreateEvent = () => {
     date: "",
     end_date: "",
     venue_name: "",
+    venue_url: "",
     location: "",
     city: "",
     price: "Gratuit",
@@ -107,6 +110,11 @@ const CreateEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const venueUrl = normalizeVenueUrl(form.venue_url);
+    if (form.venue_url?.trim() && !venueUrl) {
+      toast({ title: "Lien du lieu invalide", description: VENUE_URL_ERROR, variant: "destructive" });
+      return;
+    }
 
     if (form.ticketing_mode === "external" && !form.external_ticket_url.trim()) {
       toast({ title: "Lien requis", description: "Ajoutez un lien vers votre plateforme de réservation.", variant: "destructive" });
@@ -129,6 +137,7 @@ const CreateEvent = () => {
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
       venue_name: form.venue_name || null,
+      venue_url: venueUrl,
       location: form.location,
       city: form.city,
       price: form.price,
@@ -292,13 +301,17 @@ const CreateEvent = () => {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body">Adresse *</Label>
-                        <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} required placeholder="Avenue de la Libération, n°12" />
+                        <Input value={form.location} onChange={(e) => handleChange("location", e.target.value)} onPaste={(e) => {
+                          const url = normalizeVenueUrl(e.clipboardData.getData("text"));
+                          if (url) { e.preventDefault(); handleChange("venue_url", url); }
+                        }} required placeholder="Adresse ou lien du lieu EzaWapi" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-body">Ville *</Label>
                         <Input value={form.city} onChange={(e) => handleChange("city", e.target.value)} required placeholder="Kinshasa, Abidjan..." />
                       </div>
                     </div>
+                    <VenueLinkField value={form.venue_url} onChange={(value) => handleChange("venue_url", value)} />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="font-body">Latitude</Label>

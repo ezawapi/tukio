@@ -1,4 +1,5 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
+import { normalizeVenueUrl, VENUE_URL_ERROR } from "@/lib/venue-link";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
@@ -86,6 +87,7 @@ const EditEvent = () => {
       date: toDateTimeLocal(data.date),
       end_date: toDateTimeLocal(data.end_date),
       venue_name: data.venue_name || "",
+      venue_url: data.venue_url || "",
       location: data.location || "",
       city: data.city || "",
       price: data.price || "Gratuit",
@@ -124,6 +126,11 @@ const EditEvent = () => {
     e.preventDefault();
     if (!id || !userId) return;
 
+    const venueUrl = normalizeVenueUrl(form.venue_url);
+    if (form.venue_url?.trim() && !venueUrl) {
+      toast({ title: "Lien du lieu invalide", description: VENUE_URL_ERROR, variant: "destructive" });
+      return;
+    }
     const logo = (form.organizer_logo_url || "").trim();
     if (logo && !/^https?:\/\/.+/i.test(logo)) {
       toast({ title: "Logo invalide", description: "L'URL du logo doit commencer par http:// ou https://", variant: "destructive" });
@@ -144,6 +151,7 @@ const EditEvent = () => {
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
       venue_name: form.venue_name || null,
+      venue_url: venueUrl,
       location: form.location,
       city: form.city,
       price: isFree ? "Gratuit" : form.price,

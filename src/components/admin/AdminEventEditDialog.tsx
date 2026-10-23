@@ -1,4 +1,5 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
+import { normalizeVenueUrl, VENUE_URL_ERROR } from "@/lib/venue-link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import DraftStatus from "@/components/DraftStatus";
 import { useEventDraft } from "@/hooks/use-event-draft";
@@ -44,6 +45,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
       end_date: toDateTimeLocal(event.end_date),
       location: event.location || "",
       venue_name: event.venue_name || "",
+      venue_url: event.venue_url || "",
       city: event.city || "",
       price: event.price || "",
       currency: event.currency || "FCFA",
@@ -107,6 +109,11 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
   };
 
   const handleSave = async () => {
+    const venueUrl = normalizeVenueUrl(form.venue_url);
+    if (form.venue_url?.trim() && !venueUrl) {
+      toast({ title: "Lien du lieu invalide", description: VENUE_URL_ERROR, variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const isFree = !form.price || form.price === "Gratuit" || form.price === "0";
     const { error } = await supabase
@@ -122,6 +129,7 @@ const AdminEventEditDialog = ({ event, onSaved }: AdminEventEditDialogProps) => 
         date: new Date(form.date).toISOString(),
         end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
         venue_name: form.venue_name || null,
+        venue_url: venueUrl,
         location: form.location,
         city: form.city,
         price: isFree ? "Gratuit" : form.price,

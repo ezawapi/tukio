@@ -620,6 +620,7 @@ export type Database = {
           updated_at: string
           updated_by_admin: boolean
           venue_name: string | null
+          venue_url: string | null
           visibility: string
           website_url: string | null
           whatsapp: string | null
@@ -668,6 +669,7 @@ export type Database = {
           updated_at?: string
           updated_by_admin?: boolean
           venue_name?: string | null
+          venue_url?: string | null
           visibility?: string
           website_url?: string | null
           whatsapp?: string | null
@@ -716,6 +718,7 @@ export type Database = {
           updated_at?: string
           updated_by_admin?: boolean
           venue_name?: string | null
+          venue_url?: string | null
           visibility?: string
           website_url?: string | null
           whatsapp?: string | null

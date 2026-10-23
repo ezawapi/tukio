@@ -1,4 +1,5 @@
 import { isExternalLink } from "@/lib/organizer-link";
+import VenueLinkButton from "@/components/VenueLinkButton";
 import { useSubCategories } from "@/hooks/use-sub-categories";
 import { useState, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
@@ -473,6 +474,7 @@ const EventDetail = () => {
                       {event.venue_name && <p className="font-body font-bold text-foreground">{event.venue_name}</p>}
                       <p className="font-body text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
+                      <VenueLinkButton url={event.venue_url} venueName={event.venue_name} />
                       {eventDistanceKm != null && (
                         <Badge variant="secondary" className="mt-1 gap-1 text-[10px]">
                           <Navigation className="h-3 w-3 text-primary" /> {formatDistance(eventDistanceKm)} de vous
@@ -802,6 +804,7 @@ const EventDetail = () => {
                       )}
                       <p className="font-body text-foreground">{event.location}</p>
                       <p className="font-body text-muted-foreground">{event.city}</p>
+                      <VenueLinkButton url={event.venue_url} venueName={event.venue_name} />
                       {eventDistanceKm != null && (
                         <Badge variant="secondary" className="mt-1 gap-1 text-[10px]">
                           <Navigation className="h-3 w-3 text-primary" /> {formatDistance(eventDistanceKm)} de vous

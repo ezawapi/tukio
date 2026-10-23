@@ -1,4 +1,5 @@
 import { normalizeOrganizerUrl } from "@/lib/organizer-link";
+import { normalizeVenueUrl, VENUE_URL_ERROR } from "@/lib/venue-link";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Plus, Trash2, Eye, Users, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +26,7 @@ import { useEventDraft } from "@/hooks/use-event-draft";
 const PER_PAGE = 15;
 
 const emptyForm = {
+  venue_url: "",
   sub_category_ids: [] as string[],
   title: "", description: "", category_id: "", organizer_name: "", organizer_logo_url: "", organizer_url: "",
   date: "", end_date: "", location: "", venue_name: "", city: "", price: "Gratuit", currency: "CDF",
@@ -78,6 +80,11 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
     setForm((prev: any) => ({ ...prev, [field]: value }));
 
   const createEvent = async () => {
+    const venueUrl = normalizeVenueUrl(form.venue_url);
+    if (form.venue_url?.trim() && !venueUrl) {
+      toast({ title: "Lien du lieu invalide", description: VENUE_URL_ERROR, variant: "destructive" });
+      return;
+    }
     if (!form.title || !form.date || !form.location || !form.city) {
       toast({ title: "Champs requis", description: "Titre, date, adresse et ville sont obligatoires.", variant: "destructive" });
       return;
@@ -92,6 +99,7 @@ const AdminEventsManager = ({ userId }: { userId?: string }) => {
       date: new Date(form.date).toISOString(),
       end_date: form.end_date ? new Date(form.end_date).toISOString() : null,
       venue_name: form.venue_name || null,
+      venue_url: venueUrl,
       location: form.location,
       city: form.city,
       price: isFree ? "Gratuit" : form.price,
