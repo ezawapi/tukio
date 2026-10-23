@@ -12,3 +12,9 @@
 - [x] Ajouter le lien du lieu aux formulaires, aux enregistrements et aux brouillons.
 - [x] Réserver les liens à ezawapi.cd et afficher le bouton sur les fiches.
 - [x] Vérifier la validation et le parcours de modification.
+
+# Indexation Google
+- [ ] Améliorer les titres, descriptions et adresses officielles des pages publiques.
+- [ ] Compléter le sitemap avec les événements publics publiés.
+- [ ] Vérifier les informations structurées et exclure les pages privées.
+- [ ] Vérifier Search Console ou préciser l’accès manquant.
