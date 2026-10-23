@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Separator } from "@/components/ui/separator";
 import { Mail } from "lucide-react";
+import { isConfirmedSignup, signupCodeSchema, signupVerificationInput } from "@/lib/signup-confirmation";
 
 
 const emailSchema = z
@@ -122,6 +123,29 @@ const Auth = () => {
   const [forgotMode, setForgotMode] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  const [confirmationCode, setConfirmationCode] = useState("");
+  const [confirmationBusy, setConfirmationBusy] = useState(false);
+  const [confirmationError, setConfirmationError] = useState("");
+
+  const verifyConfirmationCode = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!pendingEmail || resetSent || confirmationBusy) return;
+    const parsed = signupCodeSchema.safeParse(confirmationCode);
+    if (!parsed.success) { setConfirmationError(parsed.error.issues[0].message); return; }
+    setConfirmationBusy(true);
+    setConfirmationError("");
+    try {
+      const { data, error } = await supabase.auth.verifyOtp(signupVerificationInput(pendingEmail, parsed.data));
+      if (error) throw error;
+      if (!isConfirmedSignup(data)) throw new Error("La confirmation n’a pas abouti. Utilisez le lien reçu ou demandez un nouvel email.");
+      setPassword("");
+      resetLocalRateLimit();
+      toast({ title: "Email confirmé", description: "Votre adresse email est vérifiée." });
+      // AuthContext receives the verified session and performs the normal redirect.
+    } catch {
+      setConfirmationError("Code invalide ou expiré. Vérifiez le dernier email reçu, ou renvoyez un email de confirmation.");
+    } finally { setConfirmationBusy(false); }
+  };
 
   useEffect(() => {
     formStartedAt.current = Date.now();
@@ -129,6 +153,10 @@ const Auth = () => {
 
 
   const resendConfirmation = async (target: string) => {
+    if (confirmationBusy) return;
+    setConfirmationBusy(true);
+    setConfirmationError("");
+    try {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: target,
@@ -138,7 +166,11 @@ const Auth = () => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Email renvoyé", description: "Un nouveau lien de confirmation vient d’être envoyé." });
+      setConfirmationCode("");
     }
+    } catch {
+      setConfirmationError("L’envoi a échoué. Réessayez dans un instant.");
+    } finally { setConfirmationBusy(false); }
   };
 
 
@@ -234,6 +266,10 @@ const Auth = () => {
 
             if (resendError) throw resendError;
 
+            setPendingEmail(cleanEmail);
+            setResetSent(false);
+            setPassword("");
+
             toast({
               title: "Email non confirmé",
               description: "Un nouveau lien de confirmation vient d’être envoyé à votre adresse email.",
@@ -266,6 +302,10 @@ const Auth = () => {
 
             if (resendError) throw resendError;
 
+            setPendingEmail(cleanEmail);
+            setResetSent(false);
+            setPassword("");
+
             toast({
               title: "Compte déjà existant",
               description: "Un nouveau lien de confirmation a été envoyé à votre email.",
@@ -278,6 +318,7 @@ const Auth = () => {
 
         setPendingEmail(cleanEmail);
         setResetSent(false);
+        setPassword("");
         toast({
           title: "Inscription créée",
           description: "Vérifiez votre email puis cliquez sur le lien de confirmation pour activer votre compte.",
@@ -314,15 +355,29 @@ const Auth = () => {
             <p className="font-body text-sm text-muted-foreground">
               {resetSent
                 ? "Ouvrez le lien reçu pour définir un nouveau mot de passe. Pensez à vérifier vos spams."
-                : "Cliquez sur le lien reçu pour activer votre compte. Pensez à vérifier vos spams."}
+                : "Votre compte reste non confirmé jusqu’à validation du lien reçu par email. Pensez à vérifier vos spams."}
             </p>
+            {!resetSent && (
+              <form onSubmit={verifyConfirmationCode} className="space-y-3">
+                <Label htmlFor="confirmation-code">Code de confirmation (si présent dans l’email)</Label>
+                <Input id="confirmation-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8}
+                  value={confirmationCode} onChange={e => { setConfirmationCode(e.target.value); setConfirmationError(""); }}
+                  placeholder="Code reçu par email" aria-invalid={Boolean(confirmationError)} aria-describedby="confirmation-help confirmation-error" disabled={confirmationBusy} />
+                <p id="confirmation-help" className="text-xs text-muted-foreground">Si votre email contient seulement un lien, cliquez dessus : il confirme aussi votre adresse.</p>
+                <p id="confirmation-error" role="alert" className="text-sm text-destructive">{confirmationError}</p>
+                <Button type="submit" className="w-full" disabled={confirmationBusy || !confirmationCode.trim()}>
+                  {confirmationBusy ? "Vérification…" : "Confirmer mon email"}
+                </Button>
+              </form>
+            )}
             {!resetSent && (
               <Button
                 variant="outline"
                 className="w-full font-body"
                 onClick={() => resendConfirmation(pendingEmail)}
+                disabled={confirmationBusy}
               >
-                Renvoyer le lien
+                Renvoyer l’email de confirmation
               </Button>
             )}
             <Button
@@ -333,6 +388,8 @@ const Auth = () => {
                 setForgotMode(false);
                 setIsLogin(true);
                 setPassword("");
+                setConfirmationCode("");
+                setConfirmationError("");
               }}
             >
               Retour à la connexion

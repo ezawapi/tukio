@@ -24,3 +24,9 @@
 - [x] Adapter Installer au système, avec uniquement des liens de versions réellement disponibles.
 - [x] Vérifier la détection et l'ouverture du dialogue sur Android et Windows ; 9 tests passent, aucun téléchargement fictif.
 - [ ] Distribuer les versions signées : comptes boutiques, certificats et compilation sur les outils natifs requis.
+
+# Confirmation d’inscription
+- [x] Vérifier les réglages hébergés : email activé, inscriptions autorisées, mailer_autoconfirm=false ; envoi par défaut, aucun domaine d’envoi configuré.
+- [x] Permettre la confirmation par lien ou code signup si fourni, et le renvoi depuis l’écran d’inscription et de connexion non confirmée.
+- [x] 19 tests passent ; parcours simulé : code court rejeté, code invalide refusé, utilisateur toujours sur /auth ; aucune erreur de page.
+- [ ] Envoyer explicitement le code dans un email personnalisé et vérifier la réception puis une confirmation réelle : configuration du domaine d’envoi et adresse de test autorisée nécessaires.
