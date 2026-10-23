@@ -1,5 +1,6 @@
 import { isExternalLink } from "@/lib/organizer-link";
 import VenueLinkButton from "@/components/VenueLinkButton";
+import { isIndexableEvent, safeJsonLd } from "@/lib/page-seo";
 import { useSubCategories } from "@/hooks/use-sub-categories";
 import { useState, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
@@ -260,6 +261,7 @@ const EventDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet><meta name="robots" content="noindex, follow" /></Helmet>
         <Navbar />
         <div className="container mx-auto px-4 pt-20">
           <div className="animate-pulse space-y-4">
@@ -275,6 +277,7 @@ const EventDetail = () => {
   if (!event) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet><title>Événement introuvable | Tukio</title><meta name="robots" content="noindex, follow" /></Helmet>
         <Navbar />
         <div className="container mx-auto px-4 py-20 pt-20 text-center">
           <h1 className="font-display text-2xl text-foreground sm:text-3xl">Événement non trouvé</h1>
@@ -327,10 +330,11 @@ const EventDetail = () => {
     description: seoDescription,
     image: seoImage,
     url: eventUrl,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",
       name: event.venue_name || event.location || event.city || "À définir",
-      address: [event.location, event.city].filter(Boolean).join(", ") || undefined,
+      address: { "@type": "PostalAddress", streetAddress: event.location || undefined, addressLocality: event.city || undefined },
     },
     ...(event.organizer_name || organizerProfile?.display_name
       ? { organizer: { "@type": "Organization", name: event.organizer_name || organizerProfile?.display_name } }
@@ -341,6 +345,7 @@ const EventDetail = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>{seoTitle}</title>
+        <meta name="robots" content={isIndexableEvent(event) ? "index, follow, max-image-preview:large" : "noindex, follow"} />
         <meta name="description" content={seoDescription} />
         <link rel="canonical" href={eventUrl} />
         <meta property="og:title" content={seoTitle} />
@@ -352,7 +357,7 @@ const EventDetail = () => {
         <meta name="twitter:title" content={seoTitle} />
         <meta name="twitter:description" content={seoDescription} />
         <meta name="twitter:image" content={seoImage} />
-        <script type="application/ld+json">{JSON.stringify(eventJsonLd)}</script>
+        {isIndexableEvent(event) && <script type="application/ld+json">{safeJsonLd(eventJsonLd)}</script>}
       </Helmet>
       <Navbar />
       <div className="pb-16 pt-20">

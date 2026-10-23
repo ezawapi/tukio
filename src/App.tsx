@@ -10,6 +10,7 @@ import Index from "./pages/Index.tsx";
 import SplashScreen from "./components/SplashScreen.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import OnboardingGate from "./components/OnboardingGate.tsx";
+import PageSeo from "./components/PageSeo";
 
 const Events = lazy(() => import("./pages/Events.tsx"));
 const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
@@ -61,6 +62,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <PageSeo />
           <OnboardingGate />
           <Suspense fallback={<PageFallback />}>
             <Routes>
