@@ -1,50 +1,27 @@
 import { useState, useEffect } from "react";
-import { Download, Smartphone, Monitor, Bell, Info, MapPin, Calendar as CalendarIcon, Sun, Moon, Type, Languages } from "lucide-react";
+import { Smartphone, Bell, Info, MapPin, Calendar as CalendarIcon, Sun, Moon, Type, Languages } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileTabBar from "@/components/MobileTabBar";
-import { Button } from "@/components/ui/button";
+import NativeInstaller from "@/components/NativeInstaller";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LocationPicker from "@/components/LocationPicker";
-import { useUserLocation } from "@/hooks/use-user-location";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation, LANGUAGES } from "@/contexts/I18nContext";
 import type { Lang } from "@/contexts/I18nContext";
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
 const Settings = () => {
   const { toast } = useToast();
   const { t, lang, setLang } = useTranslation();
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
   const [nearbyNotif, setNearbyNotif] = useState(() => localStorage.getItem("tukio_notify_nearby") === "true");
   const [reminderDays, setReminderDays] = useState(() => localStorage.getItem("tukio_reminder_days") || "1");
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("tukio_dark_mode") === "true" || document.documentElement.classList.contains("dark"));
   const [textSize, setTextSize] = useState(() => localStorage.getItem("tukio_text_size") || "medium");
-
-  useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
-    setIsStandalone(standalone);
-    setIsInstalled(standalone);
-    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e as BeforeInstallPromptEvent); };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-      toast({ title: t("settings.installed") });
-    });
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
 
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
@@ -59,14 +36,6 @@ const Settings = () => {
     else if (textSize === "large") root.classList.add("text-size-large");
     localStorage.setItem("tukio_text_size", textSize);
   }, [textSize]);
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-    }
-  };
 
   const toggleNearbyNotif = (checked: boolean) => {
     setNearbyNotif(checked);
@@ -96,8 +65,6 @@ const Settings = () => {
     { value: "medium", label: t("settings.size_medium") },
     { value: "large", label: t("settings.size_large") },
   ];
-
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   return (
     <div className="min-h-screen bg-background">
@@ -174,47 +141,7 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isInstalled || isStandalone ? (
-                <div className="flex items-center gap-3 rounded-xl bg-primary/10 p-3">
-                  <Download className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-body font-semibold text-foreground text-sm">{t("settings.installed")}</p>
-                    <p className="font-body text-xs text-muted-foreground">{t("settings.installed_desc")}</p>
-                  </div>
-                </div>
-              ) : deferredPrompt ? (
-                <div className="space-y-3">
-                  <p className="font-body text-sm text-muted-foreground">{t("settings.install_desc")}</p>
-                  <Button onClick={handleInstall} className="w-full gradient-hero text-primary-foreground border-0 gap-2">
-                    <Download className="h-4 w-4" /> {t("settings.install_btn")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="font-body text-sm text-muted-foreground">{t("settings.install_browser")}</p>
-                  {isIOS ? (
-                    <div className="rounded-xl border border-border bg-muted/50 p-3 space-y-2">
-                      <p className="font-body text-sm font-semibold text-foreground">📱 iPhone / iPad</p>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-border bg-muted/50 p-3 space-y-2">
-                      <p className="font-body text-sm font-semibold text-foreground">📱 Android / Desktop</p>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="rounded-lg border border-border p-2 text-center">
-                  <Monitor className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <p className="font-body text-[10px] text-muted-foreground">{t("settings.computer")}</p>
-                  <Badge variant="outline" className="mt-0.5 text-[9px]">{t("settings.compatible")}</Badge>
-                </div>
-                <div className="rounded-lg border border-border p-2 text-center">
-                  <Smartphone className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <p className="font-body text-[10px] text-muted-foreground">{t("settings.mobile")}</p>
-                  <Badge variant="outline" className="mt-0.5 text-[9px]">{t("settings.compatible")}</Badge>
-                </div>
-              </div>
+              <NativeInstaller />
             </CardContent>
           </Card>
 
