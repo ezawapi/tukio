@@ -4,3 +4,5 @@
 - Page effects that load form data must key on `user?.id` (never the `user` object) and load once per record — auth re-emits the session on focus/token refresh, which used to wipe open forms.
 - Sub-categories live in `sub_categories` (FK to `categories`) and events reference them via `events.sub_category_ids uuid[]`; pick them with `SubCategoryPicker`, read them with `useSubCategories` — one cached list filtered client-side.
 - Store venue links separately in `events.venue_url`; use the shared venue-link validator, field and button across event forms and details, with a database constraint as the final enforcement layer, so addresses and map data remain intact.
+- Public static routes use PageSeo and the shared page-seo registry; event details own loaded-state metadata and only approved, published, public events emit Event JSON-LD. Keep canonical tags out of index.html to avoid duplicate route canonicals.
+- Keep the static public/sitemap.xml synchronized with public routes and approved, published, public event IDs; omit lastmod unless significant page-content timestamps are authoritative.
