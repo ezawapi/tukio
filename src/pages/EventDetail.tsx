@@ -330,7 +330,6 @@ const EventDetail = () => {
     description: seoDescription,
     image: seoImage,
     url: eventUrl,
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",
       name: event.venue_name || event.location || event.city || "À définir",
