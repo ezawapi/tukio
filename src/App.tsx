@@ -1,6 +1,6 @@
 import { useState, useCallback, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,6 +39,7 @@ const Partners = lazy(() => import("./pages/Partners.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
+const AppRouter = window.location.protocol === "file:" ? HashRouter : BrowserRouter;
 
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
 
@@ -61,7 +62,7 @@ const App = () => {
         {showSplash && <SplashScreen onFinish={hideSplash} />}
         <Toaster />
         <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <PageSeo />
           <OnboardingGate />
           <Suspense fallback={<PageFallback />}>
@@ -96,7 +97,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
+        </AppRouter>
       </TooltipProvider>
     </AuthProvider>
     </I18nProvider>

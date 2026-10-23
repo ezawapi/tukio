@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -10,9 +11,17 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "native:sync": "cap sync",
+    "native:android": "cap open android",
+    "native:ios": "cap open ios",
+    "desktop:start": "electron .",
+    "desktop:package": "electron-packager . Tukio --out=/tmp/tukio-desktop-release --overwrite --ignore='^/node_modules' --ignore='^/src' --ignore='^/public' --ignore='^/supabase' --ignore='^/\\.env' --ignore='^/\\.git' --ignore='^/\\.lovable' --ignore='^/android' --ignore='^/ios'"
   },
   "dependencies": {
+    "@capacitor/android": "^7",
+    "@capacitor/core": "^7",
+    "@capacitor/ios": "^7",
     "@fontsource/dm-sans": "^5.2.8",
     "@fontsource/playfair-display": "^5.2.8",
     "@hookform/resolvers": "^3.10.0",
@@ -75,6 +84,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7",
+    "@electron/packager": "^20.3.0",
     "@eslint/js": "^9.32.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.16",
@@ -87,6 +98,7 @@
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "electron": "^35",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

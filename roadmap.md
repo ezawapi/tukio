@@ -18,3 +18,9 @@
 - [x] Compléter le sitemap avec les événements publics publiés (87 événements, 9 pages).
 - [x] Vérifier les informations structurées et exclure les pages privées.
 - [ ] Soumettre le sitemap à Google Search Console : le compte accessible possède EzaWapi, mais aucune propriété Tukio vérifiée ; autorisation/vérification Tukio nécessaire après publication.
+
+# Installation native
+- [x] Préparer Capacitor pour Android et iOS, et Electron pour Windows, macOS et Linux.
+- [x] Adapter Installer au système, avec uniquement des liens de versions réellement disponibles.
+- [x] Vérifier la détection et l'ouverture du dialogue sur Android et Windows ; 9 tests passent, aucun téléchargement fictif.
+- [ ] Distribuer les versions signées : comptes boutiques, certificats et compilation sur les outils natifs requis.
