@@ -7,6 +7,8 @@ import { Phone, Mail, Globe, Facebook, Instagram, Twitter, MessageCircle, Dollar
 import ImageUpload from "@/components/ImageUpload";
 import OrganizerAccountPicker from "@/components/OrganizerAccountPicker";
 import SubCategoryPicker from "@/components/SubCategoryPicker";
+import VenueLinkField from "@/components/VenueLinkField";
+import { normalizeVenueUrl } from "@/lib/venue-link";
 
 const CURRENCIES = [
   { value: "FCFA", label: "FCFA" },
@@ -213,13 +215,17 @@ const EventFormFields = ({ form, categories, userId, onChange, showAdminFields }
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="font-body">Adresse *</Label>
-              <Input value={form.location || ""} onChange={(e) => onChange("location", e.target.value)} required placeholder="Avenue de la Libération, n°12" />
+              <Input value={form.location || ""} onChange={(e) => onChange("location", e.target.value)} onPaste={(e) => {
+                const url = normalizeVenueUrl(e.clipboardData.getData("text"));
+                if (url) { e.preventDefault(); onChange("venue_url", url); }
+              }} required placeholder="Adresse ou lien du lieu EzaWapi" />
             </div>
             <div className="space-y-2">
               <Label className="font-body">Ville *</Label>
               <Input value={form.city || ""} onChange={(e) => onChange("city", e.target.value)} required placeholder="Kinshasa, Abidjan..." />
             </div>
           </div>
+          <VenueLinkField value={form.venue_url} onChange={(value) => onChange("venue_url", value)} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="font-body">Latitude</Label>

@@ -1,0 +1,3 @@
+ALTER TABLE public.events ADD COLUMN venue_url text;
+ALTER TABLE public.events ADD CONSTRAINT events_venue_url_ezawapi CHECK (venue_url IS NULL OR (venue_url ~* '^https://(www\.)?ezawapi\.cd/[^/?#[:space:]\\][^?#[:space:]\\]*$' AND venue_url !~* '%(00|0a|0d|5c)'));
+COMMENT ON COLUMN public.events.venue_url IS 'Optional direct EzaWapi venue page; restricted to HTTPS ezawapi.cd or www.ezawapi.cd, without query or fragment.';

@@ -64,6 +64,13 @@
       "when": 1792322993754,
       "tag": "0008_subcategories_and_event_drafts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792753745012,
+      "tag": "0009_event_venue_ezawapi_link",
+      "breakpoints": true
     }
   ]
 }
