@@ -24,3 +24,8 @@
 - [x] Adapter Installer au système, avec uniquement des liens de versions réellement disponibles.
 - [x] Vérifier la détection et l'ouverture du dialogue sur Android et Windows ; 9 tests passent, aucun téléchargement fictif.
 - [ ] Distribuer les versions signées : comptes boutiques, certificats et compilation sur les outils natifs requis.
+
+# Confirmation d’inscription
+- [ ] Vérifier la confirmation obligatoire et le contenu des emails envoyés.
+- [ ] Permettre la confirmation sécurisée et le renvoi depuis l’écran d’inscription.
+- [ ] Tester les erreurs et vérifier les limites de la livraison réelle d’email.
