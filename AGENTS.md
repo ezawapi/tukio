@@ -9,3 +9,4 @@
 - Native mobile uses Capacitor; enable sandbox hot reload only through TUKIO_NATIVE_PREVIEW, never in store builds, to prevent distributing preview access.
 - Desktop uses a sandboxed CommonJS Electron entry and @electron/packager; relative Vite assets and file-only HashRouter preserve hosted BrowserRouter behavior.
 - Native installation links live in native-releases and remain unavailable until real signed, tested artifacts or approved store URLs exist; device detection never implies release availability.
+- Signup confirmation uses hosted Auth link/OTP verification bound to the email with type signup; never generate local OTPs or claim default emails include a code without inspecting the sender template.
