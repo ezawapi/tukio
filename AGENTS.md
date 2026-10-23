@@ -6,3 +6,6 @@
 - Store venue links separately in `events.venue_url`; use the shared venue-link validator, field and button across event forms and details, with a database constraint as the final enforcement layer, so addresses and map data remain intact.
 - Public static routes use PageSeo and the shared page-seo registry; event details own loaded-state metadata and only approved, published, public events emit Event JSON-LD. Keep canonical tags out of index.html to avoid duplicate route canonicals.
 - Keep the static public/sitemap.xml synchronized with public routes and approved, published, public event IDs; omit lastmod unless significant page-content timestamps are authoritative.
+- Native mobile uses Capacitor; enable sandbox hot reload only through TUKIO_NATIVE_PREVIEW, never in store builds, to prevent distributing preview access.
+- Desktop uses a sandboxed CommonJS Electron entry and @electron/packager; relative Vite assets and file-only HashRouter preserve hosted BrowserRouter behavior.
+- Native installation links live in native-releases and remain unavailable until real signed, tested artifacts or approved store URLs exist; device detection never implies release availability.
